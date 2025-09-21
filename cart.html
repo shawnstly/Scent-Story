@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Scent Story — Cart</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    :root{ --bg:#0B0D10; --surface:#12151A; --text:#EDEDED; --muted:#9aa3ad; --stroke:#2A2F36; --accent:#ffc400; }
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:"Playfair Display",serif}
+    .container{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+    h1{margin:0 0 10px}
+    .muted{color:var(--muted)}
+    .card{background:var(--surface);border:1px solid var(--stroke);border-radius:14px}
+    .card .head{padding:14px 16px;border-bottom:1px solid var(--stroke);display:flex;justify-content:space-between}
+    .card .body{padding:14px 16px}
+    .line{display:grid;grid-template-columns:86px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px dashed #1d2228}
+    .thumb{width:86px;height:86px;border-radius:12px;border:1px solid var(--stroke);object-fit:cover;background:#0f1216}
+    .qty{display:inline-flex;border:1px solid var(--stroke);border-radius:10px}
+    .qty button{width:36px;height:36px;border:0;background:#1a1d22;color:#fff;font-size:18px;cursor:pointer}
+    .qty input{width:56px;height:36px;border:0;background:#0f1216;color:#fff;text-align:center}
+    .sum-row{display:flex;justify-content:space-between;margin:8px 0}
+    .sum-row.total{font-weight:800}
+    .btn{padding:12px 16px;border-radius:999px;border:1px solid var(--stroke);background:transparent;color:#EDEDED;font-weight:800;cursor:pointer}
+    .btn:hover{background:#EDEDED;color:#111}
+    .btn-gold{background:#ffc400;color:#111;border:1px solid rgba(0,0,0,.25)}
+    .stack{display:flex;gap:10px;flex-wrap:wrap}
+    .empty{margin-top:12px;padding:20px;text-align:center}
+    /* cart badge (shared) */
+    .cart-link{position:relative;display:inline-flex;gap:6px;align-items:center}
+    .cart-badge{position:absolute;top:-8px;right:-10px;min-width:18px;height:18px;padding:0 5px;background:#ffc400;color:#111;border-radius:999px;font-weight:800;font-size:12px;line-height:18px;border:1px solid rgba(0,0,0,.25)}
+  </style>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('ready');
+    });
+  </script>
+</head>
+<body>
+  <header class="container" style="display:flex;justify-content:space-between;align-items:center">
+    <a href="index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff">
+      <img src="images/brandlogofin.png" alt="Scent Story" style="height:70px;object-fit:contain">
+      <strong>Scent Story</strong>
+    </a>
+    <nav style="display:flex;gap:16px;align-items:center">
+      <a href="index.html#bestsellers">New Launches</a>
+      <a href="pdp1.html">All Scents</a>
+      <a id="cart-link" class="cart-link" href="cart.html">Cart <span id="cart-count" class="cart-badge" aria-live="polite">0</span></a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h1>Your Bag</h1>
+    <p class="muted">Review items, enter your address, choose shipping & payment, then place your order.</p>
+
+    <section class="checkout" aria-label="Checkout">
+      <!-- Left: Items + Customer/Shipping/Payment -->
+      <div>
+        <!-- Items -->
+        <article class="card" aria-live="polite">
+          <div class="head">
+            <strong>Items</strong>
+            <button id="clearCart" class="btn btn-ghost">Clear Cart</button>
+          </div>
+          <div id="cartLines" class="body"></div>
+        </article>
+
+        <!-- Customer + Address -->
+        <article class="card" style="margin-top:16px">
+          <div class="head"><strong>Contact & Address</strong></div>
+          <div class="body">
+            <div class="form-grid">
+              <div class="field full">
+                <label class="label" for="email">Email</label>
+                <input class="input" id="email" type="email" placeholder="you@example.com" autocomplete="email">
+                <div class="error">Please enter a valid email.</div>
+              </div>
+              <div class="field">
+                <label class="label" for="fname">First Name</label>
+                <input class="input" id="fname" type="text" autocomplete="given-name">
+                <div class="error">First name is required.</div>
+              </div>
+              <div class="field">
+                <label class="label" for="lname">Last Name</label>
+                <input class="input" id="lname" type="text" autocomplete="family-name">
+                <div class="error">Last name is required.</div>
+              </div>
+              <div class="field full">
+                <label class="label" for="phone">Phone</label>
+                <input class="input" id="phone" type="tel" placeholder="10-digit mobile" autocomplete="tel">
+                <div class="error">Enter a valid phone number.</div>
+              </div>
+              <div class="field full">
+                <label class="label" for="address">Address</label>
+                <input class="input" id="address" type="text" placeholder="Street address" autocomplete="address-line1">
+                <div class="error">Address is required.</div>
+              </div>
+              <div class="field">
+                <label class="label" for="city">City</label>
+                <input class="input" id="city" type="text" autocomplete="address-level2">
+                <div class="error">City is required.</div>
+              </div>
+              <div class="field">
+                <label class="label" for="state">State</label>
+                <input class="input" id="state" type="text" autocomplete="address-level1">
+                <div class="error">State is required.</div>
+              </div>
+              <div class="field">
+                <label class="label" for="pincode">PIN Code</label>
+                <input class="input" id="pincode" type="text" maxlength="6" placeholder="6-digit" autocomplete="postal-code">
+                <div class="error">Enter a valid 6-digit PIN code.</div>
+              </div>
+              <div class="field">
+                <label class="label" for="landmark">Landmark (optional)</label>
+                <input class="input" id="landmark" type="text" autocomplete="street-address">
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Shipping -->
+        <article class="card" style="margin-top:16px">
+          <div class="head"><strong>Shipping Method</strong></div>
+          <div class="body radio-group" id="shippingGroup">
+            <label class="radio-card"><input type="radio" name="ship" value="standard" checked> <span>Standard (3–6 days)</span><span class="badge">Free over ₹ 4,999</span><span class="radio-meta" data-price="199">₹ 199</span></label>
+            <label class="radio-card"><input type="radio" name="ship" value="express"> <span>Express (2–3 days)</span><span class="radio-meta" data-price="299">₹ 299</span></label>
+            <label class="radio-card"><input type="radio" name="ship" value="nextday"> <span>Next-Day (order before 2pm)</span><span class="radio-meta" data-price="499">₹ 499</span></label>
+          </div>
+        </article>
+
+        <!-- Payment -->
+        <article class="card" style="margin-top:16px">
+          <div class="head"><strong>Payment</strong></div>
+          <div class="body radio-group" id="paymentGroup">
+            <label class="radio-card"><input type="radio" name="pay" value="upi" checked> <span>UPI</span><span class="radio-meta">Instant</span></label>
+            <label class="radio-card"><input type="radio" name="pay" value="card"> <span>Credit/Debit Card</span><span class="radio-meta">Visa • MasterCard • Amex</span></label>
+            <label class="radio-card"><input type="radio" name="pay" value="cod"> <span>Cash on Delivery</span><span class="radio-meta">₹ 49</span></label>
+          </div>
+        </article>
+
+        <div style="margin-top:16px; display:flex; align-items:center; gap:10px">
+          <input id="agree" type="checkbox"> <label for="agree">I agree to the Terms & Privacy Policy.</label>
+        </div>
+
+        <div class="help">Secure checkout • SSL encrypted • IFRA & FDA compliant products</div>
+      </div>
+
+      <!-- Right: Summary -->
+      <aside>
+        <article class="card">
+          <div class="head"><strong>Order Summary</strong></div>
+          <div class="body">
+            <div class="sum-row"><span>Subtotal</span><span id="subtotal">₹ 0</span></div>
+            <div class="sum-row"><span>Discount</span><span id="discount">− ₹ 0</span></div>
+            <div class="sum-row"><span>Shipping</span><span id="shipping">₹ 0</span></div>
+            <div class="sum-row"><span>Tax (GST 18%)</span><span id="tax">₹ 0</span></div>
+            <div class="hr"></div>
+            <div class="sum-row total"><span>Total</span><span id="total">₹ 0</span></div>
+            <div style="display:flex; gap:8px; margin-top:12px">
+              <input class="input" id="coupon" placeholder="Gift card or discount code" style="flex:1">
+              <button id="applyCoupon" class="btn">Apply</button>
+            </div>
+            <div class="hr"></div>
+            <button id="placeOrder" class="btn-gold" style="width:100%">Place Order</button>
+            <p class="help" style="margin-top:10px">By placing your order you agree to our Terms of Service and Refund Policy.</p>
+          </div>
+        </article>
+        <div id="empty" class="card empty" hidden>
+          <p class="muted">Your bag is empty. Explore our <a class="link" href="pdp1.html">full collection</a>.</p>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Confirmation overlay -->
+    <div id="confirm" class="confirm" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+      <div class="panel">
+        <h2 id="confirmTitle">Thank you — your order is confirmed!</h2>
+        <p class="muted">A confirmation email has been sent.</p>
+        <div class="order-kv" style="margin:12px 0 8px">
+          <div><strong>Order ID</strong><div id="c_id" class="muted"></div></div>
+          <div><strong>Total Paid</strong><div id="c_total" class="muted"></div></div>
+          <div><strong>Ship To</strong><div id="c_ship" class="muted"></div></div>
+          <div><strong>Payment</strong><div id="c_pay" class="muted"></div></div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:10px; justify-content:flex-end">
+          <a class="btn" href="index.html#bestsellers">Continue Shopping</a>
+          <a class="btn-gold" href="track.html">Track Order</a>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    const CART_KEY='SCENT_CART_V1';
+    const ORDERS_KEY='SCENT_ORDERS_V1';
+
+    // ===== Utilities =====
+    const formatINR = (n)=> '₹ ' + Number(n||0).toLocaleString('en-IN');
+    const read = (k, fb)=>{ try{ return JSON.parse(localStorage.getItem(k)||fb); }catch(_){ return JSON.parse(fb); } };
+    const write= (k,v)=> localStorage.setItem(k, JSON.stringify(v));
+
+    function readCart(){ return read(CART_KEY,'[]'); }
+    function writeCart(items){ write(CART_KEY, items); }
+    function cartQtyTotal(){ return readCart().reduce((s,i)=> s + (parseInt(i.qty||0,10)||0), 0); }
+
+    function updateCartBadge(){ const b=document.getElementById('cart-count'); if(!b) return; const n=cartQtyTotal(); b.textContent=n; b.hidden=n<=0; }
+
+    // ===== Render cart lines =====
+    const linesEl = document.getElementById('cartLines');
+    const emptyEl = document.getElementById('empty');
+
+    function renderLines(){
+      const cart = readCart();
+      updateCartBadge();
+      if(!cart.length){ linesEl.innerHTML=''; emptyEl.hidden=false; return 0; }
+      emptyEl.hidden=true;
+      let html=''; let subtotal=0;
+      cart.forEach((item, idx)=>{
+        const price = parseInt(item.price||0,10)||0;
+        const qty   = Math.max(1, parseInt(item.qty||1,10));
+        const line  = price * qty;
+        subtotal   += line;
+        html += `
+          <div class="line" data-idx="${idx}">
+            <img class="thumb" src="${item.image||'images/CEO.png'}" alt="${item.name||'Product'}">
+            <div>
+              <p class="title">${item.name||'Untitled'}</p>
+              <p class="muted">Price: ${formatINR(price)}</p>
+              <div class="qty" aria-label="Quantity selector">
+                <button type="button" class="minus">−</button>
+                <input type="number" class="q" min="1" max="10" value="${qty}" aria-label="Quantity">
+                <button type="button" class="plus">+</button>
+              </div>
+            </div>
+            <div class="line-actions">
+              <strong class="price">${formatINR(line)}</strong>
+              <button type="button" class="link remove">Remove</button>
+            </div>
+          </div>`;
+      });
+      linesEl.innerHTML = html;
+
+      // wire qty + remove
+      linesEl.querySelectorAll('.line').forEach(line=>{
+        const idx = parseInt(line.dataset.idx,10);
+        const minus = line.querySelector('.minus');
+        const plus  = line.querySelector('.plus');
+        const input = line.querySelector('.q');
+        const remove= line.querySelector('.remove');
+        function setQty(n){ const items=readCart(); items[idx].qty=Math.max(1,Math.min(10,n)); writeCart(items); updateSummary(); renderLines(); }
+        minus.addEventListener('click', ()=> setQty(parseInt(input.value,10)-1));
+        plus .addEventListener('click', ()=> setQty(parseInt(input.value,10)+1));
+        input.addEventListener('change', ()=> setQty(parseInt(input.value,10)||1));
+        remove.addEventListener('click', ()=>{ const items=readCart(); items.splice(idx,1); writeCart(items); updateSummary(); renderLines(); });
+      });
+      return subtotal;
+    }
+
+    // ===== Summary calculation =====
+    const els = {
+      subtotal: document.getElementById('subtotal'),
+      discount: document.getElementById('discount'),
+      shipping: document.getElementById('shipping'),
+      tax:      document.getElementById('tax'),
+      total:    document.getElementById('total'),
+      coupon:   document.getElementById('coupon'),
+      apply:    document.getElementById('applyCoupon'),
+      shipGroup:document.getElementById('shippingGroup'),
+      payGroup: document.getElementById('paymentGroup'),
+      place:    document.getElementById('placeOrder')
+    };
+
+    function getSubtotal(){ return readCart().reduce((s,i)=> s + (parseInt(i.price||0,10)||0) * (parseInt(i.qty||1,10)||1), 0); }
+
+    function compute(){
+      const sub = getSubtotal();
+      let disc = 0;
+      const code = (els.coupon.value||'').trim().toUpperCase();
+      if(code==='SCENT10') disc = Math.round(sub * 0.10);
+
+      // shipping by method
+      const selShip = (document.querySelector('input[name="ship"]:checked')||{}).value || 'standard';
+      let ship = 0;
+      if(selShip==='standard'){ ship = sub>=4999 ? 0 : 199; }
+      if(selShip==='express'){ ship = 299; }
+      if(selShip==='nextday'){ ship = 499; }
+
+      // COD fee
+      const selPay = (document.querySelector('input[name="pay"]:checked')||{}).value || 'upi';
+      const codFee = selPay==='cod' ? 49 : 0;
+
+      // GST 18% on (sub - disc + ship + cod)
+      const taxable = Math.max(0, sub - disc) + ship + codFee;
+      const tax = Math.round(taxable * 0.18);
+      const total = Math.max(0, sub - disc) + ship + codFee + tax;
+
+      return { sub, disc, ship, codFee, tax, total, selShip, selPay };
+    }
+
+    function updateSummary(){
+      const { sub, disc, ship, codFee, tax, total } = compute();
+      els.subtotal.textContent = formatINR(sub);
+      els.discount.textContent = '− ' + formatINR(disc);
+      els.shipping.textContent = formatINR(ship + codFee);
+      els.tax.textContent = formatINR(tax);
+      els.total.textContent = formatINR(total);
+      els.place.disabled = !readCart().length;
+    }
+
+    // Events for summary
+    els.apply.addEventListener('click', updateSummary);
+    els.shipGroup.addEventListener('change', updateSummary);
+    els.payGroup .addEventListener('change', updateSummary);
+
+    // Clear cart
+    document.getElementById('clearCart').addEventListener('click', ()=>{ writeCart([]); renderLines(); updateSummary(); });
+
+    // ===== Validation =====
+    function req(id, re){
+      const el = document.getElementById(id); if(!el) return false;
+      const val = (el.value||'').trim();
+      let ok = !!val;
+      if(ok && re) ok = re.test(val);
+      el.parentElement.classList.toggle('has-error', !ok);
+      return ok;
+    }
+
+    function validate(){
+      const ok = [
+        req('email', /^[^\s@]+@[^\s@]+\.[^\s@]+$/),
+        req('fname'),
+        req('lname'),
+        req('phone', /^[0-9]{10}$/),
+        req('address'),
+        req('city'),
+        req('state'),
+        req('pincode', /^[0-9]{6}$/),
+      ].every(Boolean);
+      if(!document.getElementById('agree').checked) return false;
+      return ok;
+    }
+
+    // ===== Place Order =====
+    document.getElementById('placeOrder').addEventListener('click', ()=>{
+      if(!readCart().length) return alert('Your bag is empty.');
+      if(!validate()) return alert('Please complete required fields correctly.');
+
+      const summary = compute();
+      // Read form fields explicitly to avoid relying on global IDs
+      const addr = {
+        email:   document.getElementById('email')?.value?.trim() || '',
+        name:    `${(document.getElementById('fname')?.value||'').trim()} ${(document.getElementById('lname')?.value||'').trim()}`.trim(),
+        phone:   document.getElementById('phone')?.value?.trim() || '',
+        line1:   document.getElementById('address')?.value?.trim() || '',
+        city:    document.getElementById('city')?.value?.trim() || '',
+        state:   document.getElementById('state')?.value?.trim() || '',
+        pin:     document.getElementById('pincode')?.value?.trim() || '',
+        landmark:document.getElementById('landmark')?.value?.trim() || ''
+      };
+
+      const order = {
+        id: 'SS' + Date.now(),
+        items: readCart(),
+        summary,
+        address: addr,
+        status: 'processing',
+        createdAt: new Date().toISOString()
+      };
+
+      const all = read(ORDERS_KEY,'[]');
+      all.unshift(order);
+      write(ORDERS_KEY, all);
+      writeCart([]);
+      updateCartBadge();
+
+      // Confirmation overlay
+      document.getElementById('c_id').textContent = order.id;
+      document.getElementById('c_total').textContent = formatINR(summary.total);
+      document.getElementById('c_ship').textContent = `${addr.name}, ${addr.line1}, ${addr.city} ${addr.pin}`;
+      document.getElementById('c_pay').textContent = summary.selPay.toUpperCase();
+      document.getElementById('confirm').classList.add('active');
+    });
+
+    // Init
+    function boot(){ renderLines(); updateSummary(); document.body.classList.add('ready'); }
+    window.addEventListener('DOMContentLoaded', boot);
+    window.addEventListener('storage', (e)=>{ if(e.key===CART_KEY){ renderLines(); updateSummary(); } });
+  </script>
+  <script src="js/main.js" defer>
+  </script>
+</body>
+</html>

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scent Story – Luxury Fragrances</title>
+  <meta name="description" content="Scent Story – ultimate luxury fragrances. Explore Elixir, Parfum, and EDP chapters crafted for power, romance, and timeless style." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    :root{ --bg:#0B0D10; --surface:#12151A; --text:#EDEDED; --muted:#B7BEC6; --stroke:#2A2F36; }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:'Playfair Display',serif;line-height:1.5;scroll-behavior:smooth}
+    a{color:inherit;text-decoration:none}
+    /* Global color alignment to match index */
+    h1,h2,h3,h4,h5,h6{ color:#ffffff; }
+    p, li{ color: var(--muted); }
+    strong,b{ color:#ffffff; }
+    .section-title{ color:#ffffff; }
+    .menu a{ color:#ffffff; }
+    .container{max-width:1200px;margin:0 auto;padding:0 20px}
+
+    header{position:sticky;top:0;z-index:50;background:rgba(11,13,16,.7);backdrop-filter:blur(10px);border-bottom:1px solid var(--stroke)}
+    .nav{display:flex;align-items:center;gap:20px;justify-content:space-between;min-height:120px;padding:8px 20px}
+    @media (max-width:768px){
+      .nav{ min-height:92px; padding:6px 14px; gap:10px; }
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand-logo{display:inline-flex;align-items:center;justify-content:flex-start;width:auto;height:auto;border:0;background:transparent;overflow:visible}
+    .brand-logo img{
+      height:96px;
+      width:auto;
+      object-fit:contain;
+      display:block;
+      animation: logoGlow 3s infinite ease-in-out;
+    }
+    @media (max-width:768px){ .brand-logo img{ height:72px } }
+    .brand-text{ font-family:"Playfair Display",serif; font-size:21px; font-weight:600; color:#fff; margin-left:10px; animation: logoGlow 3s infinite ease-in-out; letter-spacing:.02em }
+    @media (max-width:768px){ .brand-text{ font-size:21px } }
+    @keyframes logoGlow { 0%,100%{ filter:none; transform:none } 50%{ filter: drop-shadow(0 0 16px rgba(255,196,0,.75)) drop-shadow(0 0 32px rgba(255,196,0,.5)); transform: scale(1.02) } }
+    @media (prefers-reduced-motion: reduce){
+      .brand-logo img, .brand-text{ animation: none; }
+    }
+    .brand b{font-family:"Playfair Display",serif;font-size:20px;letter-spacing:.08em}
+    .menu{display:flex;gap:18px;align-items:center}
+    .menu a{ text-decoration:none; color:#fff; font-weight:500; position:relative; transition: color .25s ease, text-shadow .25s ease; }
+    .menu a:hover, .menu a:focus{ color:#ffc400; text-shadow:0 0 6px rgba(255,196,0,.6), 0 0 12px rgba(255,196,0,.4) }
+    .menu a::after{ content:""; position:absolute; left:0; bottom:-4px; width:0%; height:2px; background:#ffc400; transition:width .25s ease }
+    .menu a:hover::after, .menu a:focus::after{ width:100% }
+    .menu > details{font-weight:500;opacity:.92}
+    .menu details{position:relative}
+    .menu summary{list-style:none;cursor:pointer}
+    .menu summary::-webkit-details-marker{display:none}
+    .dropdown{position:absolute;top:100%;left:0;background:var(--surface);border:1px solid var(--stroke);border-radius:12px;padding:10px;display:grid;gap:6px;min-width:240px}
+    .chip{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);gap:8px;font-size:12px;color:var(--muted)}
+
+    /* Quick actions (Account + Orders) */
+    .quick-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
+    .icon-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #bfa06a;border-radius:999px;font-size:13px;color:#efba0a;text-decoration:none;background:rgba(191,160,106,.08)}
+    .icon-btn i{font-size:14px}
+    .icon-btn:hover{filter:brightness(1.08);box-shadow:0 6px 18px rgba(191,160,106,.18)}
+    @media (max-width:900px){.icon-btn span{display:none}}
+
+    section{padding:60px 0}
+    h2.section-title{font-family:"Playfair Display",serif;font-size:32px;margin:0 0 20px;text-align:center}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+    .card{background:var(--surface);border:1px solid var(--stroke);border-radius:14px;padding:20px;text-align:center;cursor:pointer}
+    .card img{max-width:100%;border-radius:10px;margin-bottom:12px}
+    .card h3{margin:0 0 10px;font-family:"Playfair Display",serif}
+    .card p{margin:0;color:var(--muted)}
+
+    /* Product Detail */
+    .product-detail{display:grid;grid-template-columns:.95fr 1.05fr;gap:44px;align-items:start}
+    /* Left column: gallery (row 1) + thumbs (row 2); Right column: product-info (row 1) */
+    .gallery{ grid-column: 1; grid-row: 1; }
+    .thumbs{  grid-column: 1; grid-row: 2; }
+    .product-info{ grid-column: 2; grid-row: 1; align-self: start; }
+
+    /* Fix carousel overlaps: each slide takes full viewport width */
+    .gallery-viewport{ width:100%; }
+    .gallery-track{ display:flex; transition:transform .5s ease; }
+    .gallery-track > img{ flex:0 0 100%; width:100%; height:575px; object-fit:contain; }
+    .product-info h1{font-family:"Playfair Display",serif;font-size:40px;margin:0 0 8px}
+    .price{font-size:20px;margin:0 0 18px;color:#e6e6e6}
+    .product-info p{color:var(--muted);line-height:1.75;margin:0 0 20px}
+    .notes-list{margin:0 0 20px;}
+    .notes-list span{display:inline-block;margin:4px 8px;padding:6px 12px;border:1px solid var(--stroke);border-radius:20px;font-size:14px}
+    .controls{display:flex;align-items:center;gap:12px;margin:16px 0}
+    .qty{display:inline-flex;align-items:center;border:1px solid var(--stroke);border-radius:10px}
+    .qty button{width:36px;height:36px;border:none;background:#1a1d22;color:#fff;font-size:18px;cursor:pointer}
+    .qty input{width:56px;height:36px;border:none;background:#0f1216;color:#fff;text-align:center}
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap}
+    .buy-btn{padding:12px 18px;border:none;border-radius:10px;background:#333;color:#fff;font-weight:600;cursor:pointer}
+    .wishlist-btn{padding:12px 18px;border:1px solid var(--stroke);border-radius:10px;background:transparent;color:#EDEDED;cursor:pointer}
+
+    /* PDP Gallery */
+    .gallery{position:relative;border:1px solid var(--stroke);border-radius:14px;overflow:hidden;margin-top:45px;margin-bottom:0}
+    .gallery-viewport{overflow:hidden;padding:8px 10px 2px;background:#0f1216}
+    .gallery-track{display:flex;transition:transform .5s ease}
+    .gallery img{display:block;width:100%;height:575px;object-fit:contain;background:#0f1216}
+    .arrow{position:absolute;top:calc(50% + 4px);transform:translateY(-50%);background:rgba(0,0,0,.5);border:1px solid var(--stroke);color:#fff;width:40px;height:40px;border-radius:999px;display:grid;place-items:center;cursor:pointer}
+    .arrow.left{left:10px}
+    .arrow.right{right:10px}
+
+    /* Thumbnails under the gallery */
+    .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;justify-content:flex-start}
+    .thumbs button{border:0;border-radius:12px;padding:0;background:#0f1216;cursor:pointer;opacity:.95}
+    .thumbs button:focus-visible{outline:2px solid #bfa06a}
+    .thumbs button[aria-current="true"]{outline:2px solid #bfa06a;opacity:1}
+    .thumbs img{width:112px;height:112px;object-fit:cover;display:block}
+
+    /* PDP actions and CTA group */
+    .pdp-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .btn{padding:12px 18px;border-radius:10px;border:1px solid var(--stroke);background:#1a1d22;color:#fff;font-weight:600;cursor:pointer}
+    .btn.primary{background:#333}
+    /* Added-to-cart visual state */
+    .btn.primary.added{ background:#bfa06a; border-color:#bfa06a; color:#111; }
+    .btn.primary.added:disabled{ opacity:.9; cursor:default; }
+    .btn.ghost{background:transparent}
+
+    /* Buy Now CTA (glow + brief shake every 4s) */
+    .pdp-actions.buy-row{ margin-top:8px; }
+    .btn.buy-now{
+      background: linear-gradient(135deg,#f6e7b9,#bfa06a);
+      border-color:#bfa06a;
+      color:#111;
+      position: relative;
+      box-shadow: 0 6px 22px rgba(191,160,106,.28);
+      animation: ctaLoop 4s ease-in-out infinite;
+    }
+    .btn.buy-now:hover{ box-shadow: 0 10px 28px rgba(191,160,106,.38); }
+    @keyframes ctaLoop{
+      0%, 80%{ transform: translateX(0); box-shadow: 0 6px 22px rgba(191,160,106,.28); }
+      /* brief glow + shake window */
+      84%{ transform: translateX(-1px) rotate(-0.2deg); box-shadow: 0 0 0 rgba(191,160,106,0.0), 0 0 18px rgba(191,160,106,.55), 0 12px 30px rgba(191,160,106,.45); }
+      86%{ transform: translateX(1.5px) rotate(0.2deg); }
+      88%{ transform: translateX(-1.5px) rotate(-0.2deg); }
+      90%{ transform: translateX(1px) rotate(0.2deg); }
+      92%{ transform: translateX(-1px) rotate(-0.2deg); }
+      94%{ transform: translateX(0.6px) rotate(0.1deg); }
+      96%{ transform: translateX(-0.6px) rotate(-0.1deg); }
+      100%{ transform: translateX(0); box-shadow: 0 6px 22px rgba(191,160,106,.28); }
+    }
+
+    /* Member button motion + glow (matches site-wide CTA behavior) */
+    @keyframes memberWiggle { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-2px) } }
+    .pulse-glow { animation: pulseGlow 2.4s infinite ease-in-out; }
+    @keyframes pulseGlow { 0%,100%{ box-shadow:0 0 0 0 rgba(255,196,0,0) } 50%{ box-shadow:0 0 18px rgba(255,196,0,.35) } }
+    .member-btn.wiggle { animation: memberWiggle 2.4s ease-in-out infinite, pulseGlow 2.4s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce){ .member-btn.wiggle { animation: none; } }
+
+    @media (prefers-reduced-motion: reduce){
+      .btn.buy-now{ animation: none; }
+    }
+    .price-row{display:flex;align-items:center;gap:16px;margin:6px 0 6px}
+    .price-row .price{margin:0;font-size:22px;color:#e6e6e6}
+    .desc{color:var(--muted);line-height:1.7;margin:8px 0 10px}
+
+    /* USP list & safety badges */
+.safety-badges{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 12px;
+  border:1px solid #bfa06a;border-radius:999px;font-size:12px;color:#111;
+  background:linear-gradient(135deg,#f6e7b9,#bfa06a);
+  box-shadow:0 6px 22px rgba(191,160,106,.18);
+  transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.badge:hover{ transform: translateY(-1px) scale(1.015); box-shadow:0 10px 28px rgba(191,160,106,.28); filter: brightness(1.02); }
+@media (prefers-reduced-motion: reduce){ .badge{ transition:none } .badge:hover{ transform:none; box-shadow:0 6px 22px rgba(191,160,106,.18); filter:none } }
+.badge svg{width:14px;height:14px}
+.badge svg path{stroke:#111}
+
+    /* Toast for feedback */
+    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 14px;border-radius:10px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
+
+    .recommend .card{cursor:default}
+
+    /* Hover effects for Recommended/Collections cards */
+    .recommend .card{ transition: transform .25s ease, box-shadow .25s ease; }
+    .recommend .card:hover{ transform: translateY(-4px); box-shadow: 0 14px 34px rgba(0,0,0,.35); }
+    .recommend .card img{ transition: transform .35s ease; }
+    .recommend .card:hover img{ transform: scale(1.045); }
+
+    @media (prefers-reduced-motion: reduce){
+      .recommend .card, .recommend .card img{ transition: none; }
+    }
+
+    /* Recommended to Explore: normalize card images to match Victory Night layout */
+    .recommend .grid{ align-items: stretch; }
+    .recommend .card a{ display:block; }
+    .recommend .card img{
+      width:100%;
+      height:260px;            /* consistent visual height */
+      object-fit:cover;        /* crop to fill like Victory Night */
+      object-position:center;  /* center the focal point */
+      border-radius:12px;
+      display:block;
+    }
+    .recommend .card h3{ margin:12px 0 6px; }
+    .recommend .card p{ margin:0; color:var(--muted); }
+
+
+    /* === Collections & Recommendations: elongated rectangular image tiles === */
+    /* Uniform rectangle for general recommended section */
+    .recommend:not(.elixir-collections) .card img{
+      height: 600px;           /* was 260px → elongate for a rectangular tile */
+      width: 100%;
+      object-fit: cover;
+      object-position: center;
+      border-radius: 14px;
+    }
+
+    /* Slightly taller rectangle for Elixir Collections (to match artwork) */
+    .elixir-collections .card img{
+      height: 400px;           /* was 320px → more vertical presence */
+      width: 100%;
+      object-fit: cover;
+      object-position: center;
+      border-radius: 14px;
+    }
+
+    /* Optional: tighten inner card padding so the rectangle reads cleaner */
+    .recommend .card{ padding: 16px; }
+
+    /* ==== Card image hover crossfade (match index collections/bestsellers) ==== */
+    .recommend .card .img-stack{ position:relative; width:100%; height: var(--stack-h, 600px); overflow:hidden; border-radius:14px; }
+    .recommend .card .img-stack img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; transition: opacity .28s ease, transform .28s ease; }
+    .recommend .card .img-stack .img-primary{ opacity:1; transform: scale(1); }
+    .recommend .card .img-stack .img-alt{ opacity:0; transform: scale(1.02); }
+    .recommend .card:hover .img-stack .img-primary,
+    .recommend .card:focus-within .img-stack .img-primary{ opacity:0; transform: scale(.985); }
+    .recommend .card:hover .img-stack .img-alt,
+    .recommend .card:focus-within .img-stack .img-alt{ opacity:1; transform: scale(1); }
+
+    /* Heights per section (desktop) */
+    .recommend:not(.elixir-collections) .card .img-stack{ --stack-h: 600px; }
+    .recommend.elixir-collections .card .img-stack{ --stack-h: 400px; }
+
+    /* Mobile heights */
+    @media (max-width: 900px){
+      .recommend .card .img-stack{ height:340px; }
+      .recommend.elixir-collections .card .img-stack{ --stack-h: 340px; }
+    }
+
+    /* Testimonials */
+    .testimonials{ padding:40px 0 20px; }
+    .testimonials .wrap{ max-width:1100px; margin:0 auto; padding:0 20px; }
+    .testimonials h2{ font-family:"Playfair Display",serif; font-size:28px; margin:0 0 14px; text-align:center; }
+    .t-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:16px; }
+    .t-card{ background:var(--surface); border:1px solid var(--stroke); border-radius:14px; padding:16px; }
+    .t-quote{ font-size:15px; line-height:1.7; color:#dfe3e8; margin:0 0 10px; }
+    .t-meta{ display:flex; align-items:center; gap:10px; color:var(--muted); font-size:14px; }
+    .t-avatar{ width:36px; height:36px; border-radius:50%; background:#1a1d22; border:1px solid var(--stroke); display:inline-block; }
+    .t-stars{ color:#bfa06a; letter-spacing:1px; font-size:14px; }
+
+    /* Brand story under carousel */
+    .brand-story{grid-column:1 / -1;background:#0f1216;border:1px solid var(--stroke);border-radius:12px;padding:22px;margin-top:16px}
+    .brand-story h1{font-family:"Playfair Display",serif;margin:0 0 8px;font-size:28px;letter-spacing:.03em}
+    .brand-story p{margin:0;color:var(--muted);line-height:1.7}
+
+
+    @media(max-width:900px){
+      .product-detail{ grid-template-columns:1fr; gap:28px; }
+      .gallery-track > img, .gallery img{ height:450px; object-fit:contain; }
+      .gallery, .thumbs, .product-info{ grid-row: auto; grid-column: auto; }
+      .thumbs img{ width:96px; height:96px; }
+      .gallery{ margin-top:89px; }
+    }
+
+    /* ===== Footer spacing tweaks (PDP only, match index rhythm) ===== */
+    .footer .footer-hero{ padding-top:56px; padding-bottom:36px; gap:32px; }
+    .footer .footer-links{ padding-top:24px; padding-bottom:34px; gap:34px; border-top:1px solid #12151A; }
+    .footer .footer-trust{ padding-top:14px; padding-bottom:24px; }
+    .footer .footer-bottom{ padding-top:16px; padding-bottom:36px; gap:16px; }
+
+    /* Tighten internal spacing for cards */
+    .footer .subscribe-card p{ margin-bottom:14px; }
+    .footer .newsletter-form{ margin-bottom:10px; }
+    .footer .membership-card{ align-self:start; }
+    .footer .membership-card .benefits{ margin-bottom:14px; }
+    .footer .membership-card .btn-gold,
+    .footer .membership-card .member-btn{ margin-top:6px; }
+
+    /* Mobile adjustments */
+    @media (max-width:768px){
+      .footer .footer-hero{ padding-top:44px; padding-bottom:28px; gap:20px; }
+      .footer .footer-links{ padding-top:18px; padding-bottom:26px; gap:18px; }
+      .footer .footer-bottom{ gap:14px; }
+    }
+  </style>
+</head>
+<body>
+  <header aria-label="Primary Navigation">
+    <div class="container nav">
+      <a class="brand-logo" href="index.html" aria-label="Scent Story Home">
+        <img src="images/brandlogofin.png" alt="Scent Story logo">
+      </a>
+      <span class="brand-text">Scent Story</span>
+      <nav class="menu">
+        <a href="index.html" style="color:#efba0a">Home</a>
+        <section id="bestsellers"><a href="index.html#bestsellers" aria-current ="location" style="color:#efd8b2">New Launches</a></section>
+        <details>
+          <summary style="color:#efba0a">Explore Chapters ▾</summary>
+          <div class="dropdown" role="menu" aria-label="Explore Chapters">
+            <a href="pdp1.html?tag=ambition" style="color:#efba0a">Ambition</a>
+            <a href="pdp1.html?tag=romantic" style="color:#efba0a">Romantic</a>
+            <a href="pdp1.html?tag=bold" style="color:#efba0a">Bold</a>
+            <a href="pdp1.html?tag=carefree" style="color:#efba0a">Carefree</a>
+            <a href="pdp1.html?tag=power" style="color:#efba0a">Power</a>
+            <a href="pdp1.html?tag=seasons" style="color:#efba0a">Seasons</a>
+          </div>
+        </details>
+        <a href="track.html" style="color:#efba0a">Track My Order</a>
+        <a href="wishlist.html" style="color:#efba0a">Wishlist</a>
+        <a href="contact.html" style="color:#efba0a">Contact</a>
+        <a id="cart-link" class="cart-link" href="cart.html" style="color:#efba0a">
+          Cart
+          <span id="cart-count" class="cart-badge" aria-live="polite">0</span>
+        </a>
+      </nav>
+      <div class="quick-actions">
+        <a href="login.html" class="icon-btn" style="color:#efba0a" aria-label="Login / Account">
+          <i class="fa-regular fa-user" aria-hidden="true"></i><span>Account</span>
+        </a>
+        <a href="track.html" class="icon-btn" style="color:#efba0a" aria-label="View my orders">
+          <i class="fa-solid fa-box" aria-hidden="true"></i><span>Orders</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main id="page-view">
+    <div class="container">
+      <!-- Product Detail: CEO – Elixir -->
+      <div class="product-detail">
+        <div class="gallery" id="pdp-gallery">
+          <div class="gallery-viewport">
+            <div class="gallery-track" id="gallery-track">
+              <img src="images/CEO.png" alt="CEO Elixir Bottle front">
+              <img src="images/marque bannerelixir.png" alt="CEO Elixir marquee banner">
+            </div>
+          </div>
+          <button class="arrow left" id="prev" aria-label="Previous">‹</button>
+          <button class="arrow right" id="next" aria-label="Next">›</button>
+        </div>
+        <div class="thumbs" id="thumbs" aria-label="Image thumbnails"></div>
+        <div class="product-info">
+          <h1>CEO – Elixir</h1>
+          <div class="price-row"><div class="price">₹ 8,990.00</div></div>
+          <p class="desc">A fragrance that mirrors authority. Opening with the sharp spice of <b>black pepper</b> and the crisp freshness of <b>bergamot</b>, it evolves into a heart of <b>lavender</b> and <b>cardamom</b>, finally grounding itself in the deep confidence of <b>vetiver</b> and <b>cedarwood</b>. This isn’t just a scent—it's a signature for men who are always in control.</p>
+          <div class="safety-badges" aria-label="Safety and compliance badges">
+            <span class="badge" title="FDA-approved formulation">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#bfa06a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              FDA‑approved
+            </span>
+            <span class="badge" title="Phthalate-free">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#bfa06a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Phthalate‑free
+            </span>
+            <span class="badge" title="No harsh chemicals">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#bfa06a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              No harsh chemicals
+            </span>
+            <span class="badge" title="Gentle on skin">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#bfa06a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Gentle on skin
+            </span>
+            <span class="badge" title="Allergen‑conscious">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#bfa06a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Allergen‑free*
+            </span>
+          </div>
+          <small style="color:#9aa3ad;display:block;margin-top:-6px">*Formulated to minimize common fragrance allergens.</small>
+          <div class="notes-list">
+            <span>Black Pepper</span><span>Bergamot</span><span>Lavender</span><span>Cardamom</span><span>Vetiver</span><span>Cedarwood</span>
+          </div>
+          <div class="controls">
+            <div class="qty" aria-label="Quantity selector">
+              <button type="button" id="minus">−</button>
+              <input id="qty" type="number" value="1" min="1" max="10" aria-label="Quantity">
+              <button type="button" id="plus">+</button>
+            </div>
+          </div>
+          <div class="pdp-actions">
+            <button class="btn primary" id="addToCart">Add to Cart</button>
+            <button class="btn ghost" id="shareBtn">Share</button>
+            <button class="btn ghost" id="wishlist">♡ Add to Wishlist</button>
+          </div>
+          <div class="pdp-actions buy-row">
+            <button class="btn buy-now" id="buyNow" aria-label="Buy this product now">Buy Now</button>
+          </div>
+        </div>
+        <div class="brand-story" role="region" aria-label="Scent Story philosophy">
+          <h1>Stories You Wear</h1>
+          <p>Scent Story crafts fragrances as chapters in your life—made to be worn with purpose, presence, and feeling. Our blends balance clarity and depth so they perform from the first impression to the final note. CEO commands stillness and focus; Forever Love softens with quiet warmth; Autumn Fire burns steady with resilience. Every bottle is a keepsake; every spray, a scene you step into.</p>
+        </div>
+      </div>
+
+      <section id="reco" class="recommend" style="padding-top:30px"></section>
+
+      <!-- Testimonials -->
+      <section class="testimonials" aria-label="Customer testimonials">
+        <div class="wrap">
+          <h2>What Customers Are Saying</h2>
+          <div class="t-grid">
+            <div class="t-card">
+              <p class="t-quote">“CEO – Elixir feels like confidence in a bottle. Lasts through 10-hour workdays without ever getting heavy.”</p>
+              <div class="t-meta">
+                <span class="t-avatar" aria-hidden="true"></span>
+                <span>Arjun • Mumbai</span>
+                <span class="t-stars" aria-label="5 out of 5 stars">★★★★★</span>
+              </div>
+            </div>
+            <div class="t-card">
+              <p class="t-quote">“Balanced, refined, and compliment-magnet. My partner asked what I was wearing within minutes.”</p>
+              <div class="t-meta">
+                <span class="t-avatar" aria-hidden="true"></span>
+                <span>Rohan • Bengaluru</span>
+                <span class="t-stars" aria-label="5 out of 5 stars">★★★★★</span>
+              </div>
+            </div>
+            <div class="t-card">
+              <p class="t-quote">“Signature-worthy. Pepper and bergamot up top, then a clean vetiver dry-down. Totally office-safe.”</p>
+              <div class="t-meta">
+                <span class="t-avatar" aria-hidden="true"></span>
+                <span>Aman • Delhi</span>
+                <span class="t-stars" aria-label="5 out of 5 stars">★★★★★</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script>
+    // ===== Utilities & Constants =====
+    const CART_KEY = 'SCENT_CART_V1';
+    const WISHLIST_KEY = 'SCENT_WISHLIST_V1';
+
+    function readCart(){ return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
+    function writeCart(items){ localStorage.setItem(CART_KEY, JSON.stringify(items)); }
+    function addToCartItem(item){
+      const cart = readCart();
+      const idx = cart.findIndex(i => i.slug === item.slug);
+      if(idx > -1){ cart[idx].qty += item.qty; } else { cart.push(item); }
+      writeCart(cart);
+    }
+
+    // ===== Cart helpers: check/remove item =====
+    function inCart(slug){
+      return readCart().some(i => i.slug === slug && i.qty > 0);
+    }
+    function removeFromCart(slug){
+      const cart = readCart().filter(i => i.slug !== slug);
+      writeCart(cart);
+    }
+// ===== Cart badge updater =====
+function cartQtyTotal(){ return readCart().reduce((sum,i)=> sum + (parseInt(i.qty||0,10)||0), 0); }
+function updateCartBadge(){
+  const badge = document.getElementById('cart-count');
+  if(!badge) return;
+  const n = cartQtyTotal();
+  badge.textContent = n;
+  badge.hidden = n<=0;
+}
+    function readWishlist(){ return JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]'); }
+    function writeWishlist(items){ localStorage.setItem(WISHLIST_KEY, JSON.stringify(items)); }
+    function inWishlist(slug){ return readWishlist().includes(slug); }
+    function toggleWishlist(slug){
+      const w = readWishlist();
+      const i = w.indexOf(slug);
+      if(i>-1) w.splice(i,1); else w.push(slug);
+      writeWishlist(w);
+    }
+
+    function showToast(msg){
+      const t = document.getElementById('toast');
+      if(!t) return; t.textContent = msg; t.hidden = false;
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(()=> t.hidden = true, 1600);
+    }
+
+    // ===== Static product data for this PDP =====
+    // ===== Full catalog (minimal fields needed by the current PDP) =====
+const PRODUCTS = {
+  // === EDP ===
+  'first-date':   { slug:'first-date',   type:'edp',    name:'First Date — EDP',   priceINR:3890, images:['images/FirstDate.png','images/firstdate1.png'], desc:'Clean, effortless charm with a soft fruity-citrus lift and white musks.', notes:['Citrus','Apple','Jasmine','White Musk'] },
+  'fresh-salt':   { slug:'fresh-salt',   type:'edp',    name:'Fresh Salt — EDP',   priceINR:4090, images:['images/Fresh Salt.png','images/freshsalt1.png'], desc:'Crisp marine sparkle over citrus and airy musks.', notes:['Sea Salt','Citrus','Aldehydes','Musk'] },
+  'beast':        { slug:'beast',        type:'edp',    name:'Beast — EDP',        priceINR:4290, images:['images/Beast.png','images/beast1.png'], desc:'Dark spicy woods with charged energy for nights out.', notes:['Pepper','Woods','Amber'] },
+  'boardroom':    { slug:'boardroom',    type:'edp',    name:'Boardroom — EDP',    priceINR:4990, images:['images/Boardroom.png','images/boardroom1.png'], desc:'Crisp, suit-ready woods that project focus and clarity.', notes:['Citrus','Iris','Patchouli','Vetiver'] },
+  'summer-drift': { slug:'summer-drift', type:'edp',    name:'Summer Drift — EDP', priceINR:4590, images:['images/Summer Drift.png','images/summerdrift1.png'], desc:'Laid-back citrus sunlight with breezy musks.', notes:['Mandarin','Sea Breeze','Musk'] },
+
+  // === Parfum ===
+  'victory-night':  { slug:'victory-night',  type:'parfum', name:'Victory Night — Parfum',  priceINR:6990, images:['images/Victory Night.png','images/victorynight1.png'], desc:'Charismatic, boozy-woody energy built for nights out.', notes:['Bergamot','Rum Accord','Woods','Amber'] },
+  'tropical-escape':{ slug:'tropical-escape',type:'parfum', name:'Tropical Escape — Parfum', priceINR:7790, images:['images/Tropical Escape.png','images/tropicalescape1.png'], desc:'Sun-warm tropical fruit with a cool ocean drift.', notes:['Pineapple','Coconut','Sea Salt'] },
+  'winter-embrace': { slug:'winter-embrace', type:'parfum', name:'Winter Embrace — Parfum', priceINR:7800, images:['images/Winter Embrace.png','images/winterembrace1.png'], desc:'Cashmere warmth and soft woods against crisp air.', notes:['Cashmere','Tonka','Cedar'] },
+  'the-icon':       { slug:'the-icon',       type:'parfum', name:'The Icon — Parfum',       priceINR:8780, images:['images/Icon.png','images/icon1.png'], desc:'Tailored presence—dry woods, aromatic polish, enduring trail.', notes:['Grapefruit','Aromatics','Dry Woods'] },
+
+  // === Elixir ===
+  'ceo-elixir':     { slug:'ceo-elixir',     type:'elixir', name:'CEO – Elixir',           priceINR:14300, images:['images/CEO.png','images/ceo1.png'], desc:'A fragrance that mirrors authority. Opening with black pepper and bergamot…', notes:['Black Pepper','Bergamot','Lavender','Cardamom','Vetiver','Cedarwood'] },
+  'autumn-fire':    { slug:'autumn-fire',    type:'elixir', name:'Autumn Fire — Elixir',   priceINR:13400, images:['images/Autumn Fire.png','images/autumnfire1.png'], desc:'Smoked leather over glowing amber and patchouli.', notes:['Smoked Leather','Amber','Patchouli'] },
+  'forever-love':   { slug:'forever-love',   type:'elixir', name:'Forever Love — Elixir',  priceINR:13690, images:['images/Forever Love.png','images/foreverlove1.png'], desc:'Velvet rose on ambergris and a ribbon of oud-vanilla.', notes:['Rose','Ambergris','Oud Vanilla'] },
+  };
+
+// Read ?slug= from URL, default to CEO
+const url = new URL(location.href);
+const slug = (url.searchParams.get('slug') || location.hash.replace('#','') || 'ceo-elixir').toLowerCase();
+const PDP_PRODUCT = PRODUCTS[slug] || PRODUCTS['ceo-elixir'];
+PDP_PRODUCT.slug = PDP_PRODUCT.slug || slug;
+
+// ===== Bind product fields into the DOM =====
+(function bindProduct(){
+  const title = document.querySelector('.product-info h1');
+  const price = document.querySelector('.price-row .price');
+  const desc  = document.querySelector('.product-info .desc');
+  const notesWrap = document.querySelector('.notes-list');
+  if(title) title.textContent = PDP_PRODUCT.name;
+  if(price) price.textContent = `₹ ${PDP_PRODUCT.priceINR.toLocaleString('en-IN')}`;
+  if(desc)  desc.textContent  = PDP_PRODUCT.desc || '';
+  if(notesWrap){ notesWrap.innerHTML = (PDP_PRODUCT.notes||[]).map(n=>`<span>${n}</span>`).join(''); }
+})();
+
+    // ===== Header year =====
+    { const y = document.getElementById('year'); if(y) y.textContent = new Date().getFullYear(); }
+// Initialize cart badge on load
+updateCartBadge();
+    // ===== Quantity controls =====
+    const qtyInput = document.getElementById('qty');
+    document.getElementById('plus').addEventListener('click', ()=>{ qtyInput.stepUp(); });
+    document.getElementById('minus').addEventListener('click', ()=>{ qtyInput.stepDown(); });
+
+    // ===== Wishlist (persistent) =====
+    const wishBtn = document.getElementById('wishlist');
+    function renderWish(){ wishBtn.textContent = inWishlist(PDP_PRODUCT.slug) ? '✓ Wishlisted' : '♡ Add to Wishlist'; }
+    wishBtn.addEventListener('click', ()=>{ toggleWishlist(PDP_PRODUCT.slug); renderWish(); showToast('Wishlist updated'); });
+    renderWish();
+
+    // ===== Add to Cart (toggle + persistent visual state) =====
+    const addBtn = document.getElementById('addToCart');
+    const ORIGINAL_LABEL = 'Add to Cart';
+    const ADDED_LABEL = '✓ Added to Cart';
+
+    function renderAddState(){
+      const on = inCart(PDP_PRODUCT.slug);
+      if(on){
+        addBtn.textContent = ADDED_LABEL;
+        addBtn.classList.add('added');
+        addBtn.setAttribute('aria-pressed','true');
+      } else {
+        addBtn.textContent = ORIGINAL_LABEL;
+        addBtn.classList.remove('added');
+        addBtn.setAttribute('aria-pressed','false');
+      }
+    }
+    updateCartBadge();
+    addBtn.addEventListener('click', ()=>{
+      const isOn = inCart(PDP_PRODUCT.slug);
+      if(isOn){
+        // User is undoing: remove item from cart
+        removeFromCart(PDP_PRODUCT.slug);
+        showToast('Removed from cart');
+      } else {
+        // User is adding: respect chosen quantity
+        const q = Math.max(1, parseInt(qtyInput.value||'1',10));
+        addToCartItem({ slug: PDP_PRODUCT.slug, name: PDP_PRODUCT.name, price: PDP_PRODUCT.priceINR, qty: q, image: PDP_PRODUCT.images[0] });
+        showToast(`Added ${q} × ${PDP_PRODUCT.name}`);
+      }
+      renderAddState();
+      updateCartBadge();
+    });
+
+    // Initialize cart badge on load
+    updateCartBadge();
+    // ===== Buy Now (adds current qty and redirects to cart) =====
+    const buyBtn = document.getElementById('buyNow');
+    if(buyBtn){
+      buyBtn.addEventListener('click', ()=>{
+        const q = Math.max(1, parseInt(qtyInput.value||'1',10));
+        addToCartItem({ slug: PDP_PRODUCT.slug, name: PDP_PRODUCT.name, price: PDP_PRODUCT.priceINR, qty: q, image: PDP_PRODUCT.images[0] });
+        showToast('Proceeding to checkout…');
+        updateCartBadge();
+        setTimeout(()=>{ window.location.href = 'cart.html'; }, 250);
+      });
+    }
+
+    // Initial render based on current cart contents
+    renderAddState();
+
+    // ===== Share button =====
+    const shareBtn = document.getElementById('shareBtn');
+    if(shareBtn){
+      shareBtn.addEventListener('click', async ()=>{
+        const shareData = {
+          title: PDP_PRODUCT.name,
+          text: 'Check out this fragrance from Scent Story',
+          url: window.location.href
+        };
+        try{
+          if(navigator.share){ await navigator.share(shareData); }
+          else{
+            await navigator.clipboard.writeText(shareData.url);
+            showToast('Link copied to clipboard');
+          }
+        }catch(e){ /* user cancelled */ }
+      });
+    }
+
+    // ===== Gallery / Carousel (with thumbnails) =====
+    const track = document.getElementById('gallery-track');
+    const thumbs = document.getElementById('thumbs');
+    const btnNext = document.getElementById('next');
+    const btnPrev = document.getElementById('prev');
+
+    // Preload images and filter out missing files to avoid blank galleries
+    function preload(url){
+      return new Promise(resolve=>{
+        const im = new Image();
+        im.onload = ()=> resolve({ ok:true, url });
+        im.onerror = ()=> resolve({ ok:false, url });
+        im.src = url;
+      });
+    }
+
+    (async function initCarousel(){
+    // ===== Dynamic Recommendations (same concentration + random picks) =====
+(function buildRecs(){
+  const host = document.getElementById('reco');
+  if(!host) return;
+  const sameType = Object.values(PRODUCTS).filter(p => p.type===PDP_PRODUCT.type && p.slug!==PDP_PRODUCT.slug);
+  const others   = Object.values(PRODUCTS).filter(p => p.type!==PDP_PRODUCT.type);
+  function take(arr,n){ return arr.sort(()=>Math.random()-0.5).slice(0, n); }
+  const picks = [...take(sameType,3), ...take(others,2)];
+  const title = PDP_PRODUCT.type.charAt(0).toUpperCase()+PDP_PRODUCT.type.slice(1);
+  host.innerHTML = `
+    <h2 class="section-title">You Might Also Like</h2>
+    <div class="grid">
+      ${picks.map(p=>`
+        <div class="card" tabindex="0">
+          <a href="pdp.html?slug=${p.slug}">
+            <div class="img-stack" aria-hidden="true">
+              <img class="img-primary" src="${p.images[0]}" alt="${p.name} — primary">
+              ${p.images[1] ? `<img class=\"img-alt\" src=\"${p.images[1]}\" alt=\"${p.name} — alternate\" onerror=\"this.style.display='none'\">` : ''}
+            </div>
+            <h3>${p.name}</h3>
+            <p>${(p.notes||[]).slice(0,3).join(' • ')}</p>
+          </a>
+        </div>`).join('')}
+    </div>`;
+})();
+      const candidates = PDP_PRODUCT.images || [];
+      const results = await Promise.all(candidates.map(preload));
+      const IMAGES = results.filter(r=>r.ok).map(r=>r.url);
+      if(!IMAGES.length){
+        // Fallback: show at least one placeholder to prevent empty layout
+        track.innerHTML = `<img src="images/CEO.png" alt="${PDP_PRODUCT.name}">`;
+        thumbs.innerHTML = `<button type="button" data-idx="0" aria-current="true"><img src="images/CEO.png" alt="thumb 1"></button>`;
+        btnNext.hidden = true; btnPrev.hidden = true;
+        return;
+      }
+
+      track.innerHTML = IMAGES.map(src=>`<img src="${src}" alt="${PDP_PRODUCT.name}">`).join('');
+      thumbs.innerHTML = IMAGES.map((src,i)=>`<button type="button" data-idx="${i}" aria-current="${i===0}"><img src="${src}" alt="thumb ${i+1}"></button>`).join('');
+
+      let index = 0; let auto = null; const COUNT = IMAGES.length;
+
+      function go(i){
+        index = (i + COUNT) % COUNT;
+        track.style.transform = `translateX(${ -index*100 }%)`;
+        thumbs.querySelectorAll('button').forEach((b,bi)=> b.setAttribute('aria-current', bi===index));
+      }
+      function next(){ go(index+1); }
+      function prev(){ go(index-1); }
+
+      // Wire buttons
+      btnNext.addEventListener('click', ()=>{ next(); pauseAuto(); });
+      btnPrev.addEventListener('click', ()=>{ prev(); pauseAuto(); });
+      // Hide arrows if only one slide
+      if(COUNT < 2){ btnNext.hidden = true; btnPrev.hidden = true; }
+
+      // Thumbs click
+      thumbs.querySelectorAll('button').forEach(btn => btn.addEventListener('click', ()=>{ go(parseInt(btn.dataset.idx,10)); pauseAuto(); }));
+
+      // Auto-rotate
+      function startAuto(){ stopAuto(); if(COUNT>1) auto = setInterval(next, 3500); }
+      function stopAuto(){ if(auto){ clearInterval(auto); auto = null; } }
+      function pauseAuto(){ stopAuto(); startAuto(); }
+
+      // Accessibility: pause when hovering the viewport
+      const viewport = document.querySelector('.gallery-viewport');
+      viewport.addEventListener('mouseenter', stopAuto);
+      viewport.addEventListener('mouseleave', startAuto);
+
+      // Initialize
+      go(0); startAuto();
+    })();
+  </script>
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+  <footer class="footer">
+    <!-- Top: Newsletter + Membership -->
+    <div class="container footer-hero">
+      <section class="subscribe-card" aria-labelledby="subscribe-title">
+        <h3 id="subscribe-title">Join Our Circle</h3>
+        <p>Be first to new launches, private sales, and members-only stories. <strong>New members get 10% off.</strong></p>
+        <form id="newsletter-form" class="newsletter-form" novalidate>
+          <label class="visually-hidden" for="nl-email">Email</label>
+          <input id="nl-email" name="email" type="email" placeholder="Enter your email" required>
+          <button type="submit" class="btn-gold">Subscribe</button>
+        </form>
+        <p id="newsletter-success" class="newsletter-success" role="status" hidden>
+          🎉 Thank you! You’re subscribed. Check your inbox for a welcome note.
+        </p>
+        <small class="legal">By subscribing you agree to our <a href="index.html#/privacy">Privacy Policy</a>. Unsubscribe anytime.</small>
+      </section>
+
+      <section class="membership-card" aria-labelledby="member-title">
+        <h3 id="member-title" style="color:#efe2b8;">Scent Story Circle — Members Get More</h3>
+        <ul class="benefits">
+          <li style="color:#ffc400">Early access to new Chapters</li>
+          <li style="color:#ffc400">Free sample with orders</li>
+          <li style="color:#ffc400">Birthday reward</li>
+          <li style="color:#ffc400">Priority support</li>
+        </ul>
+        <a class="btn-gold pulse-glow member-btn wiggle" href="contact.html" aria-label="Become a member">Become a Member</a>
+      </section>
+    </div>
+
+    <!-- Middle: Navigation columns (point “Brand” back to this page anchors) -->
+    <div class="container footer-links">
+      <div class="col">
+        <h4>Brand</h4>
+        <a href="about.html">About Us</a>
+        <a href="about.html#craft">Craft & Safety</a>
+        <a href="about.html#press">Press</a>
+      </div>
+      <div class="col">
+        <h4>Shop</h4>
+        <a href="index.html#new">New Launches</a>
+        <a href="index.html#bestsellers">Bestsellers</a>
+        <a href="index.html#discover">Explore Chapters</a>
+        <a href="pdp.html">Gift Ideas</a>
+      </div>
+      <div class="col">
+        <h4>Support</h4>
+        <a href="track.html">Track My Order</a>
+        <a href="index.html#/shipping">Shipping</a>
+        <a href="index.html#/returns">Returns</a>
+        <a href="index.html#/grievance">Grievances</a>
+        <a href="index.html#/contact">Contact</a>
+      </div>
+      <div class="col">
+        <h4>Legal</h4>
+        <a href="index.html#/terms">Terms of Service</a>
+        <a href="index.html#/privacy">Privacy Policy</a>
+        <a href="index.html#/privacy">Cookies & Consent</a>
+        <a href="about.html#accessibility">Accessibility</a>
+      </div>
+    </div>
+
+    <div class="container footer-trust">
+      <p>Phthalate-Free • Cruelty-Free • IFRA &amp; FDA Compliant • Secure Checkout</p>
+    </div>
+
+    <div class="container footer-bottom">
+      <div class="payments">
+        <i class="fa-brands fa-cc-visa" aria-hidden="true" title="Visa"></i>
+        <i class="fa-brands fa-cc-mastercard" aria-hidden="true" title="Mastercard"></i>
+        <i class="fa-brands fa-cc-amex" aria-hidden="true" title="American Express"></i>
+        <i class="fa-brands fa-cc-paypal" aria-hidden="true" title="PayPal"></i>
+        <span class="badge-upi" aria-label="UPI accepted">UPI</span>
+      </div>
+      <div class="social-icons" aria-label="Social media">
+        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </div>
+      <div class="copyright">
+        © <span id="year"></span> Scent Story. All Rights Reserved.
+      </div>
+    </div>
+  </footer>
+
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <h3>Thank You!</h3>
+      <p>Your information has been successfully submitted.</p>
+      <button onclick="closePopup()">Close</button>
+    </div>
+  </div>
+
+  <script src="js/main.js" defer></script>
+
+</body>
+</html>
