@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scent Story — Become a Member</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome for social icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Global font reset (kept intentional if needed elsewhere) */
+    html, body, h1, h2, h3, h4, h5, h6, p, a, li, nav, button, input, textarea {
+      font-family: 'Playfair Display', serif !important;
+    }
+
+    :root{
+      --bg: #0d1117;
+      --bg-2: #0f141b;
+      --panel: rgba(255,255,255,.06);
+      --panel-2: rgba(255,255,255,.08);
+      --text: #EDEDED;
+      --muted: #cfd6df;
+      --gold: #c9a86a;
+      --gold-2: #e5c987;
+      --stroke: rgba(255,255,255,0.14);
+      --border: #1f2630;
+      --accent-glow: 0 0 24px rgba(201,168,106,.35);
+    }
+    body{ color:#fff; }
+    :root{ --nav-height: 120px; --nav-offset-extra: 0px; }
+    /* ===== NAV/HEADER/OVERLAY/LAYERING ===== */
+    /* Ensure nav stack is above hero */
+header[aria-label="Primary Navigation"]{
+  position: sticky;
+  top: 0;
+  z-index: 10000;                 /* above everything */
+  background: rgba(13,17,23,0.96); /* more opaque for dropdown */
+  backdrop-filter: blur(10px);
+}
+/* Ensure hero and overlays don't block nav/menu */
+.hero::before{ pointer-events:none; z-index:-1; }
+.hero, .section{ position:relative; z-index:0; pointer-events:auto; }
+.benefits-marquee{ position:relative; z-index:1; pointer-events:none; }
+.benefits-marquee .lane, .benefits-marquee .card{ pointer-events:auto; }
+
+.hero{ position: relative; z-index: 0; }
+/* Raise mobile menu above everything */
+.mobile-menu{
+  z-index: 9000;
+  background: rgba(15,20,27,0.98);
+  pointer-events:auto;
+}
+    /* Dim background when drawer is open */
+#nav-overlay{ position: fixed; inset:0; background: rgba(0,0,0,.45); opacity:0; pointer-events:none; z-index: 6500; transition: opacity .25s ease; }
+    #nav-overlay.open{ opacity:1; pointer-events:auto; }
+    /* Mobile nav (hamburger + slide drawer) */
+    .nav-toggle{
+      display:none;
+      align-items:center; justify-content:center;
+      width:40px; height:40px; border-radius:8px;
+      border:1px solid var(--stroke);
+      background:#141820; color:#ffc400; cursor:pointer;
+    }
+    .nav-toggle i{ font-size:18px; }
+    @media (max-width: 900px){
+      header[aria-label="Primary Navigation"] .nav-toggle {
+        margin-left: auto; /* pushes button to the far right */
+        order: 3; /* ensures it stays after brand text */
+      }
+      header[aria-label="Primary Navigation"] .container.nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+    @media (max-width: 900px){
+      .menu{ display:none; }
+      .quick-actions{ display:none; }
+      .nav-toggle{ display:inline-flex; }
+    }
+    /* === Keep desktop navbar on a single line === */
+    @media (min-width: 901px){
+      /* Use a 3‑column grid: brand | centered nav | actions */
+      header[aria-label="Primary Navigation"] .container.nav{
+        display:grid;
+        grid-template-columns: auto 1fr auto;
+        align-items:center;
+        gap:16px;
+        justify-items:stretch;
+      }
+      /* Center the nav links area */
+      header[aria-label="Primary Navigation"] #primary-nav.menu{
+        display:flex !important;
+        align-items:center;
+        gap:24px;
+        justify-content:center;   /* center items inside the nav */
+        flex-wrap:nowrap; 
+        white-space:nowrap;
+        margin:0 auto;             /* ensure centering within column */
+        max-width: 820px;          /* keeps a tidy centered row */
+      }
+      /* Place logo + brand text in the first column together */
+      header[aria-label="Primary Navigation"] .brand-logo,
+      header[aria-label="Primary Navigation"] .brand-text{
+        grid-column: 1;
+      }
+      /* Keep quick actions on the far right when visible */
+      header[aria-label="Primary Navigation"] .quick-actions{
+        grid-column: 3;
+        justify-self: end;
+      }
+    }
+    nav.menu a{ font-size:.95rem; margin:0 12px; }
+    .mobile-menu{
+      position: fixed;
+      top: calc(var(--nav-height, 120px) + var(--nav-offset-extra, 0px));
+      left: 0; right: 0;
+      background: rgba(15,20,27,0.98);
+      border-top: 1px solid var(--stroke);
+      box-shadow: 0 18px 38px rgba(0,0,0,.55);
+      display: grid; gap: 8px;
+      padding: 12px 14px 14px;
+      transform: translate3d(0,-12px,0);
+      opacity: 0; pointer-events: none;
+      transition: transform .25s ease, opacity .25s ease;
+      will-change: transform, opacity;
+      backface-visibility: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      z-index: 9000;                 /* above overlay/hero */
+      max-height: calc(100vh - var(--nav-height, 90px) - 8px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: manipulation;
+      isolation: isolate;
+      pointer-events:auto;
+    }
+    /* Prevent hidden mobile menu from blocking interactions */
+    .mobile-menu[hidden] {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+    }
+    /* Ensure mobile nav overlay does not interfere when closed */
+    #nav-overlay:not(.open) {
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+    }
+    /* Extra safety for non-open nav state */
+    .mobile-menu:not(.open) {
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    /* When open, restore interaction */
+    .mobile-menu.open {
+      pointer-events: auto;
+      opacity: 1 !important;
+      transform: translateY(0);
+      visibility: visible;
+    }
+    /* Hero and CTA should always be clickable */
+    .hero, .cta, .hero-inner, .section {
+      position: relative;
+      z-index: 1;
+      pointer-events: auto;
+    }
+    /* === Desktop Explore dropdown: bring to front and position below summary === */
+    header[aria-label="Primary Navigation"]{ overflow:visible; }
+    header[aria-label="Primary Navigation"] .container.nav{ overflow:visible; }
+    nav.menu{ position:relative; z-index: 4200; }
+    nav.menu details{ position:relative; }
+    nav.menu details > summary{ position:relative; z-index: 4210; }
+    nav.menu details .dropdown{
+      position:absolute; top: calc(100% + 8px); left: 0; z-index: 4500;
+      background: var(--bg-2); border:1px solid var(--stroke); border-radius:12px;
+      padding:10px; box-shadow: 0 18px 38px rgba(0,0,0,.45);
+      min-width: 220px;
+    }
+    /* Explore dropdown — match Index two-column layout */
+    nav.menu details .dropdown .see-all{
+      display:block; margin:4px 0 10px; padding:8px 10px; border-radius:8px;
+      font-weight:700; color:#111; text-align:center;
+      background:linear-gradient(135deg,#f6e7b9,#bfa06a);
+    }
+    nav.menu details .dropdown .grid{
+      display:grid; grid-template-columns: 1fr 1fr; gap:14px 24px; align-items:start;
+    }
+    nav.menu details .dropdown .group h5{
+      margin:0 0 6px; font-family:'Playfair Display', serif; font-size:.9rem;
+      letter-spacing:.06em; text-transform:uppercase; color:#cfd6df;
+    }
+    nav.menu details .dropdown a{
+      display:block; padding:6px 6px; border-radius:8px; text-decoration:none;
+      color:#efba0a; font-weight:600; font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+    nav.menu details .dropdown a:hover{
+      background: rgba(191,160,106,.08); color:#f6e7b9;
+    }
+    @media (max-width: 900px){
+      /* Desktop dropdown styles are not used on mobile; let mobile drawer handle it */
+      nav.menu details .dropdown{ position:absolute; }
+    }
+    nav.menu details[open] > .dropdown{ display:block; }
+    .mobile-menu.open{
+      transform: translate3d(0,0,0);
+      opacity: 1 !important;         /* ensure no other rule keeps it dim */
+      pointer-events: auto;
+    }
+    .mobile-menu a{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 12px 12px; font-size: 14px; border:1px solid var(--stroke);
+      border-radius: 12px; background: #12161c; /* darker tile */
+      color:#fff; text-decoration:none; font-weight:600;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+    .mobile-menu a:hover{ filter:brightness(1.08); }
+    .mobile-menu .sub{ display:grid; gap:8px; margin-top:4px; padding-left:10px; }
+    .mobile-menu .label{ color:#bfa06a; font-size:12px; letter-spacing:.04em; text-transform:uppercase; margin:4px 2px; }
+    .mobile-menu summary,
+    .mobile-menu .label,
+    .mobile-menu details a{
+      color: #f5f7fa;
+    }
+    /* Mobile drawer accordions (match PDP1) */
+    .mobile-menu details{ border:1px solid var(--stroke); border-radius:12px; background:#0f1216; }
+    .mobile-menu summary{ list-style:none; cursor:pointer; padding:12px 10px; font-weight:700; color:#fff; display:flex; align-items:center; justify-content:space-between; }
+    .mobile-menu details[open] summary{ filter:brightness(1.06); }
+    .mobile-menu details .sub{ padding:8px 10px 10px; }
+    .mobile-menu details .sub a{ margin-top:6px; }
+    .mobile-menu, .mobile-menu * { pointer-events: auto; }
+    /* Utility */
+    .hidden{ display:none !important; }
+    @media (max-width: 900px){ :root{ --nav-height: 92px; } }
+    html, body { height:100%; background: radial-gradient(120% 120% at 10% 0%, #0c0f14 0%, #0b0e12 35%, #080a0d 100%); color: var(--text); }
+
+    /* Ensure anchored sections are visible below fixed nav */
+    [id]{ scroll-margin-top: calc(var(--nav-height, 90px) + 12px); }
+    /* === Fix mobile right-side blank space / horizontal scroll bug === */
+    html, body {
+      overflow-x: hidden !important;
+      max-width: 100%;
+    }
+
+    .container, .hero-inner, .enroll, .tiers, .footer, .footer .container{
+  max-width: 100%;
+}
+
+/* Let animated areas manage their own overflow */
+.section, .benefits-marquee{ overflow-x: visible; }
+    /* Fix for any transforms or animations pushing elements out of bounds */
+    .mobile-menu, .footer-links, header[aria-label="Primary Navigation"] {
+      overflow-x: clip;
+    }
+    /* removed global font-family override for html, body, h1... */
+    /* === Typography: inherit site defaults (Inter body, Playfair headings via styles.css) === */
+    :root{ --ff-serif: 'Playfair Display', serif; --ff-sans: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+    /* No explicit overrides here so header/footer use the same fonts as index via styles.css */
+
+    .icon-btn{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px;
+      border:1px solid #bfa06a;
+      border-radius:999px;
+      font-size:13px;
+      color:#efba0a;
+      text-decoration:none;
+      background:rgba(191,160,106,.08);
+      transition:transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+    }
+    .quick-actions .icon-btn + .icon-btn{ margin-left:8px; }
+
+    /* ===== HERO ===== */
+    .hero { position: relative; overflow:hidden; }
+    .hero::before { content:""; position:absolute; inset:-20%; background: radial-gradient(120% 80% at 80% -10%, rgba(201,168,106,.22), transparent 45%), radial-gradient(100% 60% at -10% 100%, rgba(229,201,135,.18), transparent 48%); filter: blur(36px); pointer-events: none; z-index: -1; }
+    .hero-inner { max-width: 1100px; margin: 0 auto; padding: 68px 20px 16px; text-align:center; position:relative; }
+    .eyebrow { color: var(--gold); text-transform: uppercase; letter-spacing: .28em; font-size:.8rem; }
+    .h1 { font-size: clamp(28px, 5vw, 56px); line-height: 1.08; margin: 10px auto 14px; max-width: 880px; }
+    .tag { color: var(--muted); font-size: clamp(14px, 2.4vw, 18px); margin: 0 auto 28px; max-width: 760px; }
+
+    .cta { display:inline-flex; align-items:center; gap:10px; padding:12px 18px; border-radius:999px; border:1px solid rgba(201,168,106,.5); background: linear-gradient(180deg, rgba(201,168,106,.24), rgba(201,168,106,.14)); color:#111; font-weight:700; letter-spacing:.02em; color: var(--text); transition: transform .18s ease, box-shadow .25s ease, background .25s ease; }
+    .cta:hover { transform: translateY(-1px); box-shadow: var(--accent-glow); background: linear-gradient(180deg, rgba(229,201,135,.28), rgba(201,168,106,.2)); }
+
+    /* ===== BENEFITS ===== */
+    .section { max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
+    .benefits { display:grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .card { background: linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid var(--border); border-radius: 16px; padding:14px; min-height: 144px; backdrop-filter: blur(8px); }
+    .card h3 { margin: 0 0 6px; font-size: 1.15rem; }
+    .card p { margin: 0; color: var(--muted); font-family: 'Inter', system-ui, sans-serif !important; }
+
+    /* ===== TIERS ===== */
+    .tiers { display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 6px; }
+    .tier { border-radius: 16px; border:1px solid var(--border); background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); padding:18px; position:relative; overflow:hidden; }
+    .tier h4 { margin: 0 0 8px; font-size: 1.05rem; letter-spacing:.06em }
+    .tier .price { color: var(--gold); font-family: 'Inter',system-ui,sans-serif !important; font-weight: 700; margin-bottom: 6px; }
+    .tier ul { margin: 10px 0 0; padding: 0 0 0 18px; color: var(--muted); font-family: 'Inter',system-ui,sans-serif !important; }
+
+    /* ===== Selectable tiers ===== */
+    .tiers { counter-reset: tier; }
+    .tier { cursor: pointer; position: relative; transition: border-color .2s ease, box-shadow .25s ease, transform .15s ease; }
+    .tier:hover { transform: translateY(-2px); border-color: rgba(201,168,106,.45); box-shadow: 0 10px 26px rgba(201,168,106,.12), inset 0 0 0 1px rgba(201,168,106,.28); }
+    .tier[aria-pressed="true"], .tier.selected {
+      border-color: rgba(201,168,106,.75) !important;
+      box-shadow: 0 10px 26px rgba(201,168,106,.18), inset 0 0 0 1px rgba(201,168,106,.45);
+    }
+    .tier .tick { position:absolute; top:10px; right:10px; width:22px; height:22px; border-radius:999px; border:1px solid rgba(201,168,106,.6); display:flex; align-items:center; justify-content:center; font-size:.9rem; color:#c9a86a; background:rgba(201,168,106,.1); opacity:0; transform:scale(.9); transition:opacity .2s ease, transform .2s ease; }
+    .tier[aria-pressed="true"] .tick, .tier.selected .tick { opacity:1; transform:scale(1); }
+
+    /* ===== Card glow animation ===== */
+    .glow-pulse { animation: glowPulse 900ms ease; }
+    @keyframes glowPulse {
+      0%   { box-shadow: 0 0 0 rgba(201,168,106,0); }
+      35%  { box-shadow: 0 0 24px rgba(201,168,106,.45); }
+      100% { box-shadow: 0 0 0 rgba(201,168,106,0); }
+    }
+
+    /* ===== Error toast (centered) ===== */
+    .toast.error { background: rgba(130,0,0,.92); border-color: rgba(255,120,120,.4); }
+
+    /* ===== ENROLL FORM (glass card) ===== */
+    .enroll { display:grid; grid-template-columns: 1.1fr .9fr; gap: 16px; align-items: stretch; }
+    .panel { background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04)); border:1px solid var(--border); border-radius: 16px; padding: 18px; backdrop-filter: blur(8px); }
+    .panel h3 { margin: 0 0 10px; }
+
+    .form { display:grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .field { display:flex; flex-direction:column; gap: 6px; }
+    label { font-size:.9rem; color: var(--muted); font-family: 'Inter',system-ui,sans-serif !important; }
+    input, select, textarea { font-family: 'Inter',system-ui,sans-serif !important; background: rgba(255,255,255,.04); border:1px solid var(--stroke); border-radius: 12px; padding: 10px 12px; color: var(--text); outline:none; transition: border-color .2s ease, box-shadow .2s ease; }
+    input:focus, select:focus, textarea:focus { border-color: rgba(201,168,106,.7); box-shadow: 0 0 0 3px rgba(201,168,106,.16); }
+    .full { grid-column: 1 / -1; }
+
+    .submit { display:flex; align-items:center; justify-content:center; gap:10px; }
+    .btn-gold { display:inline-flex; align-items:center; gap: 10px; padding: 12px 18px; border-radius: 999px; border: 1px solid rgba(201,168,106,.55); background: linear-gradient(180deg, rgba(201,168,106,.26), rgba(201,168,106,.14)); color: var(--text); font-weight: 700; letter-spacing: .02em; transition: transform .15s ease, box-shadow .25s ease, background .25s ease; }
+    .btn-gold:hover{ transform: translateY(-1px); box-shadow: var(--accent-glow); background: linear-gradient(180deg, rgba(229,201,135,.3), rgba(201,168,106,.18)); }
+
+    /* ===== Membership Card Preview ===== */
+    .idcard {
+      border:1px solid rgba(201,168,106,.45);
+      border-radius: 14px;
+      background: linear-gradient(160deg, rgba(201,168,106,.12), rgba(255,255,255,.02));
+      position: relative;
+      overflow:hidden;
+      /* ATM card sizing */
+      width: clamp(280px, 32vw, 360px);
+      aspect-ratio: 85.6 / 54; /* ISO/IEC 7810 ID-1 */
+      padding: 14px 16px;
+    }
+    aside.panel { display:flex; flex-direction:column; align-items:center; }
+    .id-row .id-title { font-size: .95rem; }
+    .idcard::after{ content:""; position:absolute; right:-20px; top:-20px; width:160px; height:160px; border-radius:50%; background: radial-gradient(closest-side, rgba(201,168,106,.35), transparent); filter: blur(16px); }
+    .id-row{ display:flex; align-items:center; justify-content: space-between; gap:14px; }
+    .id-brand{ display:flex; align-items:center; gap:10px; }
+    .id-brand img{ width:80px; height:80px; object-fit:contain; }
+    .id-title{ font-weight:700; letter-spacing:.08em }
+    .id-num{ font-family: 'Inter',system-ui,sans-serif !important; color: var(--gold); font-weight: 700; }
+    .card-details{ display:flex; flex-direction:column; gap:6px; }
+    #cardName, #cardTier, #cardPhone{ font-family: 'Playfair Display', serif !important; letter-spacing:.01em; }
+    #cardName{ font-size:1.05rem; font-weight:600; }
+    #cardTier, #cardPhone{ font-size:.95rem; }
+    /* Tier-based color accents */
+.idcard{ --tier-accent: rgba(201,168,106,.35); --tier-border: rgba(201,168,106,.45); }
+.idcard.tier-gold   { --tier-accent: rgba(201,168,106,.40); --tier-border: rgba(201,168,106,.65); }
+.idcard.tier-platinum{ --tier-accent: rgba(192,192,192,.40); --tier-border: rgba(192,192,192,.65); }
+.idcard.tier-elite  { --tier-accent: rgba(255,215,0,.40);   --tier-border: rgba(255,215,0,.65); }
+.idcard{ border-color: var(--tier-border); }
+.idcard::after{ background: radial-gradient(closest-side, var(--tier-accent), transparent); }
+
+    .barcode{
+      position:absolute; right:-15px; bottom:35px;
+      width:112px; height:20px; /* compact */
+      opacity:.28;            /* faint */
+      background: transparent;/* no white box */
+      border:0;               /* no border */
+      display:flex; align-items:flex-end; gap:2px; padding:0; overflow:hidden;
+      pointer-events:none;    /* decorative */
+    }
+    .barcode .bar{ width:2px; background: rgba(237,237,237,.55); align-self:flex-end; }
+
+/* Foil sweep animation on card */
+.idcard{ position: relative; isolation:isolate; }
+.idcard::before{
+  content:"";
+  position:absolute; inset:0; pointer-events:none; z-index:1;
+  background: linear-gradient(115deg, rgba(255,255,255,0) 20%, rgba(255,255,255,.18) 38%, rgba(255,255,255,0) 56%);
+  transform: translateX(-120%);
+  filter: blur(1px);
+}
+.idcard:hover::before{ animation: foilSweep 1200ms ease; }
+@keyframes foilSweep{
+  0%   { transform: translateX(-120%); opacity:.0; }
+  20%  { opacity:.85; }
+  60%  { opacity:.65; }
+  100% { transform: translateX(120%); opacity:0; }
+}
+
+    /* ===== Footer alignment (match Index) ===== */
+    .footer{ background: var(--bg); border-top:1px solid var(--border); }
+    .footer .container{ max-width:1100px; margin:0 auto; padding:22px 20px; }
+
+    .footer-links{ 
+      display:grid; 
+      grid-template-columns: repeat(4, 1fr); 
+      gap: 22px; /* was 26px; reduced for tighter columns */
+      align-items:start; 
+    }
+    .footer-links .col{ text-align:left; }
+    .footer-links .col h4 {
+      margin: 0 0 12px;
+      font-weight: 700;
+      font-size: 1.15rem;
+      letter-spacing: .02em;
+      color: #EDEDED;
+      font-family: 'Playfair Display', serif !important;
+    }
+
+    .footer-links .col a{
+      display:block; padding:4px 0; color:#cfd6df; opacity:1; text-decoration:none;
+      font-size:1rem; line-height:1.38; letter-spacing:.01em; font-weight:400;
+      transition:color .25s ease;
+    }
+
+    .footer-links .col a:hover {
+      color: #f6e7b9;
+    }
+
+    .footer-links .col a + a {
+      margin-top: 4px;
+    }
+
+    /* Footer trust row */
+    .footer-trust{ text-align:center; color:var(--muted); padding:10px 0 4px; }
+
+    /* Bottom row alignment */
+    .footer-bottom{ 
+      display:grid; 
+      grid-template-columns: 1fr auto auto; 
+      gap:14px; 
+      align-items:center; 
+      padding-top:8px; 
+      border-top:1px solid var(--border);
+    }
+    .footer-bottom .payments i, .footer-bottom .payments .badge-upi{ margin-right:10px; }
+    .footer-bottom .social-icons a{ margin-left:10px; }
+    .footer-bottom .copyright{ text-align:right; color:var(--muted); }
+
+    /* Responsive footer columns */
+    @media (max-width: 900px){
+      .footer-links{ grid-template-columns: 1fr 1fr; gap:18px; }
+      .footer-bottom{ grid-template-columns: 1fr; text-align:center; }
+      .footer-bottom .copyright{ text-align:center; }
+      .footer-links .col{ text-align:left; }
+    }
+    @media (max-width: 540px){
+      .footer-links{ grid-template-columns: 1fr 1fr; gap:14px; }
+    }
+
+    /* ===== Toast ===== */
+    .toast{ position: fixed; left:50%; top:24px; transform: translateX(-50%); background: rgba(15,18,24,.9); color: var(--text); border:1px solid var(--border); padding: 12px 16px; border-radius: 12px; z-index: 2000; box-shadow: 0 8px 24px rgba(0,0,0,.35); display:none; }
+    .toast.show{ display:block; animation: fadeSlide .45s ease; }
+    @keyframes fadeSlide{ from{ opacity:0; transform: translateX(-50%) translateY(-6px);} to{ opacity:1; transform: translateX(-50%) translateY(0);} }
+
+
+    /* ===== Mobile Card & Layout Fixes ===== */
+    @media (max-width: 900px){
+      .enroll{ grid-template-columns: 1fr; }
+      .panel{ padding:16px; }
+      aside.panel{ align-items:center; }
+      .idcard{ width: min(100%, 340px); margin: 6px auto 0; padding:12px 14px; }
+      .id-row{ gap:10px; align-items:flex-start; flex-wrap: wrap; }
+      .id-brand img{ width:60px; height:60px; }
+      .id-title{ font-size: .95rem; }
+      .id-num{ font-size: .9rem; margin-left:auto; }
+      .card-details{ gap: 4px; }
+      #cardName{ font-size: 1rem; }
+      #cardTier, #cardPhone{ font-size: .9rem; }
+      .barcode{ right: 8px; bottom: 8px; width: 96px; height: 16px; }
+    }
+
+    @media (max-width: 540px){
+      .hero-inner{ padding: 52px 16px 12px; }
+      .h1{ font-size: clamp(24px, 7vw, 36px); }
+      .section{ padding: 18px 16px; }
+      .benefits{ grid-template-columns: 1fr 1fr; gap: 10px; }
+      .tiers{ grid-template-columns: 1fr; gap: 12px; }
+      .enroll{ gap: 12px; }
+      .card{ padding:12px; min-height: 132px; }
+      .id-brand img{ width:52px; height:52px; }
+      .id-num{ font-size: .85rem; }
+      .idcard{ width: min(100%, 320px); }
+      .barcode{ right: 6px; bottom: 6px; width: 88px; height: 14px; }
+    }
+
+    @media (max-width: 900px){
+      .section{ padding: 20px 16px; }
+      .benefits, .tiers{ gap: 12px; }
+    }
+
+    /* ===== Benefits: luxury bubble chips (compact, animated) ===== */
+.card.bubble{
+  border-radius: 14px;
+  padding: 12px;
+  min-height: auto;
+  background:
+    radial-gradient(140% 120% at 110% -20%, rgba(201,168,106,.14), transparent 50%),
+    linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow: 0 10px 24px rgba(0,0,0,.22), inset 0 0 0 1px rgba(201,168,106,.10);
+  transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .28s ease, border-color .25s ease;
+}
+.card.bubble h3{ font-size: 1rem; margin: 0 0 4px; }
+.card.bubble p{ font-size: .85rem; line-height: 1.35; margin: 0; }
+.card.bubble:hover{ transform: translateY(-2px) scale(1.01); box-shadow: 0 14px 36px rgba(0,0,0,.28), inset 0 0 0 1px rgba(201,168,106,.18); }
+
+/* entrance animation */
+@keyframes bubbleIn{
+  0%{ transform: translateY(10px) scale(.98); opacity: 0; filter: saturate(.9); }
+  60%{ opacity: 1; }
+  100%{ transform: translateY(0) scale(1); opacity: 1; filter: saturate(1); }
+}
+.card.bubble.in{ animation: bubbleIn 420ms cubic-bezier(.2,.8,.2,1) both; }
+
+/* micro pulse on tap (mobile friendly) */
+.card.bubble:active{ transform: translateY(0) scale(.995); box-shadow: 0 10px 28px rgba(0,0,0,.26); }
+
+/* extra-tight layout for very small screens */
+@media (max-width: 380px){
+  .card.bubble{ padding:10px; }
+  .card.bubble h3{ font-size:.95rem; }
+  .card.bubble p{ font-size:.8rem; }
+}
+
+    /* ===== Benefits marquee (RTL, seamless, compact) ===== */
+    .benefits-marquee{ overflow:hidden; position:relative;
+      will-change: transform;
+      isolation: isolate;
+    }
+    .benefits-marquee .lane{ display:flex; gap:12px; width:max-content; will-change: transform; animation: benefitsSlide 12s linear infinite; }
+    /* Pause on hover only for devices that truly support hover (no sticky hover on touch) */
+    @media (hover: hover) and (pointer: fine){
+      .benefits-marquee:hover .lane{ animation-play-state: paused; }
+    }
+    /* Card sizing for lane */
+    .benefits-marquee .card{ min-width: 240px; max-width: 320px; }
+    @media (min-width: 900px){ .benefits-marquee .card{ min-width: 280px; } }
+    /* RTL sliding animation */
+    @keyframes benefitsSlide {
+      0%{ transform: translateX(0); }
+      100%{ transform: translateX(-50%); }
+    }
+    /* Force run (overrides any accidental pauses) */
+    .benefits-marquee[data-anim="on"] .lane{ animation: benefitsSlide 12s linear infinite !important; animation-play-state: running !important; }
+    /* Reduce motion for users who prefer it */
+    @media (prefers-reduced-motion: reduce){
+      /* Stop animation unless explicitly forced on */
+      .benefits-marquee:not([data-anim="on"]) .lane{ animation: none !important; }
+    }
+    /* Subtle hover light sweep on each bubble */
+    .card.bubble{ position:relative; overflow:hidden; }
+    .card.bubble::before{
+      content:""; position:absolute; inset:-10%;
+      background: linear-gradient(110deg, rgba(255,255,255,0) 20%, rgba(255,255,255,.15) 50%, rgba(255,255,255,0) 80%);
+      transform: translateX(-120%);
+      opacity:0; pointer-events:none;
+    }
+    .card.bubble:hover::before{ animation: bubbleSweep 900ms ease; }
+    @keyframes bubbleSweep{ 0%{transform:translateX(-120%);opacity:0;} 15%{opacity:.9;} 100%{transform:translateX(120%);opacity:0;} }
+
+    /* ===== Mobile-specific stylish stack animation (overlay, single track) ===== */
+    @media (max-width: 600px){
+      .benefits-marquee{ position: relative; overflow: visible; padding: 0; --center-nudge: 200px; }
+      .benefits-marquee .lane{
+        position: relative; /* anchor absolutely positioned cards */
+        height: var(--stack-h, 168px);
+        animation: none; /* disable desktop marquee on mobile */
+        display: block;
+        overflow: visible; /* allow cards to move in from off-canvas */
+      }
+      .benefits-marquee .card{
+        position: absolute; top: 0; left: 50%; right: auto; bottom: auto;
+        width: min(92vw, 440px);
+        box-sizing: border-box;
+        transform: translateX(140%) scale(.92);
+        transform-origin: center center;
+        opacity: 0; border: 2px solid transparent; border-radius: 16px;
+        transition: border-color .3s ease, box-shadow .3s ease;
+        will-change: transform, opacity;
+        backface-visibility: hidden;
+        z-index: 5;
+      }
+      .benefits-marquee .card.show{
+        animation-name: mobileStackSlide !important;
+        animation-duration: 3.6s !important;
+        animation-timing-function: ease !important;
+        animation-fill-mode: forwards !important;
+        animation-iteration-count: 1 !important;
+      }
+
+      /* While measuring, keep card centered and visible (no animation) */
+      .benefits-marquee.measuring .card.show{ animation: none !important; opacity: 1 !important; transform: translateX(calc(-50% + var(--center-nudge))) scale(1) !important; }
+
+      @keyframes mobileStackSlide{
+        0%   { opacity:0; transform: translateX(140%) scale(.92); }
+        18%  { opacity:1; transform: translateX(calc(-50% + var(--center-nudge))) scale(1.06); border-color: rgba(201,168,106,.85); box-shadow: 0 0 22px rgba(201,168,106,.42); }
+        45%  { opacity:1; transform: translateX(calc(-50% + var(--center-nudge))) scale(1.08); border-color: rgba(201,168,106,1);  box-shadow: 0 0 28px rgba(201,168,106,.54); }
+        72%  { opacity:1; transform: translateX(calc(-50% + var(--center-nudge))) scale(1.06); border-color: rgba(201,168,106,.85); box-shadow: 0 0 22px rgba(201,168,106,.42); }
+        100% { opacity:0; transform: translateX(-150%) scale(.92); border-color: transparent; box-shadow: none; }
+      }
+
+      .benefits-marquee{ overflow: hidden; }
+    }
+
+    @media (max-width: 380px){
+      .benefits-marquee{ --center-nudge: 10px; }
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 980px){ .enroll{ grid-template-columns: 1fr; } .tiers{ grid-template-columns: 1fr; } .benefits{ grid-template-columns: 1fr 1fr; } .footer-wrap{ grid-template-columns: 1fr; } }
+    @media (max-width: 540px){ .links{ display:none; } .benefits{ grid-template-columns: 1fr 1fr; gap: 10px; } }
+/* === Header lockup & nav alignment (page-scoped; mirrors index) === */
+header[aria-label="Primary Navigation"] .container.nav{
+  display:flex;
+  align-items:center;
+  gap:12px;                 /* reduce space between logo ↔ text */
+  justify-content:flex-start;/* keep brand + nav toward the left */
+  min-height:120px;         /* same vertical height as index */
+  padding:8px 20px;         /* nudge logo off the hard-left edge */
+}
+/* Logo + brand text sit tighter together */
+header[aria-label="Primary Navigation"] .brand-logo{ display:inline-flex; align-items:center; }
+header[aria-label="Primary Navigation"] .brand-logo img{ height:96px; width:auto; display:block; }
+header[aria-label="Primary Navigation"] .brand-text{ margin-left:-14px; white-space:nowrap; }
+header[aria-label="Primary Navigation"] .brand-logo,
+header[aria-label="Primary Navigation"] .brand-text {
+  position: relative;
+  left: 12%; /* move brand logo and text slightly right */
+}
+
+@media (max-width: 900px){
+  header[aria-label="Primary Navigation"] .brand-logo,
+  header[aria-label="Primary Navigation"] .brand-text {
+    left: 2%; /* push brand logo and text closer to the left edge for mobile */
+  }
+}
+/* Desktop: center nav links on laptop/desktop */
+@media (min-width:901px){
+  header[aria-label="Primary Navigation"] #primary-nav.menu{
+    display:flex !important;
+    align-items:center;
+    gap:24px;
+    justify-content:center;   /* center on laptop/desktop */
+    flex-wrap:nowrap; 
+    white-space:nowrap;
+    margin:0 auto;
+  }
+}
+/* Mobile: only show hamburger + drawer; hide desktop menu */
+@media (max-width:900px){
+  header[aria-label="Primary Navigation"] .nav-toggle{ display:inline-flex; }
+  header[aria-label="Primary Navigation"] #primary-nav.menu{ display:none !important; }
+  header[aria-label="Primary Navigation"] .quick-actions{ display:none; }
+}
+
+/* Safety: hidden mobile drawer must never intercept clicks */
+#mobileMenu[hidden]{ display:none !important; opacity:0 !important; pointer-events:none !important; visibility:hidden !important; }
+#nav-overlay:not(.open){ opacity:0; pointer-events:none; visibility:hidden; }
+.mobile-menu:not(.open){ pointer-events:none; opacity:0; transform:translateY(-10px); }
+.mobile-menu.open{ pointer-events:auto; opacity:1 !important; transform:translateY(0); }
+  </style>
+</head>
+<body>
+  <!-- HEADER / NAV (exact copy from index) -->
+  <header aria-label="Primary Navigation">
+    <div class="container nav">
+      <a class="brand-logo" href="index.html" aria-label="Scent Story Home">
+        <img src="images/brandlogofin.png" alt="Scent Story logo">
+      </a>
+      <span class="brand-text">Scent Story</span>
+      <!-- Mobile hamburger button -->
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <nav id="primary-nav" class="menu">
+        <a href="index.html" style="color:#efba0a">Home</a>
+        <a href="index.html#bestsellers" style="color:#e0d2a2">New Launches</a>
+        <details>
+          <summary id="nav-explore" style="color:#efba0a">Explore Chapters ▾</summary>
+          <div class="dropdown" role="menu" aria-label="Explore Chapters">
+            <a class="see-all" href="#/collections">See Full Collections →</a>
+            <div class="grid">
+              <div class="group">
+                <h5>By Concentration</h5>
+                <a href="pdp1.html?cat=edp">Eau de Parfum (EDP)</a>
+                <a href="pdp1.html?cat=parfum">Parfum</a>
+                <a href="pdp1.html?cat=elixir">Elixir</a>
+              </div>
+              <div class="group">
+                <h5>By Mood</h5>
+                <a href="pdp1.html?tag=ambition">Ambition</a>
+                <a href="pdp1.html?tag=bold">Bold</a>
+                <a href="pdp1.html?tag=carefree">Carefree</a>
+                <a href="pdp1.html?tag=power">Power</a>
+                <a href="pdp1.html?tag=seasons">Seasons</a>
+              </div>
+            </div>
+          </div>
+        </details>
+        <a href="index.html#/track" style="color:#efba0a">Track My Order</a>
+        <a href="wishlist.html" style="color:#efba0a" id="wishlistLink" data-base-label="Wishlist">Wishlist <span id="wishlist-count" class="cart-badge" aria-live="polite">0</span></a>
+        <a href="index.html#/contact" style="color:#efba0a">Contact</a>
+        <a id="cart-link" class="cart-link" style="color:#efba0a"href="cart.html">Cart <span id="cart-count" class="cart-badge" aria-live="polite">0</span></a>
+      </nav>
+      <!-- Mobile dropdown container -->
+      <nav id="mobileMenu" class="mobile-menu" aria-label="Mobile Navigation" hidden>
+        <a href="index.html">Home <i class="fa-solid fa-house"></i></a>
+
+        <details>
+          <summary style="color:#efba0a">Explore by Concentration ▾</summary>
+          <div class="sub">
+            <a href="pdp1.html?cat=edp">EDP</a>
+            <a href="pdp1.html?cat=parfum">Parfum</a>
+            <a href="pdp1.html?cat=elixir">Elixir</a>
+          </div>
+        </details>
+
+        <details>
+          <summary style="color:#efba0a">Explore by Mood ▾</summary>
+          <div class="sub">
+            <a href="pdp1.html?tag=ambition">Ambition</a>
+            <a href="pdp1.html?tag=bold">Bold</a>
+            <a href="pdp1.html?tag=carefree">Carefree</a>
+            <a href="pdp1.html?tag=power">Power</a>
+            <a href="pdp1.html?tag=seasons">Seasons</a>
+          </div>
+        </details>
+
+        <a href="index.html#/track" style="color:#e0d2a2">Track My Order <i class="fa-solid fa-box"></i></a>
+        <a href="wishlist.html" id="wishlistLinkMobile" data-base-label="Wishlist" style="color:#e0d2a2">
+          Wishlist <span class="cart-badge" id="wishlist-count-mobile" aria-live="polite">0</span>
+        </a>
+        <a href="cart.html" style="color:#e0d2a2">
+          Cart <span class="cart-badge" id="cart-count-mobile" aria-live="polite">0</span>
+        </a>
+        <a href="index.html#/contact" style="color:#e0d2a2">Contact <i class="fa-regular fa-envelope"></i></a>
+        <a href="about.html" style="color:#e0d2a2">About Us <i class="fa-solid fa-info-circle"></i></a>
+      </nav>
+    </div>
+  </header>
+  <div id="nav-overlay"></div>
+
+  <!-- ===== HERO ===== -->
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow sans">Exclusive membership</div>
+      <h1 class="h1">Step into the <em>Scent Society</em></h1>
+      <p class="tag sans">A private circle for fragrance connoisseurs. Early access, exclusive rewards, and curated picks—delivered with a touch of gold.</p>
+      <a class="cta sans" href="#enroll">Join the Society</a>
+    </div>
+  </header>
+
+  <!-- ===== BENEFITS ===== -->
+  <section class="section" aria-labelledby="benefits-title">
+    <h2 id="benefits-title" class="h2" style="margin:0 0 14px">Your Privileges</h2>
+    <div class="benefits-marquee" aria-label="Membership privileges" data-anim="on">
+      <div class="lane">
+        <div class="card bubble">
+          <h3>Early Access</h3>
+          <p>Be first to experience new launches & limited editions.</p>
+        </div>
+        <div class="card bubble">
+          <h3>Exclusive Rewards</h3>
+          <p>Member pricing, seasonal gifts, and rare drops.</p>
+        </div>
+        <div class="card bubble">
+          <h3>Personal Curation</h3>
+          <p>Recommendations tailored to your scent profile.</p>
+        </div>
+        <div class="card bubble">
+          <h3>Private Events</h3>
+          <p>Invitations to in‑store soirées & discovery sessions.</p>
+        </div>
+        <!-- duplicate for seamless scroll -->
+        <div class="card bubble">
+          <h3>Early Access</h3>
+          <p>Be first to experience new launches & limited editions.</p>
+        </div>
+        <div class="card bubble">
+          <h3>Exclusive Rewards</h3>
+          <p>Member pricing, seasonal gifts, and rare drops.</p>
+        </div>
+        <div class="card bubble">
+          <h3>Personal Curation</h3>
+          <p>Recommendations tailored to your scent profile.</p>
+        </div>
+        <div class="card bubble">
+          <h3>Private Events</h3>
+          <p>Invitations to in‑store soirées & discovery sessions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TIERS (optional, simple showcase) ===== -->
+  <section class="section" aria-labelledby="tiers-title">
+    <h2 id="tiers-title" class="h2" style="margin:0 0 14px">Membership Tiers</h2>
+    <div class="tiers">
+      <div class="tier" data-tier="Gold" role="radio" aria-pressed="false" tabindex="0">
+        <span class="tick" aria-hidden="true">✓</span>
+        <h4>Gold</h4>
+        <div class="price sans">Free</div>
+        <ul>
+          <li>Early access to launches</li>
+          <li>Birthday surprise</li>
+          <li>Priority support</li>
+        </ul>
+      </div>
+      <div class="tier" data-tier="Platinum" role="radio" aria-pressed="false" tabindex="0">
+        <span class="tick" aria-hidden="true">✓</span>
+        <h4>Platinum</h4>
+        <div class="price sans">₹ 1,999 / year</div>
+        <ul>
+          <li>All Gold benefits</li>
+          <li>Exclusive member pricing</li>
+          <li>Invites to private experiences</li>
+        </ul>
+      </div>
+      <div class="tier" data-tier="Elite" role="radio" aria-pressed="false" tabindex="0">
+        <span class="tick" aria-hidden="true">✓</span>
+        <h4>Elite</h4>
+        <div class="price sans">By Invitation</div>
+        <ul>
+          <li>All Platinum benefits</li>
+          <li>Limited edition previews</li>
+          <li>Concierge fragrance styling</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ENROLL ===== -->
+  <section id="enroll" class="section enroll">
+    <div class="panel">
+      <h3>Become a Member</h3>
+      <form id="memberForm" class="form" autocomplete="on" novalidate>
+        <input type="hidden" id="membershipTier" name="tier" required>
+        <div class="field">
+          <label for="fullName">Full Name</label>
+          <input id="fullName" name="fullName" type="text" required placeholder="e.g., Aarav Mehta" />
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label for="phone">Phone (10 digits)</label>
+          <input id="phone" name="phone" type="tel" inputmode="numeric" pattern="^\d{10}$" maxlength="10" required placeholder="9876543210" />
+        </div>
+        <div class="field">
+          <label for="dob">Date of Birth</label>
+          <input id="dob" name="dob" type="date" />
+        </div>
+        <div class="field full">
+          <label for="pref">Preferred Fragrance Type</label>
+          <select id="pref" name="pref" required>
+            <option value="">Select…</option>
+            <option>EDP</option>
+            <option>Parfum</option>
+            <option>Elixir</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label for="notes">Tell us about your scent taste (optional)</label>
+          <textarea id="notes" name="notes" rows="3" placeholder="Citrus-forward, woody base, or gourmand notes…"></textarea>
+        </div>
+        <div class="field full sans" style="display:flex; align-items:center; gap:10px; font-size:.9rem; color:var(--muted)">
+          <input id="consent" type="checkbox" required />
+          <label for="consent" style="margin:0">I agree to receive updates & offers. I can unsubscribe anytime.</label>
+        </div>
+        <div class="full submit">
+          <button type="submit" class="btn-gold sans">Become a Member</button>
+          <span id="formHint" class="sans" style="color:var(--muted); font-size:.9rem"></span>
+        </div>
+      </form>
+    </div>
+
+    <aside class="panel">
+      <h3>Your Membership Card</h3>
+      <div id="card" class="idcard">
+        <div class="id-row">
+          <div class="id-brand">
+            <img src="images/brandlogofin.png" alt="logo" onerror="this.style.display='none'">
+            <div>
+              <div class="id-title">SCENT SOCIETY</div>
+              <div class="sans" style="font-size:.9rem; color:var(--muted)">Member Preview</div>
+            </div>
+          </div>
+          <div class="id-num" id="cardId">ID  SS000000</div>
+        </div>
+        <div style="margin-top:12px" class="sans card-details">
+          <div id="cardName" style="font-weight:600">Your Name</div>
+          <div id="cardTier" style="color:var(--muted); font-size:.95rem">Tier Gold</div>
+          <div id="cardPhone" class="sans" style="color:var(--muted); font-size:.9rem; margin-top:4px">Phone </div>
+          <div id="cardBarcode" class="barcode" aria-label="Preference barcode" title="Preference barcode"></div>
+        </div>
+      </div>
+      <p class="sans" style="color:var(--muted); margin-top:10px">Become a member to generate your unique card & perks.</p>
+    </aside>
+  </section>
+
+  <!-- 🔻 FOOTER (exact copy from index with corrected member link) -->
+  <footer class="footer">
+
+    <div class="container footer-links">
+      <div class="col">
+        <h4>Brand</h4>
+        <a href="about.html">About Us</a>
+        <a href="about.html#craft">Craft & Safety</a>
+        <a href="about.html#press">Press</a>
+      </div>
+      <div class="col">
+        <h4>Shop</h4>
+        <a href="index.html#bestsellers">New Launches</a>
+        <a href="index.html#bestsellers">Bestsellers</a>
+        <a href="index.html#discover">Explore Chapters</a>
+        <a href="pdp1.html?cat=all">Gift Ideas</a>
+      </div>
+      <div class="col">
+        <h4>Support</h4>
+        <a href="index.html#/track">Track My Order</a>
+        <a href="index.html#/shipping">Shipping</a>
+        <a href="index.html#/returns">Returns</a>
+        <a href="index.html#/grievance">Grievances</a>
+        <a href="index.html#/contact">Contact</a>
+      </div>
+      <div class="col">
+        <h4>Legal</h4>
+        <a href="index.html#/terms">Terms of Service</a>
+        <a href="index.html#/privacy">Privacy Policy</a>
+        <a href="index.html#/cookies">Cookies & Consent</a>
+        <a href="index.html#/accessibility">Accessibility</a>
+      </div>
+    </div>
+
+    <div class="container footer-trust">
+      <p>Phthalate-Free • Cruelty-Free • IFRA &amp; FDA Compliant • Secure Checkout</p>
+    </div>
+
+    <div class="container footer-bottom">
+      <div class="payments">
+        <i class="fa-brands fa-cc-visa" aria-hidden="true" title="Visa"></i>
+        <i class="fa-brands fa-cc-mastercard" aria-hidden="true" title="Mastercard"></i>
+        <i class="fa-brands fa-cc-amex" aria-hidden="true" title="American Express"></i>
+        <i class="fa-brands fa-cc-paypal" aria-hidden="true" title="PayPal"></i>
+        <span class="badge-upi" aria-label="UPI accepted">UPI</span>
+      </div>
+      <div class="social-icons" aria-label="Social media">
+        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+      </div>
+      <div class="copyright">© <span id="year"></span> Scent Story. All Rights Reserved.</div>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast sans" role="status" aria-live="polite">Welcome to The Scent Society — your olfactory journey begins soon.</div>
+  <script>
+    // Tier selection logic + form + live card updates
+    const form = document.getElementById('memberForm');
+    const hint = document.getElementById('formHint');
+    const toast = document.getElementById('toast');
+    const card = document.getElementById('card');
+    const cardId = document.getElementById('cardId');
+    const cardName = document.getElementById('cardName');
+    const cardTier = document.getElementById('cardTier');
+    const hiddenTier = document.getElementById('membershipTier');
+    const cardPhone = document.getElementById('cardPhone');
+    const cardBarcode = document.getElementById('cardBarcode');
+    
+    // Additional logic for cardPhone and cardBarcode can be added here if needed
+
+    // --- Real barcode rendering based on unique ID ---
+    function renderBarcodeFromId(id){
+      const el = document.getElementById('cardBarcode');
+      if(!el) return;
+      el.innerHTML = '';
+      const seedStr = (id && String(id).trim()) || 'SS000000';
+      // Use first 13 characters to drive 13 subtle bars
+      const chars = seedStr.replace(/\s+/g,'').slice(0,13).padEnd(13,'0');
+      for(let i=0;i<13;i++){
+        const code = chars.charCodeAt(i) || 48; // fallback '0'
+        // Map to width (1–2) and height (10–18) to keep it delicate
+        const w = 1 + (code % 2);    // 1..2 (slimmer)
+        const h = 10 + (code % 9);   // 10..18
+        const bar = document.createElement('span');
+        bar.className = 'bar';
+        bar.style.width = (w*2) + 'px';
+        bar.style.height = (h*1.4) + 'px';
+        el.appendChild(bar);
+      }
+    }
+
+    function showToast(msg, isError){
+      toast.textContent = msg;
+      toast.classList.toggle('error', !!isError);
+      toast.classList.add('show');
+      setTimeout(()=>toast.classList.remove('show'), 2600);
+    }
+    function genId(){ const n = Math.floor(100000 + Math.random()*900000); return `SS${n}`; }
+
+    // ===== TIER SELECTION =====
+    const tierEls = Array.from(document.querySelectorAll('.tier[data-tier]'));
+    function setTier(tier){
+      const t = String(tier||'').trim();
+      hiddenTier.value = t;
+      tierEls.forEach(el=>{
+        const on = el.getAttribute('data-tier')===t;
+        el.setAttribute('aria-pressed', on? 'true':'false');
+        el.classList.toggle('selected', on);
+      });
+      // reflect on card
+      cardTier.textContent = t ? ('Tier ' + t) : 'Tier';
+      card.classList.remove('tier-gold','tier-platinum','tier-elite');
+if(t){ card.classList.add('tier-' + t.toLowerCase()); }
+      pulseCard();
+    }
+    function pulseCard(){
+      card.classList.remove('glow-pulse');
+      // force reflow to restart animation
+      void card.offsetWidth;
+      card.classList.add('glow-pulse');
+    }
+    tierEls.forEach(el=>{
+      el.addEventListener('click', ()=> setTier(el.getAttribute('data-tier')));
+      el.addEventListener('keydown', (e)=>{
+        if(e.key==='Enter' || e.key===' '){ e.preventDefault(); setTier(el.getAttribute('data-tier')); }
+      });
+    });
+
+    // default tier preselect (Gold)
+    setTier('Gold');
+    // Initialize barcode on page load
+    updateBarcode();
+
+    // ===== LIVE CARD UPDATES =====
+    const fullName = document.getElementById('fullName');
+    const phoneInput = document.getElementById('phone');
+    fullName.addEventListener('input', ()=>{ cardName.textContent = fullName.value.trim()||'Your Name'; pulseCard(); });
+    // Mirror phone digits onto the card as user types (max 10 digits)
+    phoneInput.addEventListener('input', ()=>{
+      const digits = (phoneInput.value||'').replace(/\D+/g,'').slice(0,10);
+      phoneInput.value = digits;
+      cardPhone.style.display = '';
+      cardPhone.textContent = digits ? ('Phone ' + digits) : 'Phone';
+      pulseCard();
+    });
+    const pref = document.getElementById('pref');
+    pref.addEventListener('change', ()=>{
+      updateBarcode();
+      pulseCard();
+    });
+    // Helper to update barcode stripes based on true ID
+    function updateBarcode(){
+      // keep a subtle colored accent via CSS custom property if desired
+      // But primary visual is the actual bars from the current ID
+      const currentId = (cardId.textContent||'').replace(/^ID\s+/,'').trim();
+      renderBarcodeFromId(currentId);
+    }
+
+
+    // ===== FORM VALIDATION =====
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      hint.textContent = '';
+
+      const data = Object.fromEntries(new FormData(form).entries());
+      // checks
+      const emailOk = /^(?:[a-z0-9_\-.+]+)@(?:[a-z0-9\-]+\.)+[a-z]{2,}$/i.test(data.email||'');
+      const phoneOk = /^\d{10}$/.test(data.phone||'');
+      const tierOk  = !!(hiddenTier.value);
+      const consentOk = document.getElementById('consent').checked;
+      const prefOk = !!data.pref;
+
+      if(!data.fullName?.trim()){ hint.textContent = 'Please enter your full name.'; showToast('Please enter your full name.', true); return; }
+      if(!emailOk){ hint.textContent = 'Please enter a valid email.'; showToast('Please enter a valid email.', true); return; }
+      if(!phoneOk){ hint.textContent = 'Phone must be exactly 10 digits.'; showToast('Phone must be exactly 10 digits.', true); return; }
+      if(!prefOk){ hint.textContent = 'Please select your preferred fragrance type.'; showToast('Please select your preferred fragrance type.', true); return; }
+      if(!tierOk){ hint.textContent = 'Please choose a membership tier.'; showToast('Please choose a membership tier.', true); return; }
+      if(!consentOk){ hint.textContent = 'Please agree to receive updates to continue.'; showToast('Please agree to receive updates to continue.', true); return; }
+
+      // All good → create member
+      const member = {
+        id: genId(),
+        name: data.fullName?.trim()||'Member',
+        email: data.email,
+        phone: data.phone,
+        dob: data.dob||'',
+        pref: data.pref||'',
+        notes: (data.notes||'').trim(),
+        tier: hiddenTier.value,
+        createdAt: new Date().toISOString()
+      };
+
+      try{
+        const key='SCENT_MEMBERS_V1';
+        const arr = JSON.parse(localStorage.getItem(key)||'[]');
+        arr.push(member);
+        localStorage.setItem(key, JSON.stringify(arr));
+      }catch(_){ }
+
+      // Update membership card visuals
+      cardId.textContent = 'ID ' + member.id;
+      cardTier.textContent = 'Tier ' + member.tier;
+      renderBarcodeFromId(member.id);
+      pulseCard();
+
+      showToast('Welcome to The Scent Society — your card has been issued.');
+      // Redirect to welcome page after short delay
+      setTimeout(() => {
+        window.location.href = "welcomemembership.html";
+      }, 1800);
+      card.scrollIntoView({behavior:'smooth', block:'center'});
+      form.reset();
+      // keep tier selection as chosen; keep name placeholder
+    });
+  </script>
+  <script src="js/main.js" defer></script>
+<script>
+(function(){
+  const toggle = document.getElementById('navToggle');
+  const drawer = document.getElementById('mobileMenu');
+  const overlay = document.getElementById('nav-overlay');
+  if(!toggle || !drawer) return;
+
+  function openDrawer(){
+    drawer.hidden = false;
+    drawer.style.pointerEvents = 'auto';
+    drawer.classList.add('open');
+    toggle.setAttribute('aria-expanded','true');
+    document.body.style.overflow='hidden';
+    document.documentElement.style.setProperty('--nav-height', document.querySelector('header[aria-label="Primary Navigation"]').offsetHeight + 'px');
+    if(overlay){ overlay.classList.add('open'); }
+    syncNavHeight();
+  }
+  function closeDrawer(){
+    drawer.classList.remove('open');
+    toggle.setAttribute('aria-expanded','false');
+    document.body.style.overflow='';
+    if(overlay){ overlay.classList.remove('open'); }
+    setTimeout(()=>{
+      if(!drawer.classList.contains('open')){
+        drawer.hidden = true;
+        drawer.style.pointerEvents = 'none';
+      }
+    }, 250);
+  }
+  function toggleDrawer(){ drawer.classList.contains('open') ? closeDrawer() : openDrawer(); }
+
+  function syncNavHeight(){
+    const header = document.querySelector('header[aria-label="Primary Navigation"]');
+    if(header){ document.documentElement.style.setProperty('--nav-height', header.offsetHeight + 'px'); }
+  }
+
+  toggle.addEventListener('click', toggleDrawer);
+
+  // Handle internal navigation inside mobile drawer (fixed per instructions)
+  drawer.addEventListener('click', (e)=>{
+    const a = e.target.closest('a');
+    if(!a) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const href = (a.getAttribute('href')||'').trim();
+
+    const go = ()=>{
+      if(href.startsWith('#/')) window.location.href = 'index.html' + href;
+      else if(href.startsWith('#')){ const t=document.querySelector(href); if(t){ t.scrollIntoView({behavior:'smooth'}); } }
+      else window.location.href = href;
+    };
+    closeDrawer();
+    setTimeout(go, 260);
+  });
+  // Reliable <details> toggling inside the fixed mobile drawer (iOS/Android)
+  drawer.addEventListener('click', (e)=>{
+    const sum = e.target.closest('summary');
+    if(!sum) return;
+    if(e.target !== sum) return;
+    e.preventDefault();
+    const d = sum.closest('details');
+    if(d) d.open = !d.open;
+  });
+  if(overlay){ overlay.addEventListener('click', closeDrawer); }
+  window.addEventListener('resize', syncNavHeight);
+  document.addEventListener('DOMContentLoaded', syncNavHeight);
+})();
+// ===== Benefits bubbles: compact chips with smooth entrance =====
+(function(){
+  const items = Array.from(document.querySelectorAll('.benefits .card'));
+  if(!items.length) return;
+  items.forEach(el=> el.classList.add('bubble'));
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        // stagger by index for a subtle cascade
+        const i = items.indexOf(entry.target);
+        entry.target.style.animationDelay = (i * 90) + 'ms';
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  },{ root:null, rootMargin:'-10% 0px -10% 0px', threshold: .15 });
+  items.forEach(el=> io.observe(el));
+})();
+</script>
+<script>
+/* ===== Mobile stack sequential animation (single horizontal track) ===== */
+document.addEventListener('DOMContentLoaded', function(){
+  const mq = window.matchMedia('(max-width: 600px)');
+  const marquee = document.querySelector('.benefits-marquee');
+  const lane    = marquee && marquee.querySelector('.lane');
+  const cards   = marquee ? Array.from(marquee.querySelectorAll('.card')) : [];
+  if(!marquee || !lane || !cards.length) return;
+
+  let timer = null; let i = 0; let started = false;
+
+  function showAt(idx){
+    cards.forEach(c=> c.classList.remove('show'));
+    // Force layout flush so transforms apply consistently
+    void document.body.offsetWidth;
+    // Baseline center each time
+    cards[idx].style.left = '50%';
+    cards[idx].classList.add('show');
+  }
+  function cycle(){
+    showAt(i);
+    i = (i + 1) % cards.length;
+    timer = setTimeout(cycle, 3650);
+  }
+
+  function lockHeight(cb){
+    marquee.classList.add('measuring');
+    cards.forEach(c=> c.classList.remove('show'));
+    cards[0].classList.add('show');
+    requestAnimationFrame(()=>{
+      const h = cards[0].offsetHeight || 168;
+      lane.style.height = h + 'px';
+      marquee.style.overflow = 'hidden';
+      cards[0].classList.remove('show');
+      marquee.classList.remove('measuring');
+      if(typeof cb === 'function') cb();
+    });
+  }
+
+  function start(){
+    if(started) return; started = true;
+    lockHeight(()=>{
+      showAt(0);
+      requestAnimationFrame(()=>{ i = 1; cycle(); });
+    });
+  }
+  function stop(){ started = false; clearTimeout(timer); timer = null; cards.forEach(c=> c.classList.remove('show')); }
+
+  function sync(){ mq.matches ? start() : (stop(), lane.style.height = ''); }
+
+  // Run now and on changes
+  sync();
+  mq.addEventListener('change', sync);
+  window.addEventListener('resize', ()=>{ if(mq.matches){ lockHeight(); } });
+  document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && mq.matches){ stop(); start(); } });
+});
+</script>
+<script>
+// Normalize SPA links so non-index pages route to the Index router
+document.addEventListener('click', function(e){
+  const a = e.target.closest('a[href^="#/"]');
+  if(!a || a.closest('#mobileMenu')) return; // mobile menu handled separately
+  e.preventDefault();
+  const hash = a.getAttribute('href');
+  window.location.href = 'index.html' + hash;
+});
+if(location.hash && location.hash.startsWith('#/')){
+  location.replace('index.html' + location.hash);
+}
+</script>
+</body>
+</html>

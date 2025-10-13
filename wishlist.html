@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scent Story – Luxury Fragrances</title>
+  <meta name="description" content="Scent Story – ultimate luxury fragrances. Explore Elixir, Parfum, and EDP chapters crafted for power, romance, and timeless style." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&family=Montserrat:wght@500&display=swap" rel="stylesheet">
+  <!-- Font Awesome for social icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+<style>
+/* Header brand logo — hard-left, clean, larger with hover glow */
+/* Header brand logo — hard-left, clean, larger, no hover/box effect */
+.brand-logo {
+  display: inline-block;
+  line-height: 0;
+  margin-right: 12px;
+  background: transparent;    /* ensure no background */
+  border: 0;                   /* ensure no border */
+}
+.brand-logo:focus-visible{ outline: none; }
+  .brand-logo img {
+    height: 100px !important;   /* larger, clearly visible */
+    width: auto !important;    /* keep aspect ratio; no squish */
+    display: block;
+    transition: none;
+    background: transparent;
+  }
+  /* Remove hover glow/scale so it sits “free” */
+  .brand-logo img:hover { filter: none; transform: none; }
+  @media (max-width:768px){
+    .brand-logo img { height: 96px !important; }
+  }
+  .brand-text {
+      font-family: "Playfair Display", serif;
+      font-size: 21px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: .02em;
+      margin-left: -25px; /* spacing between logo and text */
+  }
+    /* === Mobile: keep logo + brand text together on one side with minimal gap === */
+    @media (max-width: 900px){
+      /* Keep them grouped on the left; hamburger pushed to the right */
+      .container.nav{
+        justify-content: flex-start;
+        gap: 8px;                     /* tighter spacing between items */
+      }
+      .brand-logo{ 
+        margin-right: 6px;            /* small gap before brand text */
+      }
+      .brand-text{
+        margin-left: -15px !important;    /* cancel desktop negative offset */
+      }
+      .nav-toggle{
+        margin-left: auto;            /* push toggle to far right */
+      }
+    }
+ /* Ensure header row aligns nicely */ /* Ensure header row aligns nicely and has enough height for larger logo */
+.container.nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 120px;          /* accommodates ~100px logo comfortably */
+  padding: 8px 20px;          /* vertical breathing room */
+}
+@media (max-width:768px){
+  .container.nav{ min-height: 92px; padding: 6px 14px; gap: 10px; }
+}
+    /* Global font reset */
+    html, body, h1, h2, h3, h4, h5, h6, p, a, li, nav, button, input, textarea {
+      font-family: 'Playfair Display', serif !important;
+    }
+
+    /* Special Become a Member button style */
+    /* Header quick actions: Account & Orders */
+    .quick-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
+    .quick-actions .chip{margin:0}
+    .icon-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #bfa06a;border-radius:999px;font-size:13px;color:#efba0a;text-decoration:none;background:rgba(191,160,106,.08)}
+    .icon-btn i{font-size:14px}
+    .icon-btn:hover{filter:brightness(1.08);box-shadow:0 6px 18px rgba(191,160,106,.18)}
+    @media (max-width:900px){.icon-btn span{display:none}}
+    .btn-outline.member-btn {
+      background-color: #ffc400;
+      color: #111 !important;
+      border: none;
+      font-weight: 600;
+      animation: shakeAnim 3s infinite;
+    }
+    @keyframes shakeAnim {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-3px); }
+      40% { transform: translateX(3px); }
+      60% { transform: translateX(-2px); }
+      80% { transform: translateX(2px); }
+    }
+    /* Footer alignment tweak: shift containers slightly right for visual alignment */
+    .footer .container{ padding-left: 28px; }
+    @media (max-width:768px){
+      .footer .container{ padding-left: 40px; }
+    }
+    /* Small gap between Scent Story text and Home link */
+    #primary-nav.menu { margin-left: 30px; }
+    /* Lede: compact hero copy (desktop + mobile) */
+    .lede{ 
+      font-family: Playfair Display, serif; 
+      font-size: 20px; 
+      line-height: 1.45; 
+      letter-spacing: .01em; 
+      color:#EDEDED; 
+      opacity:.95; 
+      margin:10px auto 0; 
+      max-width: 980px; 
+    }
+    @media (max-width: 720px){ .lede{ font-size:16px; line-height:1.5; max-width: 92%; } }
+
+    /* ===== Responsive Typographic Scale (mobile-first refinement) ===== */
+    @media (max-width: 900px){
+      /* Keep brand readable but compact */
+      .brand-text{ font-size: 25px; letter-spacing: .01em; }
+      #primary-nav.menu a{ font-size: 14px; }
+      .icon-btn{ font-size: 12px; padding: 5px 9px; }
+    }
+
+    @media (max-width: 720px){
+      /* Hero lede and section titles */
+      .lede{ font-size: 15px; line-height: 1.48; max-width: 94%; }
+      .section-title{ font-size: 20px; line-height: 1.2; }
+
+      /* Cards: titles & body copy */
+      #discover .card h3, #bestsellers .card h3{ font-size: 1.2rem; }
+      #discover .card p,  #bestsellers .card p{ font-size: .95rem; }
+
+      /* Buttons: slightly smaller for thumb reach */
+      .btn-gold, .btn-outline, .pulse-glow{ font-size: 14px; padding: 10px 14px; }
+
+      /* Footer link columns */
+      .footer .footer-links a{ font-size: 14px; }
+      .footer .footer-links h4{ font-size: 15px; }
+    }
+
+    @media (max-width: 480px){
+      /* Tighten nav further and ensure one-line menu items */
+      .brand-text{ font-size: 22px; }
+      #primary-nav.menu a{ font-size: 13px; }
+
+      /* Headings & lede */
+      .section-title{ font-size: 18px; }
+      .lede{ font-size: 14px; line-height: 1.46; }
+
+      /* Card text */
+      #discover .card h3, #bestsellers .card h3{ font-size: 1.1rem; }
+      #discover .card p,  #bestsellers .card p{ font-size: .9rem; }
+
+      /* Buttons */
+      .btn-gold, .btn-outline, .pulse-glow{ font-size: 13px; padding: 9px 12px; }
+
+      /* Footer */
+      .footer .footer-links a{ font-size: 13px; }
+      .footer .footer-links h4{ font-size: 14px; }
+    }
+    /* ===== Section Rhythm: unify font sizes + tighten vertical gaps ===== */
+:root{ --nav-height: 120px; --nav-offset-extra: 35px; } /* global vars for header height + extra drop */
+@media (max-width: 900px){
+  :root{ --nav-height: 92px; }
+}
+/* Mobile drawer accordions (match pdp.html) */
+.mobile-menu details{
+  border:1px solid var(--stroke);
+  border-radius:12px;
+  background:#0f1216;
+}
+.mobile-menu summary{
+  list-style:none;
+  cursor:pointer;
+  padding:12px 10px;
+  font-weight:700;
+  color:#fff;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.mobile-menu details[open] summary{ filter:brightness(1.06); }
+.mobile-menu details .sub{ padding:8px 10px 10px; }
+.mobile-menu details .sub a{ margin-top:6px; }
+
+    /* ===== Mobile nav (hamburger + slide drawer) ===== */
+.nav-toggle{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  width:40px; height:40px;
+  border-radius:8px;
+  border:1px solid var(--stroke);
+  background:#141820;
+  color:#ffc400;
+  cursor:pointer;
+}
+.nav-toggle i{ font-size:18px; }
+@media (max-width: 900px){
+  .menu{ display:none; }
+  .quick-actions{ display:none; }
+  .nav-toggle{ display:inline-flex; }
+}
+.mobile-menu{
+  position: fixed;
+  top: calc(var(--nav-height, 120px) + var(--nav-offset-extra, 0px));
+  left: 0; right: 0;
+  background: var(--surface, rgba(15,20,27,0.98));
+  border-top: 1px solid var(--stroke);
+  box-shadow: 0 18px 38px rgba(0,0,0,.45);
+  z-index: 9000;
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  transform: translateY(-12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .25s ease, opacity .25s ease;
+}
+header[aria-label="Primary Navigation"]{
+  position: sticky;
+  top: 0;
+  z-index: 10000;
+  background: rgba(13,17,23,0.96);
+  backdrop-filter: blur(10px);
+}
+.mobile-menu.open{
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.mobile-menu a{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 10px;
+  border:1px solid var(--stroke);
+  border-radius: 12px;
+  background: #0f1216;
+  color:#fff; text-decoration:none; font-weight:600;
+  font-size:14px;
+}
+.mobile-menu a:hover{ filter:brightness(1.08); }
+.mobile-menu .sub{
+  display:grid; gap:8px; margin-top:4px;
+  padding-left: 10px;
+}
+.mobile-menu .label{
+  color:#bfa06a;
+  font-size:12px;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  margin:4px 2px;
+}
+@media (min-width: 901px){
+  .mobile-menu{ display:none !important; }
+}
+    /* Titles across sections match the lede scale for luxury balance */
+    .section-title{ font-size: clamp(18px, 2.1vw, 20px); line-height: 1.25; letter-spacing:.01em; margin: 0 0 14px; }
+
+    /* Apply a consistent vertical rhythm for home sections */
+    section[data-home]{ padding-top: 22px; padding-bottom: 28px; }
+
+    /* Tighten gaps immediately after hero */
+    .hero + section[data-home]{ margin-top: -6px; }
+
+    /* Normalize inner container spacing for discover/bestsellers */
+    #discover .container, #bestsellers .container{ padding-top: 10px; padding-bottom: 6px; }
+
+    /* Reduce extra whitespace below grids */
+    #discover .grid, #bestsellers .grid{ margin-bottom: 4px; }
+
+    /* Match card heading/body sizes to lede scale subtly */
+    #discover .card h3, #bestsellers .card h3{ font-size: clamp(18px, 2vw, 19px); }
+    #discover .card p,  #bestsellers .card p{ font-size: clamp(14px, 1.6vw, 16px); }
+
+    /* Footer top spacing trimmed to sit closer to content without crowding */
+    .footer{ margin-top: 14px; }
+
+    /* Mobile refinements (keep copy compact, avoid large voids) */
+    @media (max-width: 720px){
+      section[data-home]{ padding-top: 18px; padding-bottom: 22px; }
+      #discover .container, #bestsellers .container{ padding-top: 8px; padding-bottom: 4px; }
+      .hero .container{ padding-bottom: 16px !important; }
+      .section-title{ margin: 0 0 12px; }
+    }
+
+    @media (max-width: 480px){
+      section[data-home]{ padding-top: 14px; padding-bottom: 18px; }
+      #discover .container, #bestsellers .container{ padding-top: 6px; padding-bottom: 2px; }
+      #discover .card p,  #bestsellers .card p{ font-size: 14px; }
+    }
+    /* ===== Responsive forms: Contact & Grievance (Index) ===== */
+    /* Base grid for two-column desktop layout */
+    #page-content .contact-grid, 
+    #page-content .grievance-grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:24px;
+      align-items:start;
+    }
+
+    /* Shared form styling */
+    #page-content .contact-form, 
+    #page-content .grievance-form{ 
+      display:grid; 
+      gap:12px; 
+      max-width:720px; 
+    }
+    #page-content .contact-form label, 
+    #page-content .grievance-form label{ 
+      display:block; 
+      color:var(--muted); 
+      font-weight:600; 
+    }
+    #page-content .contact-form input, 
+    #page-content .grievance-form input,
+    #page-content .contact-form select, 
+    #page-content .grievance-form select,
+    #page-content .contact-form textarea, 
+    #page-content .grievance-form textarea{
+      width:100%;
+      margin-top:6px;
+      padding:10px 12px;
+      border:1px solid var(--stroke);
+      border-radius:10px;
+      background:#0f1216;
+      color:#EDEDED;
+    }
+    #page-content .contact-form .btn-gold, 
+    #page-content .grievance-form .btn-gold{ 
+      padding:12px 16px; 
+      border-radius:12px; 
+    }
+    #page-content .panel{ 
+      border:1px solid var(--stroke); 
+      border-radius:14px; 
+      padding:16px; 
+      background:linear-gradient(180deg,#0b0d10,#0e1116) 
+    }
+
+    /* Two-up rows that collapse on mobile */
+    #page-content .row2{ 
+      display:grid; 
+      grid-template-columns:1fr 1fr; 
+      gap:10px; 
+    }
+
+    /* Mobile stacking */
+    @media (max-width: 900px){
+      #page-content .contact-grid, 
+      #page-content .grievance-grid{ 
+        grid-template-columns: 1fr; 
+        gap:16px; 
+      }
+      #page-content .contact-form, 
+      #page-content .grievance-form{ 
+        max-width:100%; 
+      }
+      #page-content .contact-form .btn-gold, 
+      #page-content .grievance-form .btn-gold{ 
+        width:100%; 
+      }
+      #page-content .row2{ grid-template-columns:1fr; }
+    }
+
+    @media (max-width: 560px){
+      #page-content .contact-form input, 
+      #page-content .grievance-form input,
+      #page-content .contact-form select, 
+      #page-content .grievance-form select,
+      #page-content .contact-form textarea, 
+      #page-content .grievance-form textarea{ 
+        font-size:15px; 
+      }
+    }
+
+    :root {
+      --gold: #f6e7b9;
+      --gold-deep: #bfa06a;
+      --panel: #0f1216;
+      --line: rgba(255,255,255,0.08);
+      --muted: #cfd6df;
+      --stroke: rgba(255,255,255,0.14);
+    }
+    html, body, h1, h2, h3, h4, h5, h6, p, a, li, nav {
+      font-family: 'Playfair Display', serif !important;
+    }
+    .icon-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--stroke);
+      border-radius: 999px;
+      background: transparent;
+      color: #EDEDED;
+      text-decoration: none;
+      font-weight: 600;
+      letter-spacing: .02em;
+      transition: transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+    }
+    body {
+      background: #0b0e12;
+      color: #fff;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+    /* Hero */
+    .hero{ padding:32px 18px 12px; border-bottom:1px solid var(--line); background:linear-gradient(180deg, rgba(191,160,106,0.08), rgba(0,0,0,0) 55%); }
+    .hero h1{
+      font-family:'Playfair Display',serif;
+      font-size:clamp(28px,3vw,40px);
+      margin:0 0 8px;
+      color: #f6e7b9;
+      text-shadow: 0 0 12px rgba(191,160,106,.3);
+    }
+    .hero p{
+      color: #cfd6df;
+      font-size: 1rem;
+      letter-spacing: 0.2px;
+      margin:0;
+    }
+
+    /* Toolbar */
+    .toolbar{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding:14px 18px;
+      position:sticky; top:52px;
+      background: rgba(15,18,22,0.85);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid rgba(255,255,255,0.08);
+      z-index:9;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+    .kpis{ display:flex; gap:12px; align-items:center; color:var(--muted); }
+    .kpis b{ color:#fff }
+    .toolbar .actions{ display:flex; gap:8px; flex-wrap:wrap }
+    .btn, .btn-gold{
+      cursor:pointer;
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:600;
+      border:1px solid var(--line);
+      background:#1a1f26;
+      color:#fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      transition: all .3s ease;
+    }
+    .btn:hover{ transform:translateY(-1px) }
+    .btn-gold{
+      background: linear-gradient(135deg,#f6e7b9,#bfa06a);
+      color: #111;
+      border-color: #bfa06a;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      transition: all .3s ease;
+    }
+
+    /* Grid */
+    .container{
+      max-width:1320px;
+      margin:0 auto;
+      padding:0 18px;
+      font-family: 'Inter', sans-serif;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap:16px;
+      padding:18px;
+      justify-items: center;     /* center tiles when there are gaps */
+      align-items: stretch;
+    }
+    .card{ border:1px solid var(--line); background:var(--panel); border-radius:14px; overflow:hidden; position:relative; width:100%; max-width:360px; margin:0 auto }
+    /* Consistent sizing on wide screens */
+    @media (min-width: 1100px){
+      .grid{
+        grid-template-columns: repeat(3, minmax(280px, 1fr));
+      }
+    }
+    @media (min-width: 1440px){
+      .grid{
+        grid-template-columns: repeat(4, minmax(280px, 1fr));
+      }
+    }
+    /* Always two-up on small phones */
+    @media (max-width: 540px){
+      .grid{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap:12px;
+        padding:14px;
+      }
+      .card{
+        max-width:none;       /* allow full cell width */
+        border-radius:12px;
+      }
+      .card .img{ aspect-ratio: 3 / 4; } /* slightly shorter to reduce scroll */
+    }
+    .card .img{ position:relative; display:block; width:100%; aspect-ratio:4/5; background:#0f1216 }
+    .card .img.is-empty{ background:linear-gradient(135deg,#141922,#0f1216); display:flex; align-items:center; justify-content:center; color:#cfd6df; font-size:12px }
+    .img.is-empty .ph-wrap{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:14px; text-align:center }
+    .img.is-empty .ph-initials{ display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:12px; background:linear-gradient(135deg,#1b222d,#0f1216); border:1px solid var(--line); font-weight:700; letter-spacing:.06em; color:#f6e7b9 }
+    .img.is-empty .ph-name{ color:#cfd6df; font-size:.95rem; line-height:1.2; max-width:90% }
+    .card img{ position:absolute; inset:0; display:block; width:100%; height:100%; object-fit:cover; transition:transform .35s ease }
+    .card:hover img{ transform:scale(1.03) }
+    .card .body{ padding:12px 12px 14px }
+    .card h3{
+      font-family:'Playfair Display',serif;
+      margin:0 0 6px;
+      font-size:16px;
+      color: #f6e7b9;
+      letter-spacing: 0.3px;
+    }
+    /* === Title + inline icon actions (single row) === */
+    .card .head{ display:flex; align-items:baseline; justify-content:flex-start; gap:8px; }
+    .card .head h3{ margin:0; }
+    .inline-actions{ display:flex; align-items:center; gap:8px; margin-top:8px; }
+    .inline-actions .btn{ 
+      padding:8px 10px; 
+      border:1px solid var(--line); 
+      background:#1a1f26; 
+      color:#fff; 
+      border-radius:10px; 
+      line-height:1; 
+    }
+    .inline-actions .btn-gold{ 
+      padding:8px 10px; 
+      border-radius:10px; 
+    }
+    .inline-actions .btn i,
+    .inline-actions .btn-gold i{ font-size:14px; }
+    @media (max-width: 540px){
+      .inline-actions .btn .label,
+      .inline-actions .btn-gold .label{ display:none; } /* keep icon-only on phones */
+    }
+    .price{
+      color: #bfa06a;
+      font-weight: 600;
+      font-size: .95rem;
+      margin:0 0 10px;
+    }
+    .tags{ display:flex; gap:6px; flex-wrap:wrap; margin:0 0 10px }
+    .tag{ font-size:12px; color:#cfd6df; border:1px solid var(--line); padding:4px 8px; border-radius:999px; background:#11161c }
+    .row{ display:flex; gap:8px; flex-wrap:wrap }
+    /* Mobile tightening & icon-only controls */
+@media (max-width: 540px){
+  .card .body{ padding:8px 8px 10px; }
+  .card h3{ font-size:14px; margin-bottom:4px; }
+  .price{ font-size:.88rem; margin-bottom:6px; }
+  .meta-notes{ display:none !important; } /* hide EDP/Parfum/notes line */
+  .row{ gap:6px; }
+  .row .btn, .row .btn-gold{ padding:8px 10px; }
+  .row .btn .label, .row .btn-gold .label{ display:none; } /* icon-only on phones */
+}
+    /* Icon-first buttons (text hidden on small screens) */
+.row .btn i, .row .btn-gold i{ font-size:14px; }
+.row .btn .label, .row .btn-gold .label{ margin-left:8px; }
+
+@media (max-width: 540px){
+  .row{ gap:6px; }
+  .card .body{ padding:10px 10px 12px; }
+  .row .btn, .row .btn-gold{ padding:8px 10px; }
+  .row .btn .label, .row .btn-gold .label{ display:none; } /* hide button text on phones */
+  .tags{ display:none; }                                   /* save vertical space */
+  .price{ margin-bottom:6px; }
+  .card h3{ font-size:15px; margin-bottom:4px; }
+}
+/* Hide the old bottom-row buttons when using inline actions */
+.card .body > .row{ display:none !important; }
+.btn, .btn-gold,
+.toolbar, .toolbar .kpis, .toolbar .actions .btn{
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+/* Slightly adjust image aspect on phones to balance overall card height */
+@media (max-width: 540px){
+  .card .img{ aspect-ratio: 4 / 5; }
+}
+
+    /* Hover overlay CTA */
+    .hover-overlay{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; background:radial-gradient(120% 100% at 50% 90%, rgba(255,196,0,.16) 0%, rgba(0,0,0,.4) 42%, rgba(0,0,0,.66) 100%); opacity:0; transition:opacity .22s ease, transform .22s ease; transform: translateY(6px);}
+    .card:hover .hover-overlay{ opacity:1; transform:translateY(0) }
+    .hover-overlay .badge{ display:inline-flex; align-items:center; gap:8px; font-weight:700; background:rgba(255,196,0,.92); color:#111; border-radius:999px; padding:8px 12px; border:1px solid rgba(0,0,0,.25); box-shadow:0 8px 22px rgba(229,182,79,.25) }
+
+    /* Empty state */
+    .empty{ text-align:center; padding:42px 18px 60px }
+    .empty h2{ font-family:'Playfair Display',serif; margin:0 0 8px }
+    .empty p{ color:var(--muted); margin:0 0 14px }
+
+    /* Toast */
+    .toast{ position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#11161c; border:1px solid var(--line); color:#fff; padding:10px 14px; border-radius:12px; box-shadow:0 10px 24px rgba(0,0,0,.35); z-index:999; opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease }
+    .toast.show{ opacity:1; transform:translateX(-50%) translateY(-6px) }
+
+    /* --- Mobile dropdown fix (wishlist) --- */
+  </style>
+  <body>
+    <!-- HEADER / NAV (no structural change) -->
+    <header aria-label="Primary Navigation">
+      <div class="container nav">
+        <a class="brand-logo" href="index.html" aria-label="Scent Story Home">
+          <img src="images/brandlogofin.png" alt="Scent Story logo">
+        </a>
+        <span class="brand-text">Scent Story</span>
+        <!-- Mobile hamburger button -->
+        <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <nav id="primary-nav" class="menu" style="font-family:Playfair Display,serif; color:#efba0a; opacity:.95">
+          <a href="index.html" style="color:#efba0a">Home</a>
+          <a href="#bestsellers" style="color:#efd8b2">New Launches</a>
+          <details>
+            <summary id="nav-explore">Explore Chapters ▾</summary>
+            <div class="dropdown" role="menu" aria-label="Explore Chapters">
+              <a href="#/collections" style="
+                display:block;
+                margin:4px 0 8px;
+                padding:8px 10px;
+                border-radius:8px;
+                font-weight:700;
+                color:#111;
+                background:linear-gradient(135deg,#f6e7b9,#bfa06a);
+                text-align:center;
+              ">See Full Collections →</a>
+              <a href="pdp1.html?tag=ambition" style="color:#efba0a">Ambition</a>
+              <a href="pdp1.html?tag=bold" style="color:#efba0a">Bold</a>
+              <a href="pdp1.html?tag=carefree" style="color:#efba0a">Carefree</a>
+              <a href="pdp1.html?tag=power" style="color:#efba0a">Power</a>
+              <a href="pdp1.html?tag=seasons" style="color:#efba0a">Seasons</a>
+            </div>
+          </details>
+          <a href="#/track" style="color:#efba0a">Track My Order</a>
+          <a href="wishlist.html" id="wishlistLink" style="color:#efba0a" data-base-label="Wishlist">
+            Wishlist <span id="wishlist-count" class="cart-badge" aria-live="polite">0</span>
+          </a>
+          <a href="#/contact" style="color:#efba0a">Contact</a>
+          <a id="cart-link" class="cart-link" href="cart.html" style="color:#efba0a">Cart
+            <span id="cart-count" class="cart-badge" aria-live="polite">0</span>
+          </span></a>
+        </nav>
+        <!-- Mobile dropdown container -->
+        <nav id="mobileMenu" class="mobile-menu" aria-label="Mobile Navigation" hidden>
+          <a href="index.html">Home <i class="fa-solid fa-house"></i></a>
+  
+          <details>
+            <summary style="color:#efba0a">Explore by Concentration ▾</summary>
+            <div class="sub">
+              <a href="pdp1.html?cat=edp">EDP</a>
+              <a href="pdp1.html?cat=parfum">Parfum</a>
+              <a href="pdp1.html?cat=elixir">Elixir</a>
+            </div>
+          </details>
+  
+          <details>
+            <summary style="color:#efba0a">Explore by Mood ▾</summary>
+            <div class="sub">
+              <a href="pdp1.html?tag=ambition">Ambition</a>
+              <a href="pdp1.html?tag=bold">Bold</a>
+              <a href="pdp1.html?tag=carefree">Carefree</a>
+              <a href="pdp1.html?tag=power">Power</a>
+              <a href="pdp1.html?tag=seasons">Seasons</a>
+            </div>
+          </details>
+  
+          <a href="#/track" style="color:#e0d2a2">Track My Order <i class="fa-solid fa-box"></i></a>
+          <a href="wishlist.html" id="wishlistLinkMobile" data-base-label="Wishlist" style="color:#e0d2a2">
+            Wishlist <span class="cart-badge" id="wishlist-count-mobile" aria-live="polite">0</span>
+          </a>
+          <a href="cart.html" style="color:#e0d2a2">
+            Cart <span class="cart-badge" id="cart-count-mobile" aria-live="polite">0</span>
+          </a>
+          <a href="#/contact" style="color:#e0d2a2">Contact <i class="fa-regular fa-envelope"></i></a>
+          <a href="about.html" style="color:#e0d2a2">About Us <i class="fa-solid fa-info-circle"></i></a>
+        </nav>
+      </div>
+    </header>
+    <!-- Page Loader -->
+    <div id="page-loader" class="loader-overlay" aria-hidden="true">
+      <video id="brand-loader-video"
+             class="loader-video"
+             preload="auto"
+             muted
+             playsinline
+             aria-hidden="true">
+        <source src="assets/logo-anim.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div id="nav-overlay" class="nav-overlay" aria-hidden="true"></div>
+
+    <div class="toolbar container">
+        <div class="kpis"><span>Items: <b id="wl-count">0</b></span> • <span>Total MRP: <b id="wl-total">₹0</b></span></div>
+        <div class="actions">
+          <button class="btn" id="btn-clear">Clear Wishlist</button>
+          <button class="btn" id="btn-share">Share</button>
+          <button class="btn-gold" id="btn-move-all">Move All to Bag</button>
+        </div>
+      </div>
+    
+      <main class="container">
+        <div id="empty" class="empty" hidden>
+          <h2>Your wishlist is empty</h2>
+          <p>Explore our collections and tap ♡ on any product to save it here.</p>
+          <a class="btn-gold" href="index.html#/collections">Browse Collections</a>
+        </div>
+    
+        <div id="grid" class="grid" aria-live="polite"></div>
+      </main>
+    
+    <!-- 🔻 FOOTER (Modern, split layout) -->
+<footer class="footer">
+    <!-- Top: Newsletter + Membership -->
+    <div class="container footer-hero">
+      <section class="subscribe-card" aria-labelledby="subscribe-title">
+        <h3 id="subscribe-title">Join Our Circle</h3>
+        <p>Be first to new launches, private sales, and members-only stories. <strong>New members get <span style="color:#efba0a">10% off</span>.</strong></p>
+  
+        <form id="newsletter-form" class="newsletter-form" novalidate>
+          <label class="visually-hidden" for="nl-email">Email</label>
+          <input id="nl-email" name="email" type="email" placeholder="Enter your email" required>
+          <button type="submit" class="btn-gold">Subscribe</button>
+        </form>
+  
+        <!-- Inline success (stays within the card) -->
+        <p id="newsletter-success" class="newsletter-success" role="status" hidden>
+          🎉 Thank you! You’re subscribed. Check your inbox for a welcome note.
+        </p>
+  
+        <small class="legal">By subscribing you agree to our <a href="#/privacy">Privacy Policy</a>. Unsubscribe anytime.</small>
+      </section>
+  
+      <section class="membership-card" aria-labelledby="member-title">
+        <h3 id="member-title" style="color:#efe2b8;">Scent Story Circle — Members Get More !!!</h3>
+        <ul class="benefits">
+          <li style="color:#efba0a">Early access to new Chapters</li>
+          <li style="color:#efba0a">Free samples with every order</li>
+          <li style="color:#efba0a">Birthday reward, extra 10% offer</li>
+          <li style="color:#ffc400">Priority customer support and care</li>
+        </ul>
+        <a class="btn-outline member-btn" href="becomemem.html" aria-label="Become a member">Become a Member</a>
+      </section>
+    </div>
+  
+    <!-- Middle: Navigation columns -->
+    <div class="container footer-links">
+      <div class="col">
+        <h4>Brand</h4>
+        <a href="about.html">About Us</a>
+        <a href="about.html#craft">Craft & Safety</a>
+        <a href="about.html#press">Press</a>
+      </div>
+      <div class="col">
+        <h4>Shop</h4>
+        <a href="#bestsellers">New Launches</a>
+        <a href="#bestsellers">Bestsellers</a>
+        <a href="#discover">Explore Chapters</a>
+        <a href="pdp1.html?cat=all">Gift Ideas</a>
+      </div>
+      <div class="col">
+        <h4>Support</h4>
+        <a href="#/track">Track My Order</a>
+        <a href="#/shipping">Shipping</a>
+        <a href="#/returns">Returns</a>
+        <a href="#/grievance">Grievances</a>
+        <a href="#/contact">Contact</a>
+      </div>
+      <div class="col">
+        <h4>Legal</h4>
+        <a href="#/terms">Terms of Service</a>
+        <a href="#/privacy">Privacy Policy</a>
+        <a href="#/privacy">Cookies & Consent</a>
+        <a href="#/accessibility">Accessibility</a>
+      </div>
+    </div>
+  
+    <!-- Trust line -->
+    <div class="container footer-trust">
+      <p>Phthalate-Free • Cruelty-Free • IFRA &amp; FDA Compliant • Secure Checkout</p>
+    </div>
+  
+    <!-- Bottom: payments, socials, copyright -->
+    <div class="container footer-bottom">
+      <div class="payments">
+        <i class="fa-brands fa-cc-visa" aria-hidden="true" title="Visa"></i>
+        <i class="fa-brands fa-cc-mastercard" aria-hidden="true" title="Mastercard"></i>
+        <i class="fa-brands fa-cc-amex" aria-hidden="true" title="American Express"></i>
+        <i class="fa-brands fa-cc-paypal" aria-hidden="true" title="PayPal"></i>
+        <span class="badge-upi" aria-label="UPI accepted">UPI</span>
+      </div>
+  
+      <div class="social-icons" aria-label="Social media">
+        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </div>
+  
+      <div class="copyright">
+        © <span id="year"></span> Scent Story. All Rights Reserved.
+      </div>
+    </div>
+  </footer>
+    <!-- POPUP (Contact submit) -->
+    <div class="popup" id="popup">
+      <div class="popup-content">
+        <h3>Thank You!</h3>
+        <p>Your information has been successfully submitted.</p>
+        <button onclick="closePopup()">Close</button>
+      </div>
+    </div>
+    <!-- Preload hero rotator images -->
+    <link rel="preload" as="image" href="images/banneredp3png.png">
+    <link rel="preload" as="image" href="images/First Date.png">
+    <link rel="preload" as="image" href="images/Fresh Salt.png">
+    <link rel="preload" as="image" href="images/Beast.png">
+    <link rel="preload" as="image" href="images/Boardroom.png">
+    <link rel="preload" as="image" href="images/Summer Drift.png">
+    <link rel="preload" as="image" href="images/Victory Night.png">
+    <!-- Preload rotating EDP images to avoid first-hover lag -->
+    <script>
+      (function(){
+        const INTERVAL_MS = 1000; // 1 second per image
+        const heroImg = document.querySelector('.hero .hero-rotator');
+        if(!heroImg) return;
+        let timer = null;
+        let list = (heroImg.getAttribute('data-images')||'').split('|').map(s=>s.trim()).filter(Boolean);
+        if(list.length < 2) return;
+        let i = 0;
+  
+        function swap(){
+          i = (i + 1) % list.length;
+          const next = list[i];
+          heroImg.classList.add('bounce-swap');
+          // fade swap
+          heroImg.style.opacity = 0;
+          const tmp = new Image();
+          tmp.onload = ()=>{
+            heroImg.src = next;
+            heroImg.style.opacity = 1;
+            setTimeout(()=>heroImg.classList.remove('bounce-swap'), 300);
+          };
+          tmp.src = next;
+        }
+        function start(){
+          clear();
+          heroImg.classList.add('glow','glow-pulse');
+          heroImg.classList.add('rotator-active');
+          timer = setInterval(swap, INTERVAL_MS);
+        }
+        function clear(){
+          if(timer){ clearInterval(timer); timer = null; }
+          i = 0; // reset to first
+          if(list[0]){
+            // if not on first image, restore with fade
+            if(heroImg.src.indexOf(list[0]) === -1){
+              heroImg.style.opacity = 0;
+              const tmp = new Image();
+              tmp.onload = ()=>{ heroImg.src = list[0]; heroImg.style.opacity = 1; };
+              tmp.src = list[0];
+            }
+          }
+          heroImg.classList.remove('glow','glow-pulse');
+          heroImg.classList.remove('rotator-active');
+        }
+  
+        const wrap = heroImg.closest('.hero-wrap') || heroImg;
+        wrap.addEventListener('mouseenter', start);
+        wrap.addEventListener('mouseleave', clear);
+        wrap.addEventListener('focusin', start);
+        wrap.addEventListener('focusout', clear);
+        wrap.addEventListener('touchstart', ()=>{
+          start();
+          setTimeout(clear, list.length * INTERVAL_MS + 250); // auto-stop after one loop
+        }, {passive:true});
+        wrap.addEventListener('touchend', clear);
+        wrap.addEventListener('touchcancel', clear);
+      })();
+    </script>
+    <link rel="preload" as="image" href="images/FirstDate.png">
+    <link rel="preload" as="image" href="images/Fresh Salt.png">
+    <link rel="preload" as="image" href="images/Beast.png">
+    <link rel="preload" as="image" href="images/Boardroom.png">
+    <link rel="preload" as="image" href="images/Summer Drift.png">
+    <link rel="preload" as="image" href="images/Victory Night.png">
+    <script>
+      (function(){
+        const START_DELAY = 0;           // start immediately
+        const INTERVAL_MS = 1000;        // 1 second per image
+        const SELECTOR = '.discover-rotator';
+        const rotators = document.querySelectorAll(SELECTOR);
+        const timers = new WeakMap();
+        const indexes = new WeakMap();
+  
+        function startRotate(img){
+          const list = (img.getAttribute('data-images')||'').split('|').map(s=>s.trim()).filter(Boolean);
+          if(list.length < 2) return;
+          clearRotate(img);
+          const card = img.closest('.card') || img;
+          img.classList.add('rotator-active');
+          card.style.cursor='pointer';
+          // ensure we begin from current if present
+          let i = Math.max(0, list.indexOf(img.src.split('/').slice(-1)[0]) );
+          indexes.set(img, i);
+          const tick = ()=>{
+            i = (i + 1) % list.length;
+            indexes.set(img, i);
+            img.classList.add('bounce-swap');
+            img.src = list[i];
+            setTimeout(()=>img.classList.remove('bounce-swap'), 300);
+          };
+          const t = setInterval(tick, INTERVAL_MS);
+          timers.set(img, t);
+        }
+        function clearRotate(img){
+          img.classList.remove('rotator-active');
+          const card = img.closest('.card') || img;
+          card.style.cursor='';
+          const t = timers.get(img);
+          if(t){ clearInterval(t); timers.delete(img); }
+          const list = (img.getAttribute('data-images')||'').split('|').map(s=>s.trim()).filter(Boolean);
+          if(list.length) img.src = list[0]; // reset to first
+        }
+  
+        function addHandlers(img){
+          const card = img.closest('.card') || img;
+          card.addEventListener('mouseenter', ()=>startRotate(img));
+          card.addEventListener('mouseleave', ()=>clearRotate(img));
+          card.addEventListener('focusin',   ()=>startRotate(img));
+          card.addEventListener('focusout',  ()=>clearRotate(img));
+          // Touch: start on touchstart, stop on touchend/cancel, auto-stop after one full cycle
+          card.addEventListener('touchstart', ()=>{
+            startRotate(img);
+            const list = (img.getAttribute('data-images')||'').split('|').map(s=>s.trim()).filter(Boolean);
+            if(list.length){ setTimeout(()=>clearRotate(img), list.length*INTERVAL_MS + 200); }
+          }, {passive:true});
+          card.addEventListener('touchend', ()=>clearRotate(img));
+          card.addEventListener('touchcancel', ()=>clearRotate(img));
+        }
+  
+        rotators.forEach(addHandlers);
+      })();
+    </script>
+    <script src="js/main.js" defer></script>
+    <script>
+      (function(){
+        const CART_KEY='SCENT_CART_V1';
+        function readCart(){ try{return JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch(e){return []} }
+        function total(){ return readCart().reduce((s,i)=> s + (parseInt(i.qty||0,10)||0), 0); }
+        function update(){ const b=document.getElementById('cart-count'); if(!b) return; const n=total(); b.textContent=n; b.hidden=n<=0; }
+        document.addEventListener('visibilitychange', update);
+        window.addEventListener('storage', update);
+        update();
+      })();
+    </script>
+    <script>
+    (function(){
+      const toggle = document.getElementById('navToggle');
+      const drawer = document.getElementById('mobileMenu');
+      if(!toggle || !drawer) return;
+  
+      function openDrawer(){
+        drawer.hidden = false;
+        drawer.classList.add('open');
+        toggle.setAttribute('aria-expanded','true');
+        document.body.style.overflow='hidden';
+        syncCounts();
+      }
+      function closeDrawer(){
+        drawer.classList.remove('open');
+        toggle.setAttribute('aria-expanded','false');
+        document.body.style.overflow='';
+        setTimeout(()=>{ if(!drawer.classList.contains('open')) drawer.hidden = true; }, 250);
+      }
+      function toggleDrawer(){
+        if(drawer.classList.contains('open')) closeDrawer(); else openDrawer();
+      }
+  
+      toggle.addEventListener('click', toggleDrawer);
+      drawer.addEventListener('click', (e)=>{
+        const a = e.target.closest('a');
+        if(!a) return;
+        e.preventDefault();
+        const href = (a.getAttribute('href')||'').trim();
+        const go = ()=>{
+          if(href.startsWith('#/')){
+            window.location.href = 'index.html' + href; // SPA route handled by index
+          } else if(href.startsWith('#')){
+            // anchor sections live on index page
+            window.location.href = 'index.html' + href;
+          } else {
+            window.location.href = href;
+          }
+        };
+        closeDrawer();
+        setTimeout(go, 250);
+      });
+      window.addEventListener('resize', ()=>{ if(window.innerWidth > 900) closeDrawer(); });
+  
+      // Ensure counts inside the mobile drawer are in sync on open
+      function syncCounts(){
+        const c = document.getElementById('cart-count');
+        const w = document.getElementById('wishlist-count');
+        const cm = document.getElementById('cart-count-mobile');
+        const wm = document.getElementById('wishlist-count-mobile');
+        if(c && cm) cm.textContent = c.textContent || '0';
+        if(w && wm) wm.textContent = w.textContent || '0';
+        if(cm) cm.hidden = (parseInt(cm.textContent||'0',10) <= 0);
+        if(wm) wm.hidden = (parseInt(wm.textContent||'0',10) <= 0);
+      }
+      document.addEventListener('DOMContentLoaded', syncCounts);
+      window.addEventListener('storage', syncCounts);
+      window.addEventListener('wishlist:changed', syncCounts);
+    })();
+    </script>
+    <div id="toast" class="toast" role="status" aria-live="polite">Updated</div>
+
+    <script>
+    // Normalize SPA-style links so `#/route` and `#anchor` on non-index pages route via index.html
+    document.addEventListener('click', function(e){
+      const a = e.target.closest('a[href^="#"]');
+      if(!a) return;
+      // Let the mobile drawer listener handle its own links
+      if(a.closest('#mobileMenu')) return;
+      const href = a.getAttribute('href') || '';
+      if(href.startsWith('#/')){
+        e.preventDefault();
+        window.location.href = 'index.html' + href;
+      } else if(href.length > 1 && href.startsWith('#')){
+        // This page does not host those anchors; delegate to index
+        e.preventDefault();
+        window.location.href = 'index.html' + href;
+      }
+    });
+
+    // If this page was directly opened with a SPA hash, forward it to index once
+    if(location.hash && (location.hash.startsWith('#/') )){
+      location.replace('index.html' + location.hash);
+    }
+    </script>
+
+    <script src="app.js" defer></script>
+    <!-- <script src="js/main.js" defer></script> -->
+
+    <script>
+    window.addEventListener('DOMContentLoaded', function(){
+      const REDIRECT_TO_CART_ON_ADD = false;
+      const CART_KEY = 'SCENT_CART_V1';
+      function readWishlist(){ try { return (window.ScentWishlist && window.ScentWishlist.read) ? window.ScentWishlist.read() : JSON.parse(localStorage.getItem('SCENT_WISHLIST_V1')||'[]'); } catch(_) { return []; } }
+      function writeWishlist(list){ if(window.ScentWishlist && window.ScentWishlist.read){ localStorage.setItem('SCENT_WISHLIST_V1', JSON.stringify(list||[])); window.dispatchEvent(new CustomEvent('wishlist:changed')); } else { localStorage.setItem('SCENT_WISHLIST_V1', JSON.stringify(list||[])); } }
+      function inWishlist(sku){ return readWishlist().some(it=>it.sku===sku); }
+      function removeFromWishlist(sku){
+        const list = readWishlist();
+        const filtered = list.filter(it=>{
+          const key = (it.sku||it.slug||it.id||slugify(it.name||''))?.toLowerCase();
+          return key !== String(sku).toLowerCase();
+        });
+        writeWishlist(filtered);
+      }
+
+      function readCart(){ try { return JSON.parse(localStorage.getItem(CART_KEY)||'[]'); } catch(_) { return []; } }
+      function writeCart(items){ localStorage.setItem(CART_KEY, JSON.stringify(items||[])); try{ window.dispatchEvent(new CustomEvent('cart:changed')); }catch(_){} }
+      function addToCartSimple(item){ const cart = readCart(); const idx = cart.findIndex(x=>x.sku===item.sku); if(idx>-1){ cart[idx].qty += item.qty||1; } else { cart.push({ ...item, qty:item.qty||1 }); } writeCart(cart); updateCartBadge(); if(REDIRECT_TO_CART_ON_ADD){ setTimeout(()=>{ location.href='cart.html'; }, 80); } }
+
+      function formatINR(n){ try{ return new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR', maximumFractionDigits:0 }).format(n); }catch(_){ return `₹${n}`; } }
+      function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 1600); }
+
+      const grid = document.getElementById('grid');
+      const empty = document.getElementById('empty');
+      const countEl = document.getElementById('wl-count');
+      const totalEl = document.getElementById('wl-total');
+      const PLACEHOLDER_IMG = 'images/brandlogofin.png';
+      const PRODUCTS_CATALOG = Array.isArray(window.PRODUCTS) ? window.PRODUCTS : [];
+      const PRODUCTS_CACHED = {};
+      const KNOWN_IMG_BY_SKU = {
+        'ceo-elixir': 'images/CEO.png',
+        'autumn-fire-elixir': 'images/Autumn Fire.png',
+        'forever-love-elixir': 'images/Forever Love.png',
+        'winter-embrace-parfum': 'images/Winter Embrace.png',
+        'intense-romance-parfum': 'images/Intense Romance.png',
+        'victory-night-parfum': 'images/Victory Night.png',
+        'the-icon-parfum': 'images/Icon.png',
+        'summer-drift-edp': 'images/Summer Drift.png',
+        'boardroom-edp': 'images/Boardroom.png',
+        'fresh-salt-edp': 'images/Fresh Salt.png',
+        'first-date-edp': 'images/First Date.png',
+        'beast-edp': 'images/Beast.png',
+        'tropical-escape-edp': 'images/Tropical Escape.png',
+      };
+
+      function slugify(s){ return String(s||'fragrance').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+      function normalizeItem(raw){
+        const guessedSku = raw.sku || raw.slug || raw.id || slugify(raw.name);
+        const sku = String(guessedSku||'fragrance').toLowerCase();
+        const catList = PRODUCTS_CATALOG;
+        let cat = null;
+        if(catList && catList.length){
+          cat = catList.find(p => (p.slug||'').toLowerCase() === sku)
+             || catList.find(p => (p.slug||'').toLowerCase().includes(sku))
+             || catList.find(p => slugify(p.name) === sku)
+             || catList.find(p => (p.name||'').toLowerCase() === (raw.name||'').toLowerCase());
+        }
+        const name = raw.name || (cat?cat.name:'Fragrance');
+        const catImg = (cat && Array.isArray(cat.images) && cat.images.length) ? cat.images[0] : null;
+        let image = raw.image || raw.img || catImg || KNOWN_IMG_BY_SKU[sku] || null;
+        if (!image && KNOWN_IMG_BY_SKU[`${sku}-edp`]) image = KNOWN_IMG_BY_SKU[`${sku}-edp`];
+        if (!image) image = PLACEHOLDER_IMG;
+        let img = String(image || '').trim();
+        if (img.startsWith('./')) img = img.slice(2);
+        if (/^https?:/i.test(img)) { } else if (!/^images\//i.test(img)) { img = 'images/' + img; }
+        const resolvedImage = img;
+        const priceNum = (raw.price!=null && String(raw.price).match(/\d/)) ? parseInt(String(raw.price).replace(/[^0-9]/g,'')) : (cat && (cat.priceINR || cat.price)) ? (cat.priceINR || cat.price) : 0;
+        const price = priceNum ? String(priceNum) : '';
+        const size = raw.size || (PRODUCTS_CACHED[sku]?.size) || (cat ? (cat.intensity? `${cat.intensity}` : '') : '');
+        const notes = raw.notes || (PRODUCTS_CACHED[sku]?.notes) || (cat && Array.isArray(cat.notes) ? cat.notes.join(' • ') : '');
+        const href = raw.href || `pdp.html?slug=${cat?.slug || sku}`;
+        const tags = Array.isArray(raw.tags) ? raw.tags : [];
+        return { sku, name, price, image: resolvedImage, size, notes, href, tags };
+      }
+
+      function stripConcentration(name){ return String(name||'').replace(/\s*[—–-]\s*(EDP|Parfum|Elixir)\b/ig, '').replace(/\s*\(?(EDP|Parfum|Elixir)\)?\s*$/ig,'').trim(); }
+
+      function render(){
+        const rawList = readWishlist();
+        const list = rawList.map(normalizeItem);
+        countEl.textContent = list.length;
+        if(!list.length){ empty.hidden = false; grid.innerHTML=''; totalEl.textContent = '₹0'; return; }
+        empty.hidden = true;
+        let total = 0;
+        grid.innerHTML = list.map(item=>{
+          const priceNum = parseInt(String(item.price).replace(/[^0-9]/g,''))||0; total += priceNum;
+          const hasImg = !!(item.image && String(item.image).trim().length > 0);
+          const initials = (item.name||'Fragrance').split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase();
+          const imgHTML = hasImg
+            ? `<a class="img" href="${item.href}" aria-label="View ${item.name}"><img src="${item.image}" alt="${item.name||'Fragrance'}" onerror="this.onerror=null;this.src='${PLACEHOLDER_IMG}';"><div class="hover-overlay"><span class="badge">View details</span></div></a>`
+            : `<a class="img is-empty" href="${item.href}" aria-label="View ${item.name}"><div class="ph-wrap"><span class="ph-initials">${initials}</span><span class="ph-name">${item.name||'Fragrance'}</span></div></a>`;
+          return `<article class="card" data-sku="${item.sku}">${imgHTML}<div class="body"><div class="head"><h3>${stripConcentration(item.name||'Fragrance')}</h3></div>${priceNum?`<p class="price">${formatINR(priceNum)}</p>`:'<p class="price" style="opacity:.8">MRP at checkout</p>'}<div class="inline-actions"><button class="btn-gold" data-act="add" aria-label="Add to bag"><i class="fa-solid fa-bag-shopping"></i><span class="label">Add</span></button><a class="btn" href="${item.href}" aria-label="View details"><i class="fa-regular fa-eye"></i><span class="label">View</span></a><button class="btn" data-act="remove" aria-label="Remove from wishlist"><i class="fa-regular fa-trash-can"></i><span class="label">Remove</span></button></div></div></article>`;
+        }).join('');
+        totalEl.textContent = formatINR(total);
+        try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){ }
+      }
+
+      grid.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button'); if(!btn) return; e.stopPropagation();
+        if(btn.dataset.busy==='1'){ return; }
+        btn.dataset.busy='1'; btn.setAttribute('aria-busy','true');
+        const card = btn.closest('[data-sku]'); if(!card){ btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); return; }
+        const sku = card.getAttribute('data-sku');
+        const rawList = readWishlist();
+        const itemRaw = rawList.find(it=> (it.sku||it.slug||it.id||slugify(it.name)) === sku );
+        if(!itemRaw){ btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); return; }
+        const item = normalizeItem(itemRaw);
+        if(btn.dataset.act==='remove'){ removeFromWishlist(sku); render(); updateCartBadge(); toast('Removed from wishlist'); btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); return; }
+        if(btn.dataset.act==='add'){
+          try{ const priceNum = parseInt(String(item.price).replace(/[^0-9]/g,''))||0; addToCartSimple({ sku:item.sku, name:item.name, price:priceNum, image:item.image, qty:1 }); removeFromWishlist(item.sku); render(); updateCartBadge(); toast('Moved to bag'); } finally { btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); }
+        }
+      });
+
+      document.getElementById('btn-clear').addEventListener('click', ()=>{ writeWishlist([]); render(); toast('Wishlist cleared'); });
+      document.getElementById('btn-move-all').addEventListener('click', ()=>{ const list = readWishlist(); if(!list.length) return; list.map(normalizeItem).forEach(item=>{ const priceNum = parseInt(String(item.price).replace(/[^0-9]/g,''))||0; addToCartSimple({ sku:item.sku, name:item.name, price:priceNum, image:item.image, qty:1 }); }); writeWishlist([]); render(); toast('All items moved to bag'); });
+      document.getElementById('btn-share').addEventListener('click', async ()=>{ const url = location.href; try{ await navigator.clipboard.writeText(url); toast('Wishlist link copied'); } catch(_){ toast('Copy this link: '+url); } });
+
+      function updateCartBadge(){ const b = document.getElementById('cart-count'); if(!b) return; const n = (readCart().reduce((s,i)=>s+(i.qty||1),0)); b.textContent = n; b.hidden = n<=0; }
+
+      window.addEventListener('storage', (e)=>{ if(e.key==='SCENT_WISHLIST_V1' || e.key===CART_KEY){ render(); updateCartBadge(); }});
+      window.addEventListener('wishlist:changed', ()=>{ render(); updateCartBadge(); });
+
+      render(); updateCartBadge();
+    });
+    </script>
+    <script>(function(){const y=document.getElementById('year'); if(y) y.textContent=new Date().getFullYear();})();</script>
+  </body>
+  </html>

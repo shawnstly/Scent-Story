@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scent Story — Cart & Checkout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root{
+      --bg:#0b0d10; --surface:#12151a; --surface-2:#0f1216; --text:#EDEDED; --muted:#a8b0ba; --stroke:#262b33;
+      --gold:#bfa06a; --accent:#ffc400; --danger:#ff6b6b; --ok:#45D483;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+    a{color:var(--text);text-decoration:none}
+    h1,h2,h3{font-family:"Playfair Display",serif}
+
+    .wrap{max-width:1200px;margin:0 auto;padding:22px 20px 60px}
+    header.top{display:flex;align-items:center;gap:14px;margin:6px 0 10px}
+    header.top a.brand{display:flex;gap:10px;align-items:center}
+    header.top img{height:40px;width:auto;display:block}
+    header.top .crumbs a{color:var(--muted);font-size:13px}
+
+    /* Steps */
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 22px}
+    .step{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--stroke);border-radius:999px;background:var(--surface-2)}
+    .step .dot{width:24px;height:24px;border-radius:999px;border:1px solid var(--stroke);display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+    .step.on{border-color:#38404a;background:linear-gradient(0deg,#111419,#161a21)}
+    .step.on .dot{background:var(--gold);border-color:var(--gold);color:#111}
+    .step span{font-weight:600}
+
+    /* Step states */
+    .step.done{ border-color: var(--gold); background: linear-gradient(0deg,#111419,#171a20); }
+    .step.done .dot{ background: var(--gold); border-color: var(--gold); color:#111; }
+    .step.on{ box-shadow: 0 0 0 1px rgba(191,160,106,.12) inset; }
+
+    /* Top progress bar */
+    .progress{position:sticky; top:0; z-index:20; height:6px; background:#0f1216; border:1px solid var(--stroke); border-radius:999px; overflow:hidden; margin:6px 0 12px}
+    .progress .bar{height:100%; width:0%; background: linear-gradient(90deg,#f6e7b9,#bfa06a); transition: width .5s ease; position:relative}
+    .progress .bar::after{content:""; position:absolute; inset:0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent); background-size:200% 100%; animation: gloss 2.4s linear infinite}
+    @keyframes gloss{ from{background-position:200% 0} to{background-position:-200% 0} }
+
+    /* Layout */
+    .grid{display:grid;grid-template-columns:1.1fr 1fr .9fr;gap:16px}
+    @media(max-width:1024px){ .grid{grid-template-columns:1fr} }
+
+    .card{background:var(--surface);border:1px solid var(--stroke);border-radius:16px;overflow:hidden}
+    .card .head{padding:14px 16px;border-bottom:1px solid var(--stroke);display:flex;justify-content:space-between;align-items:center}
+    .card .body{padding:14px 16px}
+
+    /* Order list */
+    .order-item{display:grid;grid-template-columns:72px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px dashed #1d2229}
+    .order-item:last-child{border-bottom:0}
+    .order-item img{width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid var(--stroke);background:#0f1216}
+    .order-item h4{margin:0 0 4px;font-size:15px;font-weight:600}
+    .sku{color:var(--muted);font-size:12px}
+    .qtywrap{display:flex;align-items:center;gap:6px;margin-top:6px}
+    .qtywrap .btn{padding:6px 10px}
+    .qtywrap input{width:60px;padding:6px 8px;border-radius:10px;border:1px solid var(--stroke);background:#0f1216;color:var(--text);text-align:center}
+    .price{font-weight:700}
+    .remove{background:transparent;border:0;color:var(--muted);cursor:pointer}
+    .remove:hover{color:var(--danger)}
+
+    /* Shipping methods */
+    .ship-list{display:grid;gap:10px}
+    .ship{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--stroke);border-radius:12px;background:#0f1216}
+    .ship input{margin-top:2px}
+    .ship .meta{font-size:12px;color:var(--muted)}
+
+    /* Address */
+    form.addr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    form.addr label{font-size:12px;color:var(--muted)}
+    form.addr input,form.addr select,form.addr textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--stroke);background:#0f1216;color:var(--text)}
+    form.addr textarea{resize:vertical}
+    form.addr .full{grid-column:1 / -1}
+
+    /* Payment + Summary */
+    .pay-methods .pm{display:flex;align-items:center;justify-content:space-between;padding:10px;border:1px solid var(--stroke);border-radius:12px;margin-bottom:10px;background:#0f1216}
+    /* Payment panels */
+    .pay-methods .pm{cursor:pointer}
+    .pay-methods .pm input[type="radio"]{margin-right:8px; appearance:auto}
+    .pay-panels{margin-top:10px}
+    .pay-panel{display:none;border:1px solid var(--stroke);background:#0f1216;border-radius:12px;padding:12px}
+    .pay-panel.active{display:block}
+    .pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .pay-grid .full{grid-column:1 / -1}
+    .pay-panel label{font-size:12px;color:var(--muted)}
+    .pay-panel input, .pay-panel select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--stroke);background:#0b0f14;color:var(--text)}
+    .hint{font-size:12px;color:var(--muted)}
+    .summary .row{display:flex;justify-content:space-between;margin:8px 0;color:#dce2e9}
+    .summary .row small{color:var(--muted)}
+    .summary .total{border-top:1px solid var(--stroke);margin-top:10px;padding-top:10px;font-weight:800;font-size:18px}
+
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 14px;border-radius:12px;border:1px solid var(--stroke);background:#1a1f26;color:#fff;cursor:pointer}
+    .btn.gold{background:linear-gradient(135deg,#f6e7b9,#bfa06a);border-color:#bfa06a;color:#111;box-shadow:0 6px 22px rgba(191,160,106,.28)}
+    .btn.gold:hover{filter:brightness(1.03)}
+    .btn.ghost{background:transparent}
+
+    .muteline{display:flex;gap:12px;align-items:center;color:var(--muted);font-size:13px;margin-top:10px}
+
+    /* Footer help */
+    .help{margin-top:24px}
+    details.faq{border-top:1px solid var(--stroke);padding:10px 0}
+    details.faq summary{cursor:pointer;color:#cfd6df}
+
+    /* Toast */
+    #toast{position:fixed;right:14px;bottom:14px;background:#0f1216;border:1px solid var(--stroke);padding:12px 16px;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.35);display:none;max-width:520px}
+    #toast.center{left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);z-index:1000}
+    #toast.error{background:#ffffff;color:#111;border-color:#ff4d4f;box-shadow:0 18px 50px rgba(0,0,0,.5), 0 0 0 3px rgba(255,77,79,.15)}
+    #toast.error::before{content:"⚠";margin-right:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="index.html" aria-label="Back to home">
+        <img src="images/brandlogofin.png" alt="Scent Story"/>
+        <h1 style="font-size:18px;margin:0">Checkout</h1>
+      </a>
+      <div class="crumbs" aria-label="breadcrumbs"><a href="index.html">Continue shopping</a></div>
+    </header>
+
+    <div class="progress" aria-hidden="true"><div class="bar" id="progressBar"></div></div>
+    <!-- Progress -->
+    <div class="steps" aria-label="Checkout steps">
+      <div class="step on"><span class="dot">1</span><span>Bag</span></div>
+      <div class="step"><span class="dot">2</span><span>Address</span></div>
+      <div class="step"><span class="dot">3</span><span>Payment</span></div>
+    </div>
+
+    <div class="grid">
+      <!-- 1. Review order & shipping -->
+      <section class="card" aria-labelledby="sec-order">
+        <div class="head"><h2 id="sec-order" style="margin:0;font-size:18px">1. Review Your Order</h2><button id="clearCart" class="btn ghost" title="Clear cart">Clear</button></div>
+        <div class="body">
+          <div id="orderList"></div>
+          <div class="hr"></div>
+          <h3 style="margin:8px 0 8px;font-size:15px">Select delivery</h3>
+          <div class="ship-list" id="shipList"></div>
+        </div>
+      </section>
+
+      <!-- 2. Delivery address -->
+      <section class="card" aria-labelledby="sec-addr">
+        <div class="head"><h2 id="sec-addr" style="margin:0;font-size:18px">2. Delivery Address</h2></div>
+        <div class="body">
+          <form class="addr" id="addrForm">
+            <div class="full">
+              <label>Email address*</label>
+              <input type="email" name="email" required autocomplete="email" inputmode="email" placeholder="you@example.com" maxlength="254" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[A-Za-z]{2,}$" oninput="this.value=this.value.replace(/\\s/g,'').toLowerCase()" />
+            </div>
+            <div>
+              <label>First name*</label>
+              <input type="text" name="first" required autocomplete="given-name" />
+            </div>
+            <div>
+              <label>Last name*</label>
+              <input type="text" name="last" required autocomplete="family-name" />
+            </div>
+            <div>
+              <label>Phone*</label>
+              <input type="tel" name="phone" required autocomplete="tel" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="10‑digit mobile"
+                     oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)" />
+            </div>
+            <div class="full">
+              <label>Address*</label>
+              <input type="text" name="addr1" required autocomplete="address-line1" placeholder="Flat / House No, Street" />
+            </div>
+            <div class="full">
+              <label>Landmark (optional)</label>
+              <input type="text" name="addr2" autocomplete="address-line2" />
+            </div>
+            <div>
+              <label>City*</label>
+              <input type="text" name="city" required autocomplete="address-level2" />
+            </div>
+            <div>
+              <label>State*</label>
+              <select name="state" required>
+                <option value="">Choose…</option>
+                <option>Maharashtra</option>
+                <option>Karnataka</option>
+                <option>Delhi</option>
+                <option>Tamil Nadu</option>
+                <option>Telangana</option>
+              </select>
+            </div>
+            <div>
+              <label>PIN / ZIP*</label>
+              <input name="zip" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="400001"
+                     oninput="this.value=this.value.replace(/\D/g,'').slice(0,6)" />
+            </div>
+            <div>
+              <label>Country*</label>
+              <select name="country" required><option>India</option></select>
+            </div>
+            <div class="full">
+              <label>Order note</label>
+              <textarea name="note" rows="3" placeholder="Any special instructions?"></textarea>
+            </div>
+          </form>
+          <div class="muteline"><input type="checkbox" id="sameBill" checked> <label for="sameBill">Billing address same as delivery</label></div>
+        </div>
+      </section>
+
+      <!-- 3. Payment & Summary -->
+      <aside class="card" aria-labelledby="sec-pay">
+        <div class="head"><h2 id="sec-pay" style="margin:0;font-size:18px">3. Payment Method</h2></div>
+        <div class="body">
+          <div class="pay-methods">
+            <label class="pm"><span><input type="radio" name="pay" value="card" checked> <i class="fa-regular fa-credit-card"></i> Card</span><i class="fa-solid fa-angle-down" aria-hidden="true"></i></label>
+            <label class="pm"><span><input type="radio" name="pay" value="upi"> <i class="fa-solid fa-indian-rupee-sign"></i> UPI</span><i class="fa-solid fa-angle-down" aria-hidden="true"></i></label>
+            <label class="pm"><span><input type="radio" name="pay" value="gpay"> <i class="fa-brands fa-google-pay"></i> Google Pay</span><i class="fa-solid fa-angle-right" aria-hidden="true"></i></label>
+            <label class="pm"><span><input type="radio" name="pay" value="cod"> <i class="fa-solid fa-truck-fast"></i> Cash on Delivery</span><i class="fa-solid fa-angle-right" aria-hidden="true"></i></label>
+          </div>
+
+          <div class="pay-panels" id="payPanels">
+            <!-- Card details -->
+            <div class="pay-panel active" data-pay="card">
+              <div class="pay-grid">
+                <div class="full">
+                  <label>Name on card</label>
+                  <input type="text" id="cardName" autocomplete="cc-name" placeholder="As printed on card" required>
+                </div>
+                <div class="full">
+                  <label>Card number</label>
+                  <input type="text" id="cardNumber" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" maxlength="19">
+                  <div class="hint">We accept Visa / Mastercard / RuPay</div>
+                </div>
+                <div>
+                  <label>Expiry (MM/YY)</label>
+                  <input type="text" id="cardExp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" maxlength="5">
+                </div>
+                <div>
+                  <label>CVV</label>
+                  <input type="password" id="cardCvv" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="3">
+                </div>
+              </div>
+            </div>
+
+            <!-- UPI details -->
+            <div class="pay-panel" data-pay="upi">
+              <label>UPI ID</label>
+              <input type="text" id="upiVpa" placeholder="name@bank" autocomplete="off">
+              <div class="hint">Example: rohan.sharma@oksbi, anita@okhdfcbank</div>
+            </div>
+
+            <!-- Google Pay note -->
+            <div class="pay-panel" data-pay="gpay">
+              <p class="hint">You will be redirected to Google Pay to complete your purchase.</p>
+            </div>
+
+            <!-- Cash on Delivery note -->
+            <div class="pay-panel" data-pay="cod">
+              <p class="hint">Pay in cash upon delivery. Please keep the exact amount ready.</p>
+            </div>
+          </div>
+
+          <div class="summary" id="summary">
+            <div class="row"><span>Subtotal</span><strong id="s-sub">₹0</strong></div>
+            <div class="row"><span>Shipping</span><span id="s-ship">₹0</span></div>
+            <div class="row"><span>Sales tax <small>(GST 12%)</small></span><span id="s-tax">₹0</span></div>
+            <div class="row total"><span>Order Total</span><span id="s-total">₹0</span></div>
+          </div>
+
+          <button class="btn gold" id="completeOrder" style="width:100%;margin-top:12px">Complete Order</button>
+          <div class="muteline"><input id="emailOpt" type="checkbox" checked> <label for="emailOpt">Email me about new products and private sales</label></div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="help">
+      <details class="faq"><summary>How long will it take?</summary><div class="body">Standard 3–6 business days • Express 1–3 business days • Next Day in select cities.</div></details>
+      <details class="faq"><summary>Returns</summary><div class="body">Easy 7-day returns on unopened items. Initiate from your order confirmation email.</div></details>
+      <details class="faq"><summary>Is your warranty legit?</summary><div class="body">We stand by our craft — IFRA & FDA compliant, cruelty-free.</div></details>
+    </section>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // ===== Cart math & rendering =====
+    const CART_KEY = 'SCENT_CART_V1';
+    const TAX_RATE = 0.12; // 12% GST
+    const SHIPPING = [
+      {id:'std', name:'Free Standard', days:'3–7 business days', cost:0},
+      {id:'exp', name:'Express Air', days:'1–3 business days', cost:199},
+      {id:'nd',  name:'Next Day', days:'1–2 business days (select cities)', cost:499}
+    ];
+    const fmt = new Intl.NumberFormat('en-IN', {style:'currency', currency:'INR', maximumFractionDigits:0});
+
+    const orderList = document.getElementById('orderList');
+    const shipList  = document.getElementById('shipList');
+    const els = {
+      sub: document.getElementById('s-sub'),
+      ship: document.getElementById('s-ship'),
+      tax: document.getElementById('s-tax'),
+      total: document.getElementById('s-total')
+    };
+
+    // ===== Step & Progress logic =====
+    const stepsEl = document.querySelectorAll('.steps .step');
+    const progressBar = document.getElementById('progressBar');
+    let currentStep = 1; // 1: Bag, 2: Address, 3: Payment
+
+    function cartComplete(){ return readCart().length > 0; }
+    function addressComplete(){
+      const f = document.getElementById('addrForm');
+      if(!f) return false;
+      // require these fields to be valid
+      const req = ['email','first','last','phone','addr1','city','state','zip'];
+      return req.every(n => {
+        const el = f.querySelector(`[name="${n}"]`);
+        return el && el.checkValidity() && (el.value||'').toString().trim().length>0;
+      });
+    }
+    function paymentComplete(){
+      if(currentPay==='card') return validCard();
+      if(currentPay==='upi') return validUPI(document.getElementById('upiVpa')?.value);
+      // gpay/cod treated as complete when selected
+      if(currentPay==='gpay' || currentPay==='cod') return true;
+      return false;
+    }
+
+    function updateSteps(){
+      // compute which steps are done
+      const done = [cartComplete(), addressComplete(), paymentComplete()];
+      // update classes and numbering/checkmarks
+      stepsEl.forEach((step,idx)=>{
+        const dot = step.querySelector('.dot');
+        const n = idx+1;
+        step.classList.toggle('done', done[idx]);
+        step.classList.toggle('on', currentStep===n);
+        if(done[idx]){ dot.textContent = '✓'; } else { dot.textContent = String(n); }
+      });
+      // progress width: % of completed steps
+      const percent = (done.filter(Boolean).length / 3) * 100;
+      if(progressBar) progressBar.style.width = percent + '%';
+    }
+
+    function readCart(){ try{return JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch(e){return []} }
+    function writeCart(v){ localStorage.setItem(CART_KEY, JSON.stringify(v)); window.dispatchEvent(new Event('storage')); }
+
+    function toast(msg, type='info'){
+      const t=document.getElementById('toast');
+      t.classList.toggle('error', type==='error');
+      t.classList.toggle('center', type==='error');
+      t.textContent=msg;
+      t.style.display='block';
+      clearTimeout(toast._t);
+      // show errors a bit longer
+      toast._t=setTimeout(()=>{ t.style.display='none'; t.classList.remove('center','error'); }, type==='error'? 2200 : 1400);
+    }
+
+    function renderCart(){
+      const cart = readCart();
+      orderList.innerHTML = '';
+      if(cart.length===0){
+        orderList.innerHTML = `
+    <div class="empty-cart" style="text-align:center;padding:40px 20px;">
+      <p style="font-size:20px;font-weight:600;
+                background:linear-gradient(90deg,#ff6b6b,#ffc400);
+                -webkit-background-clip:text;
+                -webkit-text-fill-color:transparent;
+                margin-bottom:12px;">
+        Your cart is empty
+      </p>
+      <p style="color:#a8b0ba;margin-bottom:20px;">
+        Looks like you haven’t added anything yet.
+        Explore our <a href="index.html#/collections" style="color:#ffc400;font-weight:600;text-decoration:underline;">range of collections</a> to find your perfect scent.
+      </p>
+      <a href="index.html#/collections" class="btn gold" style="padding:12px 24px;border-radius:12px;">
+        Shop Now
+      </a>
+    </div>`;
+        calc(); updateSteps();
+        toast('Your bag is empty — shop our collections!', 'error');
+        return;
+      }
+
+      cart.forEach((item,idx)=>{
+        const row = document.createElement('div');
+        row.className = 'order-item';
+        row.innerHTML = `
+          <img src="${item.image}" alt="${item.name}">
+          <div>
+            <h4>${item.name}</h4>
+            <div class="sku">Qty
+              <span class="qtywrap">
+                <button class="btn ghost minus" aria-label="Decrease quantity">−</button>
+                <input class="qty" type="number" min="1" value="${item.qty||1}">
+                <button class="btn ghost plus" aria-label="Increase quantity">+</button>
+              </span>
+            </div>
+            <button class="remove" aria-label="Remove">Remove</button>
+          </div>
+          <div class="price">${fmt.format(item.price*(item.qty||1))}</div>`;
+        orderList.appendChild(row);
+        // handlers
+        row.querySelector('.minus').addEventListener('click',()=>{ const q=row.querySelector('.qty'); q.stepDown(); q.dispatchEvent(new Event('change')); });
+        row.querySelector('.plus').addEventListener('click',()=>{ const q=row.querySelector('.qty'); q.stepUp(); q.dispatchEvent(new Event('change')); });
+        row.querySelector('.qty').addEventListener('change', e=>{
+          const cartNow = readCart();
+          const q = Math.max(1, parseInt(e.target.value||'1',10));
+          cartNow[idx].qty = q; writeCart(cartNow); renderCart();
+        });
+        row.querySelector('.remove').addEventListener('click',()=>{
+          const cartNow = readCart();
+          cartNow.splice(idx,1); writeCart(cartNow); renderCart(); toast('Removed from cart');
+        });
+      });
+      calc();
+      updateSteps();
+    }
+
+    // shipping selection
+    function selectedShipId(){ return localStorage.getItem('SCENT_SHIP_ID') || 'std'; }
+    function setShipId(id){ localStorage.setItem('SCENT_SHIP_ID', id); }
+
+    function renderShipping(){
+      shipList.innerHTML='';
+      SHIPPING.forEach(opt=>{
+        const isOn = opt.id===selectedShipId();
+        const el = document.createElement('label');
+        el.className = 'ship';
+        el.innerHTML = `
+          <input type="radio" name="ship" value="${opt.id}" ${isOn?'checked':''}>
+          <div>
+            <div><strong>${opt.name}</strong> • ${fmt.format(opt.cost)}</div>
+            <div class="meta">${opt.days}</div>
+          </div>`;
+        el.querySelector('input').addEventListener('change',()=>{ setShipId(opt.id); calc(); updateSteps(); });
+        shipList.appendChild(el);
+      });
+    }
+
+    function math(){
+      const cart = readCart();
+      const sub = cart.reduce((s,i)=> s + (i.price*(i.qty||1)), 0);
+      const ship = (SHIPPING.find(s=>s.id===selectedShipId())||SHIPPING[0]).cost;
+      const tax = Math.round(sub * TAX_RATE);
+      const total = sub + ship + tax;
+      return {sub, ship, tax, total};
+    }
+
+    function calc(){
+      const m = math();
+      els.sub.textContent = fmt.format(m.sub);
+      els.ship.textContent = fmt.format(m.ship);
+      els.tax.textContent = fmt.format(m.tax);
+      els.total.textContent = fmt.format(m.total);
+      // update per-item prices
+      [...orderList.querySelectorAll('.order-item')].forEach((row,idx)=>{
+        const cart = readCart();
+        const it = cart[idx]; if(!it) return;
+        row.querySelector('.price').textContent = fmt.format(it.price*(it.qty||1));
+      });
+      updateBadge();
+    }
+
+    function updateBadge(){
+      const n = readCart().reduce((s,i)=> s + (parseInt(i.qty||0,10)||0), 0);
+      try{ const b = parent.document.getElementById('cart-count') || document.getElementById('cart-count'); if(b){ b.textContent=n; b.hidden=n<=0; } }catch(e){}
+    }
+
+    // ===== Payment method switching =====
+    let currentPay = 'card';
+    const payRadios = document.querySelectorAll('.pay-methods input[name="pay"]');
+    const panels = document.querySelectorAll('.pay-panel');
+
+    function setPay(val){
+      currentPay = val;
+      panels.forEach(p => p.classList.toggle('active', p.getAttribute('data-pay')===val));
+    }
+    payRadios.forEach(r=> r.addEventListener('change', e=> { setPay(e.target.value); currentStep = 3; updateSteps(); }));
+
+    // format card number with spaces, clamp CVV and EXP
+    const elNum = document.getElementById('cardNumber');
+    const elExp = document.getElementById('cardExp');
+    const elCvv = document.getElementById('cardCvv');
+    if(elNum){ elNum.addEventListener('input', ()=>{ elNum.value = elNum.value.replace(/\D/g,'').slice(0,16).replace(/(.{4})/g,'$1 ').trim(); }); }
+    if(elExp){ elExp.addEventListener('input', ()=>{
+      let v = elExp.value.replace(/\D/g,'').slice(0,4);
+      if(v.length>=3) v = v.slice(0,2) + '/' + v.slice(2);
+      elExp.value = v;
+    }); }
+    if(elCvv){ elCvv.addEventListener('input', ()=>{ elCvv.value = elCvv.value.replace(/\D/g,'').slice(0,3); }); }
+    if(elNum) elNum.addEventListener('input', updateSteps);
+    if(elExp) elExp.addEventListener('input', updateSteps);
+    if(elCvv) elCvv.addEventListener('input', updateSteps);
+    const upi = document.getElementById('upiVpa');
+    if(upi) upi.addEventListener('input', updateSteps);
+
+    function validUPI(vpa){ return /^[a-zA-Z0-9._-]{2,}@[a-zA-Z]{2,}$/.test((vpa||'').trim()); }
+    function validCard(){
+      const num = (elNum?.value||'').replace(/\s/g,'');
+      const exp = (elExp?.value||'');
+      const cvv = (elCvv?.value||'');
+      const name = (document.getElementById('cardName')?.value||'').trim();
+      // simple checks: 16 digits, MM/YY plausible, 3-digit CVV, name present
+      const okNum = /^\d{16}$/.test(num);
+      const okExp = /^\d{2}\/\d{2}$/.test(exp) && (Number(exp.slice(0,2))>=1 && Number(exp.slice(0,2))<=12);
+      const okCvv = /^\d{3}$/.test(cvv);
+      return okNum && okExp && okCvv && name.length>1;
+    }
+
+    document.getElementById('clearCart').addEventListener('click',()=>{ writeCart([]); renderCart(); updateSteps(); });
+
+document.getElementById('completeOrder').addEventListener('click',()=>{
+  if(readCart().length===0){ toast('Your bag is empty', 'error'); return; }
+  const f = document.getElementById('addrForm');
+  if(!f.checkValidity()){ toast('Please fill required address fields', 'error'); f.reportValidity(); return; }
+
+  // payment-specific light validation
+  if(currentPay==='card' && !validCard()){ toast('Please enter valid card details', 'error'); return; }
+  if(currentPay==='upi'){
+    const vpa = document.getElementById('upiVpa').value;
+    if(!validUPI(vpa)){ toast('Enter a valid UPI ID (example: name@bank)', 'error'); return; }
+  }
+  // gpay & cod need no extra fields here
+
+  // ===== Snapshot customer email & address for Thank You page =====
+  const email = (f.email?.value || '').trim().toLowerCase();
+  const addr1 = (f.addr1?.value || '').trim();
+  const city  = (f.city?.value  || '').trim();
+  const zip   = (f.zip?.value   || '').trim();
+  const state = (f.state?.value || '').trim();
+  const country = (f.country?.value || '').trim() || 'India';
+  const addressSummary = [addr1, city && `${city} ${zip}`, state, country].filter(Boolean).join(', ');
+  sessionStorage.setItem('checkoutEmail', email);
+  sessionStorage.setItem('checkoutAddress', addressSummary);
+
+  // ===== Persist a LAST_ORDER for robust rendering on thankyou.html =====
+  const cartNow = readCart();
+  // quick Order ID generator (matches thankyou style)
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const stamp = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
+  const rnd = Math.floor(Math.random()*9000)+1000;
+  const orderId = `SS-${stamp}-${rnd}`;
+
+  const lastOrder = {
+    id: orderId,
+    email,
+    items: cartNow,
+    shipId: localStorage.getItem('SCENT_SHIP_ID') || 'std',
+    address: addressSummary,
+    createdAt: Date.now()
+  };
+  localStorage.setItem('SCENT_LAST_ORDER', JSON.stringify(lastOrder));
+
+  // Clear cart now so badge and totals reset before redirect
+  writeCart([]);
+  renderCart();
+  updateSteps();
+
+  toast('Order placed — redirecting to confirmation…');
+  setTimeout(()=>{ window.location.href='thankyou.html'; }, 700);
+});
+
+    // Focus/typing moves highlight to Address (step 2)
+    const addrForm = document.getElementById('addrForm');
+    if(addrForm){
+      addrForm.addEventListener('focusin', ()=>{ currentStep = 2; updateSteps(); });
+      addrForm.addEventListener('input', ()=>{ updateSteps(); });
+      addrForm.addEventListener('change', ()=>{ updateSteps(); });
+    }
+
+    renderCart();
+    renderShipping();
+
+    // Enforce strict digit lengths on phone (10) and PIN (6)
+    (function(){
+      const phone = document.querySelector('input[name="phone"]');
+      const zip = document.querySelector('input[name="zip"]');
+      const clamp=(el,len)=>{ if(!el) return; el.value=(el.value||'').replace(/\D/g,'').slice(0,len); };
+      if(phone){
+        ['input','change'].forEach(ev=>phone.addEventListener(ev,()=>clamp(phone,10)));
+        phone.addEventListener('blur',()=>phone.reportValidity());
+      }
+      if(zip){
+        ['input','change'].forEach(ev=>zip.addEventListener(ev,()=>clamp(zip,6)));
+        zip.addEventListener('blur',()=>zip.reportValidity());
+      }
+    })();
+
+    // Strict email validation: lowercase, no spaces, simple RFC-like pattern + custom message
+    (function(){
+      const email = document.querySelector('input[name="email"]');
+      if(!email) return;
+      const re = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+      const validate = ()=>{
+        const v = (email.value||'').trim();
+        if(!v){ email.setCustomValidity(''); return; }
+        if(!re.test(v)){
+          email.setCustomValidity('Please enter a valid email (e.g., name@example.com)');
+        } else {
+          email.setCustomValidity('');
+        }
+      };
+      ['input','change','blur'].forEach(ev=> email.addEventListener(ev, validate));
+      validate();
+    })();
+
+    updateSteps();
+  </script>
+</body>
+</html>

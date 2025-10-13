@@ -1,0 +1,256 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scent Story — Welcome to the Scent Society</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root{
+      --bg: #0d1117;
+      --bg-2: #0f141b;
+      --text: #EDEDED;
+      --muted:#cfd6df;
+      --gold:#c9a86a;
+      --gold-2:#e5c987;
+      --stroke: rgba(255,255,255,0.14);
+      --border:#1f2630;
+      --accent-glow: 0 0 28px rgba(201,168,106,.35);
+      --ff-serif:'Playfair Display', serif;
+      --ff-sans: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; margin:0; background: radial-gradient(120% 120% at 10% 0%, #0c0f14 0%, #0b0e12 35%, #080a0d 100%); color:var(--text); -webkit-font-smoothing:antialiased; }
+
+    /* ===== Minimal Header ===== */
+    header.site{
+      position:sticky; top:0; z-index:1000;
+      background: rgba(13,17,23,0.96); backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-wrap{ max-width:1100px; margin:0 auto; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .brand{ display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--text); }
+    .brand img{ width:36px; height:36px; object-fit:contain; display:block; }
+    .brand span{ font-family: var(--ff-serif); font-weight:700; letter-spacing:.03em; font-size:1.05rem; white-space:nowrap; }
+    .cta-shop{ display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:999px; border:1px solid rgba(201,168,106,.55); background: linear-gradient(180deg, rgba(201,168,106,.26), rgba(201,168,106,.14)); color:var(--text); font-weight:700; letter-spacing:.02em; text-decoration:none; }
+    .cta-shop:hover{ transform: translateY(-1px); box-shadow: var(--accent-glow); }
+
+    /* ===== Welcome Hero ===== */
+    main{ min-height: calc(100dvh - 72px); display:grid; place-items:center; padding: 24px 16px; position:relative; overflow:hidden; }
+    /* soft gold bokeh */
+    .back-glow{ position:absolute; inset:-20%; pointer-events:none; z-index:0;
+      background:
+        radial-gradient(120% 80% at 80% -10%, rgba(201,168,106,.18), transparent 45%),
+        radial-gradient(100% 60% at -10% 100%, rgba(229,201,135,.18), transparent 48%);
+      filter: blur(36px);
+    }
+
+    .wrap{ position:relative; z-index:1; display:grid; grid-template-columns: 1.05fr .95fr; gap:28px; align-items:center; max-width:1100px; width:100%; }
+    @media (max-width: 900px){ .wrap{ grid-template-columns: 1fr; gap:18px; } }
+
+    .intro h1{ font-family:var(--ff-serif); font-size: clamp(28px, 4.6vw, 54px); line-height:1.08; margin:0 0 10px; }
+    .intro p{ color:var(--muted); font-family:var(--ff-sans); font-size: clamp(14px, 2.2vw, 18px); margin:0 0 16px; }
+    .eyebrow{ color:var(--gold); text-transform:uppercase; letter-spacing:.28em; font: 600 .8rem var(--ff-sans); margin-bottom:6px; }
+
+    /* ===== 3D Membership Card ===== */
+    .card-outer{ perspective: 1200px; transform-style: preserve-3d; display:grid; place-items:center; }
+    .idcard{ position:relative; width: clamp(280px, 34vw, 420px); aspect-ratio: 85.6 / 54; border-radius:16px; border:1px solid rgba(201,168,106,.45); background: linear-gradient(160deg, rgba(201,168,106,.10), rgba(255,255,255,.02)); box-shadow: 0 26px 68px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.04); overflow:hidden; transform: rotateX(0) rotateY(0); transition: transform .12s ease, box-shadow .2s ease; }
+    .idcard::before{ content:""; position:absolute; inset:-40%; background: conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,.05), rgba(255,255,255,0) 20% 60%, rgba(255,255,255,.08)); transform: translateX(-120%); filter: blur(1px); opacity:.0; }
+    .idcard.sweep::before{ animation: foilSweep 1200ms ease; }
+    @keyframes foilSweep{ 0%{ transform: translateX(-120%); opacity:.0;} 20%{opacity:.85;} 60%{opacity:.65;} 100%{ transform: translateX(120%); opacity:0;} }
+
+    .id-inner{ position:relative; height:100%; padding: 16px; display:flex; flex-direction:column; }
+    .row-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .brand-mini{ display:flex; align-items:center; gap:10px; }
+    .brand-mini img{ width:56px; height:56px; object-fit:contain; }
+    .brand-mini .ttl{ font:700 .95rem var(--ff-serif); letter-spacing:.08em; }
+    .mini-sub{ font:.85rem var(--ff-sans); color:var(--muted); }
+    .id-num{ font:700 1rem var(--ff-sans); color:var(--gold); }
+
+    .rows{ margin-top:auto; display:flex; flex-direction:column; gap:8px; }
+    .label{ font:.85rem var(--ff-sans); color:var(--muted); }
+    .value{ font:600 1.05rem var(--ff-serif); }
+
+    /* Tier accent colors */
+    .idcard{ --tier-accent: rgba(201,168,106,.38); --tier-border: rgba(201,168,106,.55); }
+    .idcard.tier-gold{ --tier-accent: rgba(201,168,106,.42); --tier-border: rgba(201,168,106,.65); }
+    .idcard.tier-platinum{ --tier-accent: rgba(192,192,192,.42); --tier-border: rgba(192,192,192,.65); }
+    .idcard.tier-elite{ --tier-accent: rgba(255,215,0,.42); --tier-border: rgba(255,215,0,.65); }
+    .idcard{ border-color: var(--tier-border); }
+
+    /* Accent blobs */
+    .blob-a, .blob-b{ position:absolute; border-radius:50%; filter: blur(18px); opacity:.5; pointer-events:none; }
+    .blob-a{ width:180px; height:180px; right:-40px; top:-26px; background: radial-gradient(closest-side, var(--tier-accent), transparent); }
+    .blob-b{ width:180px; height:180px; left:-40px; bottom:-26px; background: radial-gradient(closest-side, rgba(229,201,135,.24), transparent); }
+
+    /* Barcode */
+    .barcode{ position:absolute; right:12px; bottom:10px; width:120px; height:20px; opacity:.28; display:flex; align-items:flex-end; gap:2px; }
+    .barcode .bar{ width:2px; background: rgba(237,237,237,.55); align-self:flex-end; }
+
+    /* Subtle float animation */
+    .float{ animation: floatY 4.5s ease-in-out infinite; }
+    @keyframes floatY{ 0%{ transform: translateY(0);} 50%{ transform: translateY(-6px);} 100%{ transform: translateY(0);} }
+
+    /* Buttons below message */
+    .actions{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .btn-gold{ display:inline-flex; align-items:center; gap:10px; padding:12px 16px; border-radius:999px; border:1px solid rgba(201,168,106,.55); background: linear-gradient(180deg, rgba(201,168,106,.26), rgba(201,168,106,.14)); color:var(--text); font:700 .95rem var(--ff-sans); text-decoration:none; }
+    .btn-gold:hover{ transform: translateY(-1px); box-shadow: var(--accent-glow); }
+
+    /* Responsiveness */
+    @media (max-width: 540px){
+      .brand span{ font-size:1rem; }
+      .brand img{ width:32px; height:32px; }
+      .idcard{ width:min(100%, 360px); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Minimal header: brand + Continue Shopping -->
+  <header class="site" aria-label="Minimal Navigation">
+    <div class="nav-wrap">
+      <a class="brand" href="index.html" aria-label="Scent Story Home">
+        <img src="images/brandlogofin.png" alt="Scent Story logo" />
+        <span>Scent Story</span>
+      </a>
+      <a class="cta-shop" href="index.html#bestsellers" aria-label="Continue shopping">
+        <i class="fa-solid fa-bag-shopping"></i> Continue Shopping
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <div class="back-glow"></div>
+    <div class="wrap">
+      <section class="intro">
+        <div class="eyebrow">Welcome</div>
+        <h1 id="welcomeTitle">Welcome to the <em>Scent Society</em></h1>
+        <p id="welcomeCopy">Your membership has been issued. Enjoy early access, member pricing, and curated picks crafted to your taste.</p>
+        <div class="actions">
+          <a class="btn-gold" href="pdp1.html?cat=all"><i class="fa-regular fa-compass"></i> Explore Collections</a>
+          <a class="btn-gold" href="index.html#/contact"><i class="fa-regular fa-envelope"></i> Contact Concierge</a>
+        </div>
+      </section>
+
+      <section class="card-outer">
+        <div id="card" class="idcard float" aria-label="Membership card preview">
+          <span class="blob-a" aria-hidden="true"></span>
+          <span class="blob-b" aria-hidden="true"></span>
+          <div class="id-inner">
+            <div class="row-top">
+              <div class="brand-mini">
+                <img src="images/brandlogofin.png" alt="Scent Story" />
+                <div>
+                  <div class="ttl">SCENT SOCIETY</div>
+                  <div class="mini-sub">Member</div>
+                </div>
+              </div>
+              <div id="cardId" class="id-num">ID SS000000</div>
+            </div>
+            <div class="rows" style="margin-top:auto">
+              <div><span class="label">Name</span><div id="cardName" class="value">Your Name</div></div>
+              <div><span class="label">Tier</span><div id="cardTier" class="value">Gold</div></div>
+              <div id="rowPhone"><span class="label">Phone</span><div id="cardPhone" class="value">—</div></div>
+            </div>
+            <div id="cardBarcode" class="barcode" aria-hidden="true"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // ===== Read latest member from localStorage or URL params =====
+    (function(){
+      const key='SCENT_MEMBERS_V1';
+      function getLatest(){
+        try{
+          const arr = JSON.parse(localStorage.getItem(key)||'[]');
+          if(Array.isArray(arr) && arr.length) return arr[arr.length-1];
+        }catch(_){ }
+        return null;
+      }
+      function fromQuery(){
+        const p = new URLSearchParams(location.search);
+        const id   = p.get('id')   || undefined;
+        const name = p.get('name') || undefined;
+        const tier = p.get('tier') || undefined;
+        const phone= p.get('phone')|| undefined;
+        return (id||name||tier||phone) ? {id,name,tier,phone} : null;
+      }
+      const fallback = { id: 'SS'+String(Math.floor(100000+Math.random()*900000)), name: 'Member', tier:'Gold', phone:'' };
+      const data = Object.assign({}, fallback, getLatest()||{}, fromQuery()||{});
+
+      // Map tier to class
+      const card = document.getElementById('card');
+      card.classList.remove('tier-gold','tier-platinum','tier-elite');
+      const t = String(data.tier||'Gold').toLowerCase();
+      if(['gold','platinum','elite'].includes(t)) card.classList.add('tier-'+t);
+      document.getElementById('cardId').textContent = 'ID ' + (data.id||fallback.id);
+      document.getElementById('cardName').textContent = data.name||'Member';
+      document.getElementById('cardTier').textContent = (data.tier||'Gold');
+      const phone = (data.phone||'').replace(/\D+/g,'').slice(0,10);
+      const rowPhone = document.getElementById('rowPhone');
+      if(phone){ document.getElementById('cardPhone').textContent = '+91 ' + phone; rowPhone.style.display=''; }
+      else { rowPhone.style.display='none'; }
+
+      // Personalize copy
+      const title = document.getElementById('welcomeTitle');
+      const copy  = document.getElementById('welcomeCopy');
+      title.innerHTML = `Welcome to the <em>Scent Society</em>, ${escapeHtml(data.name||'Member')}`;
+      copy.textContent = `You are now enrolled in our ${data.tier||'Gold'} tier. Your early access and member privileges are ready.`;
+
+      // Foil sweep on first paint
+      requestAnimationFrame(()=> card.classList.add('sweep'));
+
+      // Render tiny barcode from ID
+      renderBarcodeFromId((data.id||'SS000000').toString());
+
+      // 3D tilt
+      attachTilt(card);
+    })();
+
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+
+    function renderBarcodeFromId(id){
+      const el = document.getElementById('cardBarcode');
+      if(!el) return; el.innerHTML='';
+      const chars = (id||'SS000000').replace(/\s+/g,'').slice(0,13).padEnd(13,'0');
+      for(let i=0;i<13;i++){
+        const code = chars.charCodeAt(i)||48;
+        const w = 1 + (code % 2);      // 1..2
+        const h = 10 + (code % 9);     // 10..18
+        const bar = document.createElement('span');
+        bar.className='bar';
+        bar.style.width = (w*2)+'px';
+        bar.style.height= (h*1.4)+'px';
+        el.appendChild(bar);
+      }
+    }
+
+    function attachTilt(card){
+      const outer = card.parentElement;
+      let px=0, py=0; // perspective tilt
+      function onMove(e){
+        const r = card.getBoundingClientRect();
+        const x = (e.touches? e.touches[0].clientX : e.clientX) - r.left;
+        const y = (e.touches? e.touches[0].clientY : e.clientY) - r.top;
+        const rx = ((y / r.height) - 0.5) * -8; // tilt X
+        const ry = ((x / r.width)  - 0.5) * 10; // tilt Y
+        px = rx; py = ry;
+        card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+      }
+      function reset(){ card.style.transform = 'rotateX(0) rotateY(0)'; }
+      outer.addEventListener('mousemove', onMove);
+      outer.addEventListener('mouseleave', reset);
+      outer.addEventListener('touchstart', onMove, {passive:true});
+      outer.addEventListener('touchmove', onMove, {passive:true});
+      outer.addEventListener('touchend', reset);
+    }
+  </script>
+</body>
+</html>

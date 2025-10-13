@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scent Story — Explore our Collections (EDP • Parfum • Elixir)</title>
+  <!-- Fonts / Icons / Shared Styles -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* ===== Image-only catalog + filters ===== */
+    .filters{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:14px 0 18px; }
+    .filter-group{ display:flex; align-items:center; gap:8px; }
+    .chip-filter{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border:1px solid var(--stroke); border-radius:999px; background:#0f1216; color:#EDEDED; cursor:pointer; transition:transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease; }
+    .chip-filter:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(229,182,79,.18) }
+    .chip-filter.active{ background:#ffc400; color:#111; border-color:#ffc400; }
+    #occasion-filter{ appearance:none; padding:8px 12px; background:#0f1216; color:#EDEDED; border:1px solid var(--stroke); border-radius:10px; }
+    #search{ padding:8px 12px; background:#0f1216; color:#EDEDED; border:1px solid var(--stroke); border-radius:10px; min-width:220px }
+
+    /* ===== MOBILE-FRIENDLY GRID ===== */
+    .image-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; align-items:stretch }
+    @media (max-width:1024px){ .image-grid{ grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width:640px){ .image-grid{ grid-template-columns: repeat(2, 1fr); gap:10px; } }
+    @media (max-width:420px){ .image-grid{ grid-template-columns: repeat(2, 1fr); gap:8px; } }
+
+    .tile{ position:relative; border:1px solid var(--stroke); border-radius:14px; overflow:hidden; background:#0f1216; opacity:0; transform: translateY(10px) scale(.98); transition: opacity .35s ease, transform .35s ease }
+    .tile.reveal{ opacity:1; transform: translateY(0) scale(1) }
+    .tile .img-stack{ position:relative; width:100%; height:480px; overflow:hidden }
+    .tile .img-stack img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:opacity .28s ease, transform .28s ease }
+
+    /* Hover overlay for "View details" affordance */
+    .tile .hover-overlay{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:16px; 
+      background: radial-gradient(120% 100% at 50% 90%, rgba(255,196,0,.18) 0%, rgba(0,0,0,.45) 42%, rgba(0,0,0,.65) 100%);
+      color:#fff; text-align:center; opacity:0; transition: opacity .28s ease, transform .28s ease; 
+      transform: translateY(6px); pointer-events:none; }
+    .tile:hover .hover-overlay, .tile:focus-within .hover-overlay{ opacity:1; transform: translateY(0); }
+    @media (max-width:640px){ .tile .hover-overlay{ opacity:0; } }
+
+    .hover-overlay .badge{ display:inline-flex; align-items:center; gap:8px; font-weight:700; letter-spacing:.02em; 
+      background: rgba(255,196,0,.9); color:#111; border-radius:999px; padding:8px 12px; border:1px solid rgba(0,0,0,.25); box-shadow:0 8px 22px rgba(229,182,79,.25); }
+    .hover-overlay small{ display:block; margin-top:8px; color:#EDEDED; opacity:.9 }
+    @media (prefers-reduced-motion: reduce){ .tile .hover-overlay{ transition:none; transform:none } }
+
+    .tile .img-primary{ opacity:1; transform:scale(1) }
+    .tile .img-alt{ opacity:0; transform:scale(1.02) }
+    .tile:focus-within .img-primary, .tile:hover .img-primary{ opacity:0; transform:scale(.985) }
+    .tile:focus-within .img-alt, .tile:hover .img-alt{ opacity:1; transform:scale(1) }
+
+    .tile .caption{ position:absolute; left:0; right:0; bottom:0; padding:10px 12px; background: linear-gradient(180deg, transparent, rgba(0,0,0,.55)); color:#fff; font-weight:600; letter-spacing:.02em; font-size: 1rem; }
+    @media (max-width:640px){ .tile .caption{ padding:8px 10px; font-size:.95rem } }
+    @media (max-width:420px){ .tile .caption{ padding:6px 8px; font-size:.9rem } }
+
+    .tile .meta{ display:flex; gap:8px; position:absolute; top:10px; left:10px }
+    .tile .pill{ background:#ffc400; color:#111; border-radius:999px; padding:4px 8px; border:1px solid var(--stroke); font-weight:700; font-size:12px }
+
+    /* Chip pulse + ripple feedback on category click */
+    .chip-filter.active{ position:relative; box-shadow:0 0 0 0 rgba(255,196,0,.45); animation: chipPulse 1.6s ease-out; }
+    @keyframes chipPulse{ 0%{ box-shadow:0 0 0 0 rgba(255,196,0,.45) } 70%{ box-shadow:0 0 0 12px rgba(255,196,0,0) } 100%{ box-shadow:0 0 0 0 rgba(255,196,0,0) } }
+
+    /* Confetti burst */
+    .confetti{ position:absolute; width:6px; height:6px; background:#ffc400; top:50%; left:50%; transform:translate(-50%,-50%); border-radius:2px; pointer-events:none; animation: confettiPop .8s ease-out forwards }
+    @keyframes confettiPop{ 0%{ opacity:1; transform:translate(-50%,-50%) scale(1) } 100%{ opacity:0; transform:translate(var(--dx), var(--dy)) scale(.6) } }
+
+    /* Reduce tile height on tablets */
+    @media (max-width:900px){ .tile .img-stack{ height:360px } }
+    /* Shorter images on phones */
+    @media (max-width:640px){ .tile .img-stack{ height:220px } }
+    @media (max-width:420px){ .tile .img-stack{ height:180px } }
+
+    /* Global font + color alignment (match site) */
+    html, body, h1, h2, h3, h4, h5, h6, p, a, li, nav, button, input, textarea { font-family: 'Playfair Display', serif !important; }
+    h1,h2,h3,h4,h5,h6,.section-title { color:#fff; }
+    p, li { color: var(--muted); }
+    a{ color: inherit; text-decoration: none; }
+
+    /* Header brand styles (mirror index/pdp) */
+    .brand-logo{ display:inline-flex; align-items:center; justify-content:flex-start; width:auto; height:auto; border:0; background:transparent; overflow:visible }
+    .brand-logo img{ height:96px; width:auto; display:block; object-fit:contain; animation: logoGlow 3s infinite ease-in-out; }
+    .brand-text { font-family: "Playfair Display", serif; font-size: 21px; font-weight: 600; color: #fff; letter-spacing: .02em; margin-left: -90px; }
+    @media (max-width:768px){ .brand-logo img{ height:96px } .brand-text{ font-size:22px; margin-left:-25px; margin-right:120px } }
+    @keyframes logoGlow { 0%,100%{ filter:none; transform:none } 50%{ filter: drop-shadow(0 0 16px rgba(255,196,0,.75)) drop-shadow(0 0 32px rgba(255,196,0,.5)); transform: scale(1.02) } }
+    @media (prefers-reduced-motion: reduce){ .brand-logo img, .brand-text{ animation:none } }
+
+    /* Quick actions (Account / Orders) */
+    .quick-actions{ display:flex; align-items:center; gap:12px; }
+    .icon-btn{ display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--stroke); border-radius:999px; background:transparent; color:#EDEDED; text-decoration:none; font-weight:600; letter-spacing:.02em; transition: transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease; }
+    .icon-btn i{ font-size:16px; line-height:1; }
+    .icon-btn:hover{ transform: translateY(-1px); background:#111418; color:#ffc400; border-color:#ffc400; box-shadow:0 10px 22px rgba(229,182,79,.22); }
+    .icon-btn:active{ transform: translateY(0); box-shadow:0 6px 14px rgba(229,182,79,.18); }
+
+    /* === Mobile: compact header actions (icon-only) === */
+    @media (max-width: 900px){
+      .quick-actions{ gap:8px; flex-shrink:0; }
+      .icon-btn{ width:40px; height:40px; padding:0; border-radius:999px; justify-content:center; }
+      .icon-btn span{ display:none; }
+      .icon-btn i{ font-size:16px; }
+    }
+
+    /* === Mobile: hamburger menu and hide desktop menu === */
+    @media (max-width: 900px){
+      .nav-toggle{ display:inline-flex; }
+      .menu{ display:none; }
+    }
+
+    /* ===== Mobile nav (hamburger + slide drawer) ===== */
+    .nav-toggle{
+      display:none;
+      align-items:center; justify-content:center;
+      width:40px; height:40px;
+      border-radius:8px;
+      border:1px solid var(--stroke);
+      background:#141820;
+      color:#ffc400;
+      cursor:pointer;
+    }
+    .nav-toggle i{ font-size:18px; }
+    @media (max-width: 900px){
+      .menu{ display:none; }                 /* hide desktop menu on small screens */
+      .quick-actions{ display:none; }        /* keep header clean on mobile */
+      .nav-toggle{ display:inline-flex; }    /* show hamburger */
+    }
+    /* Drawer container */
+    .mobile-menu{
+      position: fixed;
+      top: var(--nav-height, 92px);
+      left: 0; right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--stroke);
+      box-shadow: 0 18px 38px rgba(0,0,0,.45);
+      z-index: 120;
+      display: grid;
+      gap: 8px;
+      padding: 14px 16px 16px;
+      transform: translateY(-12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform .22s ease, opacity .22s ease;
+    }
+    .mobile-menu.open{
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .mobile-menu a{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 12px 10px;
+      border:1px solid var(--stroke);
+      border-radius: 12px;
+      background: #0f1216;
+      color:#fff; text-decoration:none; font-weight:600;
+    }
+    .mobile-menu a:hover{ filter:brightness(1.06); }
+    .mobile-menu .sub{ display:grid; gap:8px; margin-top:4px; }
+    .mobile-menu .label{ color:#bfa06a; font-size:12px; letter-spacing:.04em; text-transform:uppercase; margin:4px 2px; }
+    @media (min-width: 901px){ .mobile-menu{ display:none !important; } }
+    .mobile-menu details{
+  border:1px solid var(--stroke);
+  border-radius:12px;
+  background:#0f1216;
+}
+.mobile-menu summary{
+  list-style:none;
+  cursor:pointer;
+  padding:12px 10px;
+  font-weight:700;
+  color:#fff;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.mobile-menu details[open] summary{ filter:brightness(1.06); }
+.mobile-menu details .sub{ padding:8px 10px 10px; }
+    .mobile-menu details .sub a{ margin-top:6px; }
+
+    /* ===== Responsive forms: Contact & Grievance ===== */
+    .contact-grid, .grievance-grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:24px;
+      align-items:start;
+    }
+    .contact-form, .grievance-form{ display:grid; gap:12px; max-width:720px; }
+    .contact-form label, .grievance-form label{ display:block; color:var(--muted); font-weight:600; }
+    .contact-form input, .grievance-form input,
+    .contact-form select, .grievance-form select,
+    .contact-form textarea, .grievance-form textarea{
+      width:100%;
+      margin-top:6px;
+      padding:10px 12px;
+      border:1px solid var(--stroke);
+      border-radius:10px;
+      background:#0f1216;
+      color:#EDEDED;
+    }
+    .contact-form .btn-gold, .grievance-form .btn-gold{ padding:12px 16px; border-radius:12px; }
+    .panel{ border:1px solid var(--stroke); border-radius:14px; padding:16px; background:linear-gradient(180deg,#0b0d10,#0e1116) }
+
+    /* Mobile stacking */
+    @media (max-width: 900px){
+      .contact-grid, .grievance-grid{ grid-template-columns: 1fr; gap:16px; }
+      .contact-form, .grievance-form{ max-width:100%; }
+      .contact-form .btn-gold, .grievance-form .btn-gold{ width:100%; }
+      .contact-form .row2, .grievance-form .row2{ grid-template-columns:1fr; }
+    }
+    @media (max-width: 560px){
+      .contact-form input, .grievance-form input,
+      .contact-form select, .grievance-form select,
+      .contact-form textarea, .grievance-form textarea{ font-size:15px; }
+    }
+
+    /* Navbar height (mirror index) */
+    .nav{ display:flex; align-items:center; gap:16px; justify-content:space-between; min-height:120px; padding:8px 20px }
+    @media (max-width:768px){ .nav{ min-height:92px; padding:6px 14px; gap:10px } }
+
+    /* Catalog layout */
+    .catalog{ padding: 20px 0 32px; }
+    @media (max-width:640px){ .catalog{ padding:14px 0 22px; } }
+    .catalog h2{ margin: 14px 0 18px; letter-spacing:.03em; }
+    .catalog .grid{ display:grid; grid-template-columns:1fr; gap: 40px; }
+
+    /* Individual product PDP-like block (kept for future expansion) */
+    .product-block{ display:grid; grid-template-columns: 1.05fr .95fr; gap:24px; align-items:start; border:1px solid var(--stroke); border-radius:16px; padding:18px; background:linear-gradient(180deg,#0b0d10,#0e1116) }
+    @media (max-width: 1024px){ .product-block{ grid-template-columns:1fr } }
+
+    /* Footer nudge to align with content grid */
+    .footer .container{ padding-left: 28px; }
+    @media (max-width:768px){ .footer .container{ padding-left: 40px; } }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header aria-label="Primary Navigation">
+    <div class="container nav">
+      <a class="brand-logo" href="index.html" aria-label="Scent Story Home">
+        <img src="images/brandlogofin.png" alt="Scent Story logo">
+      </a>
+      <span class="brand-text">Scent Story</span>
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <nav id="mobileMenu" class="mobile-menu" aria-label="Mobile Navigation" hidden>
+        <a href="index.html">Home <i class="fa-solid fa-house"></i></a>
+      
+        <details>
+          <summary style="color:#efba0a">Explore by Concentration ▾</summary>
+          <div class="sub">
+            <a href="pdp1.html?cat=edp">EDP</a>
+            <a href="pdp1.html?cat=parfum">Parfum</a>
+            <a href="pdp1.html?cat=elixir">Elixir</a>
+          </div>
+        </details>
+      
+        <details>
+          <summary style="color:#efba0a">Explore by Mood ▾</summary>
+          <div class="sub">
+            <a href="pdp1.html?tag=ambition">Ambition</a>
+            <a href="pdp1.html?tag=bold">Bold</a>
+            <a href="pdp1.html?tag=carefree">Carefree</a>
+            <a href="pdp1.html?tag=power">Power</a>
+            <a href="pdp1.html?tag=seasons">Seasons</a>
+          </div>
+        </details>
+      
+        <a href="#/track" style="color:#e0d2a2">Track My Order <i class="fa-solid fa-box"></i></a>
+        <a href="wishlist.html" style="color:#e0d2a2" id="wishlistLinkMobile" data-base-label="Wishlist">Wishlist <span class="cart-badge" id="wishlist-count-mobile" aria-live="polite">0</span></a>
+        <a href="#/contact" style="color:#e0d2a2">Contact <i class="fa-regular fa-envelope"></i></a>
+        <a href="cart.html" style="color:#e0d2a2">Cart <span class="cart-badge" id="cart-count-mobile" aria-live="polite">0</span></a>
+        <a href="about.html" style="color:#e0d2a2">About Us <i class="fa-solid fa-info-circle"></i></a>
+      </nav>
+</footer>
+
+  <script>
+  /* ===== Mobile drawer behavior (pdp1) ===== */
+  (function(){
+    const toggle = document.getElementById('navToggle');
+    const drawer = document.getElementById('mobileMenu');
+    if(!toggle || !drawer) return;
+
+    function openDrawer(){
+      drawer.hidden = false;
+      drawer.classList.add('open');
+      toggle.setAttribute('aria-expanded','true');
+      document.body.style.overflow='hidden';
+    }
+    function closeDrawer(){
+      drawer.classList.remove('open');
+      toggle.setAttribute('aria-expanded','false');
+      document.body.style.overflow='';
+      setTimeout(()=>{ if(!drawer.classList.contains('open')) drawer.hidden = true; }, 220);
+    }
+    function toggleDrawer(){
+      if(drawer.classList.contains('open')) closeDrawer(); else openDrawer();
+    }
+
+    toggle.addEventListener('click', toggleDrawer);
+    drawer.addEventListener('click', (e)=>{ const a=e.target.closest('a'); if(a){ closeDrawer(); } });
+    window.addEventListener('hashchange', closeDrawer);
+    window.addEventListener('resize', ()=>{ if(window.innerWidth>900) closeDrawer(); });
+
+    // Mirror cart/wishlist counts into mobile drawer badges
+    function syncCounts(){
+      const c = document.getElementById('cart-count');
+      const cm = document.getElementById('cart-count-mobile');
+      const w = document.getElementById('wishlist-count');
+      const wm = document.getElementById('wishlist-count-mobile');
+      if(c && cm) cm.textContent = c.textContent;
+      if(w && wm) wm.textContent = w.textContent;
+      if(cm) cm.hidden = (parseInt(cm.textContent||'0',10) <= 0);
+      if(wm) wm.hidden = (parseInt(wm.textContent||'0',10) <= 0);
+    }
+    document.addEventListener('DOMContentLoaded', syncCounts);
+    window.addEventListener('storage', syncCounts);
+    window.addEventListener('wishlist:changed', syncCounts);
+  })();
+  </script>
+      <nav id="primary-nav" class="menu">
+        <a href="index.html" style="color:#ffc400 ;">Home</a>
+        <details>
+          <summary>Explore Chapters ▾</summary>
+          <div class="dropdown" role="menu" aria-label="Explore Chapters">
+            <strong style="margin:6px 0 4px; color:#ffc400">By Concentration</strong>
+            <a href="pdp1.html?cat=edp">EDP</a>
+            <a href="pdp1.html?cat=parfum">Parfum</a>
+            <a href="pdp1.html?cat=elixir">Elixir</a>
+            <hr style="border:none;border-top:1px solid var(--stroke);margin:8px 0">
+            <strong style="margin:6px 0 4px; color:#ffc400">By Mood</strong>
+            <a href="pdp1.html?tag=ambition">Ambition</a>
+            <a href="pdp1.html?tag=bold">Bold</a>
+            <a href="pdp1.html?tag=carefree">Carefree</a>
+            <a href="pdp1.html?tag=power">Power</a>
+            <a href="pdp1.html?tag=seasons">Seasons</a>
+          </div>
+        </details>
+        <a href="#/track" style="color:#ffc400 ;">Track My Order</a>
+        <a href="wishlist.html" style="color:#ffc400 ;">Wishlist</a>
+        <a href="#/contact" style="color:#ffc400 ;">Contact</a>
+        <a id="cart-link" class="cart-link" href="cart.html" style="color:#efba0a">Cart
+          <span id="cart-count" class="cart-badge" aria-live="polite">0</span>
+        </a>
+      </nav>
+      <div class="quick-actions">
+        <a href="login.html" style="color:#e5b822 ;" class="icon-btn" aria-label="Login / Account"><i class="fa-regular fa-user" aria-hidden="true"></i><span>Login</span></a>
+        <a href="#/track" style="color:#e5b822 ; " class="icon-btn" aria-label="View my orders"><i class="fa-solid fa-box" aria-hidden="true"></i><span>Orders</span></a>
+      </div>
+    </div>
+  </header>
+  <div id="nav-overlay" class="nav-overlay" aria-hidden="true"></div>
+
+  <main>
+    <div class="container catalog">
+      <h1 class="section-title">Explore Our Collections</h1>
+      <p>Tap a scent to see details. Filter by concentration or occasion.</p>
+
+      <!-- Filters -->
+      <div class="filters" role="toolbar" aria-label="Filters">
+        <div class="filter-group" aria-label="Concentration">
+          <button class="chip-filter active" data-cat="all" aria-pressed="true">All</button>
+          <button class="chip-filter" data-cat="edp" aria-pressed="false">EDP</button>
+          <button class="chip-filter" data-cat="parfum" aria-pressed="false">Parfum</button>
+          <button class="chip-filter" data-cat="elixir" aria-pressed="false">Elixir</button>
+        </div>
+        <div class="filter-group" aria-label="Occasion">
+          <label class="visually-hidden" for="occasion-filter">Occasion</label>
+          <select id="occasion-filter">
+            <option value="all">All occasions </option>
+          </select>
+        </div>
+        <div class="filter-group" aria-label="Search">
+          <input id="search" type="search" placeholder="Search scent..." />
+        </div>
+      </div>
+
+      <!-- Image-only grid -->
+      <div id="catalog-grid" class="image-grid" aria-live="polite"></div>
+    </div>
+  </main>
+
+  <!-- SPA VIEW CONTAINER for router -->
+  <main id="page-view" style="display:none;">
+    <div class="container" id="page-content"></div>
+  </main>
+
+  <!-- Footer (same component as index) -->
+  <footer class="footer">
+    <div class="container footer-hero">
+      <section class="subscribe-card" aria-labelledby="subscribe-title">
+        <h3 id="subscribe-title">Join Our Circle</h3>
+        <p>Be first to new launches, private sales, and members-only stories. <strong>New members get 10% off.</strong></p>
+        <form id="newsletter-form" class="newsletter-form" novalidate>
+          <label class="visually-hidden" for="nl-email">Email</label>
+          <input id="nl-email" name="email" type="email" placeholder="Enter your email" required>
+          <button type="submit" class="btn-gold">Subscribe</button>
+        </form>
+        <p id="newsletter-success" class="newsletter-success" role="status" hidden>
+          🎉 Thank you! You’re subscribed. Check your inbox for a welcome note.
+        </p>
+        <small class="legal">By subscribing you agree to our <a href="index.html#/privacy">Privacy Policy</a>. Unsubscribe anytime.</small>
+      </section>
+      <section class="membership-card" aria-labelledby="member-title">
+        <h3 id="member-title" style="color:#efe2b8;">Scent Story Circle — Members Get More</h3>
+        <ul class="benefits">
+          <li style="color:#ffc400"> Early access to new Chapters</li>
+          <li style="color:#ffc400">Free sample with orders</li>
+          <li style="color:#ffc400">Birthday reward</li>
+          <li style="color:#ffc400">Priority support</li>
+        </ul>
+        <a class="btn-outline member-btn" href="becomemem.html" aria-label="Become a member">Become a Member</a>
+      </section>
+    </div>
+    <div class="container footer-links">
+      <div class="col">
+        <h4>Brand</h4>
+        <a href="index.html#/about">About Us</a>
+        <a href="index.html#/craft">Craft & Safety</a>
+        <a href="index.html#/press">Press</a>
+      </div>
+      <div class="col">
+        <h4>Shop</h4>
+        <a href="pdp1.html?cat=edp">EDP</a>
+        <a href="pdp1.html?cat=parfum">Parfum</a>
+        <a href="pdp1.html?cat=elixir">Elixir</a>
+        <a href="index.html#/collections">Gift Ideas</a>
+      </div>
+      <div class="col">
+        <h4>Support</h4>
+        <a href="index.html#/track">Track My Order</a>
+        <a href="index.html#/shipping">Shipping</a>
+        <a href="index.html#/returns">Returns</a>
+        <a href="index.html#/grievance">Grievances</a>
+        <a href="index.html#/contact">Contact</a>
+      </div>
+      <div class="col">
+        <h4>Legal</h4>
+        <a href="index.html#/terms">Terms of Service</a>
+        <a href="index.html#/privacy">Privacy Policy</a>
+        <a href="index.html#/cookies">Cookies & Consent</a>
+        <a href="index.html#/accessibility">Accessibility</a>
+      </div>
+    </div>
+    <div class="container footer-trust">
+      <p>Phthalate-Free • Cruelty-Free • IFRA &amp; FDA Compliant • Secure Checkout</p>
+    </div>
+    <div class="container footer-bottom">
+      <div class="payments">
+        <i class="fa-brands fa-cc-visa" aria-hidden="true" title="Visa"></i>
+        <i class="fa-brands fa-cc-mastercard" aria-hidden="true" title="Mastercard"></i>
+        <i class="fa-brands fa-cc-amex" aria-hidden="true" title="American Express"></i>
+        <i class="fa-brands fa-cc-paypal" aria-hidden="true" title="PayPal"></i>
+        <span class="badge-upi" aria-label="UPI accepted">UPI</span>
+      </div>
+      <div class="social-icons" aria-label="Social media">
+        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+      </div>
+      <div class="copyright">© <span id="year"></span> Scent Story. All Rights Reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Safe year update
+    (function(){ const y=document.getElementById('year'); if(y) y.textContent = new Date().getFullYear(); })();
+
+    // ===== Catalog Data (image-only tiles) =====
+    const PRODUCTS = [
+      // EDP
+      {type:'edp', slug:'first-date', name:'First Date', images:['images/First Date.png','images/firstdate1.png'], occasions:['date','everyday'], tags:['carefree','seasons']},
+      {type:'edp', slug:'fresh-salt', name:'Fresh Salt', images:['images/Fresh Salt.png','images/freshsalt1.png'], occasions:['summer','fresh','everyday'], tags:['carefree','seasons']},
+      {type:'edp', slug:'beast-edp', name:'Beast', images:['images/Beast.png','images/beast1.png'], occasions:['night','club','bold'], tags:['bold']},
+      {type:'edp', slug:'boardroom', name:'Boardroom', images:['images/Boardroom.png','images/boardroom1.png'], occasions:['office','formal','power'], tags:['power','ambition']},
+      {type:'edp', slug:'summer-drift', name:'Summer Drift', images:['images/Summer Drift.png','images/summerdrift1.png'], occasions:['summer','casual'], tags:['carefree','seasons']},
+      // Parfum
+      {type:'parfum', slug:'victory-night', name:'Victory Night', images:['images/Victory Night.png','images/victorynight1.png'], occasions:['night','date','win'], tags:['ambition','bold']},
+      {type:'parfum', slug:'intense-romance', name:'Intense Romance', images:['images/Intense Romance.png','images/intenseromance1.png'], occasions:['fresh','date','signature'], tags:['power','ambition']},
+      {type:'parfum', slug:'tropical-escape', name:'Tropical Escape', images:['images/Tropical Escape.png','images/tropicalescape1.png'], occasions:['summer','vacation','fresh'], tags:['carefree','seasons']},
+      {type:'parfum', slug:'winter-embrace', name:'Winter Embrace', images:['images/Winter Embrace.png','images/winterembrace1.png'], occasions:['winter','cozy','formal'], tags:['seasons','power']},
+      {type:'parfum', slug:'the-icon', name:'The Icon', images:['images/Icon.png','images/icon1.png'], occasions:['signature','formal','office'], tags:['ambition','power']},
+      // Elixir
+      {type:'elixir', slug:'ceo-elixir', name:'CEO — Elixir', images:['images/CEO.png','images/ceo1.png'], occasions:['office','power','formal'], tags:['power','ambition']},
+      {type:'elixir', slug:'autumn-fire', name:'Autumn Fire', images:['images/Autumn Fire.png','images/autumnfire1.png'], occasions:['fall','evening','bold'], tags:['bold','seasons']},
+      {type:'elixir', slug:'forever-love', name:'Forever Love', images:['images/Forever Love.png','images/foreverlove1.png'], occasions:['date','romantic'], tags:['carefree']},
+    ];
+
+    // Build occasion options dynamically from products
+    const occSelect = document.getElementById('occasion-filter');
+    const occSet = new Set(['all']);
+    PRODUCTS.forEach(p => (p.occasions||[]).forEach(o => occSet.add(o)) );
+    [...occSet].filter(o=>o!=='all').sort().forEach(o=>{
+      const opt=document.createElement('option'); opt.value=o; opt.textContent=o.charAt(0).toUpperCase()+o.slice(1);
+      occSelect.appendChild(opt);
+    });
+
+    // Helpers
+    function preload(url){
+      return new Promise(resolve=>{ const im=new Image(); im.onload=()=>resolve({ok:true,url}); im.onerror=()=>resolve({ok:false,url}); im.src=url; });
+    }
+
+    function tileHTML(p,primary,alt){
+      return `
+        <article class="tile" data-cat="${p.type}" data-occ="${(p.occasions||[]).join(',')}" data-tags="${(p.tags||[]).join(',')}">
+          <a href="pdp.html#${p.slug}" aria-label="${p.name}" style="outline:none">
+            <div class="img-stack" aria-hidden="true">
+              <img class="img-primary" src="${primary}" alt="${p.name} primary" loading="lazy">
+              ${alt ? `<img class=\"img-alt\" src=\"${alt}\" alt=\"${p.name} alternate\" loading=\"lazy\">` : ''}
+              <div class="hover-overlay" aria-hidden="true">
+                <div>
+                  <span class="badge"><i class="fa-regular fa-eye" aria-hidden="true"></i> View details</span>
+                  <small>Click to open the product page</small>
+                </div>
+              </div>
+            </div>
+            <div class="meta"><span class="pill">${p.type.toUpperCase()}</span></div>
+            <div class="caption">${p.name}</div>
+          </a>
+        </article>`;
+    }
+
+    async function buildGrid(){
+      const grid = document.getElementById('catalog-grid');
+      grid.innerHTML = '';
+      // Preload primary & alt (first two images), gracefully handle missing
+      for(const p of PRODUCTS){
+        const [p0,p1] = p.images||[];
+        const res = await Promise.all([preload(p0), p1?preload(p1):Promise.resolve({ok:false,url:null})]);
+        const primary = res[0].ok ? res[0].url : null;
+        const alt = res[1].ok ? res[1].url : null;
+        if(primary){ grid.insertAdjacentHTML('beforeend', tileHTML(p, primary, alt)); }
+      }
+      // initial stagger reveal
+      const tiles = Array.from(document.querySelectorAll('#catalog-grid .tile'));
+      tiles.forEach((t,i)=> setTimeout(()=> t.classList.add('reveal'), i*60));
+    }
+
+    function applyFilters(){
+      const activeCat = document.querySelector('.chip-filter.active')?.dataset.cat || 'all';
+      const occ = document.getElementById('occasion-filter').value;
+      const q = document.getElementById('search').value.trim().toLowerCase();
+      const tag = (new URL(location.href)).searchParams.get('tag')?.toLowerCase() || '';
+
+      document.querySelectorAll('#catalog-grid .tile').forEach(tile=>{
+        const catOk = (activeCat==='all') || (tile.dataset.cat===activeCat);
+        const occOk = (occ==='all') || (tile.dataset.occ||'').split(',').includes(occ);
+        const name = tile.querySelector('.caption')?.textContent.toLowerCase()||'';
+        const qOk = !q || name.includes(q);
+        const tagOk =
+          !tag ||
+          (tile.dataset.tags||'').split(',').includes(tag) ||
+          (tag==='seasons' && ((tile.dataset.occ||'').includes('summer') || (tile.dataset.occ||'').includes('winter') || (tile.dataset.occ||'').includes('fall')));
+        tile.style.display = (catOk && occOk && qOk && tagOk) ? '' : 'none';
+      });
+    }
+
+    // Wire filters (with confetti + reveal)
+    document.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.chip-filter');
+      if(!btn) return;
+
+      // Toggle active state
+      document.querySelectorAll('.chip-filter').forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+      btn.classList.add('active'); btn.setAttribute('aria-pressed','true');
+
+      // Confetti burst
+      const burst = (n=12)=>{
+        const box = btn.getBoundingClientRect();
+        for(let i=0;i<n;i++){
+          const span = document.createElement('span');
+          span.className='confetti';
+          const angle = Math.random()*2*Math.PI;
+          const dist = 40 + Math.random()*40;
+          span.style.setProperty('--dx', `${Math.cos(angle)*dist}px`);
+          span.style.setProperty('--dy', `${Math.sin(angle)*dist}px`);
+          btn.style.position='relative';
+          btn.appendChild(span);
+          setTimeout(()=> span.remove(), 900);
+        }
+      };
+      burst();
+
+      applyFilters();
+
+      // Stagger reveal visible tiles
+      const tiles = Array.from(document.querySelectorAll('#catalog-grid .tile')).filter(t=> t.style.display !== 'none');
+      tiles.forEach((t,i)=>{
+        t.classList.remove('reveal');
+        setTimeout(()=> t.classList.add('reveal'), i*60);
+      });
+    });
+    document.getElementById('occasion-filter').addEventListener('change', applyFilters);
+    document.getElementById('search').addEventListener('input', applyFilters);
+
+    // URL-driven preselect (cat, occ, q, tag)
+    function setCategory(cat){
+      const target = document.querySelector(`.chip-filter[data-cat="${cat}"]`) || document.querySelector('.chip-filter[data-cat="all"]');
+      if(!target) return;
+      document.querySelectorAll('.chip-filter').forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-pressed','false'); });
+      target.classList.add('active'); target.setAttribute('aria-pressed','true');
+      applyFilters();
+    }
+    function initFromURL(){
+      const url = new URL(location.href);
+      const cat = (url.searchParams.get('cat')||'').toLowerCase();
+      const occ = (url.searchParams.get('occ')||'').toLowerCase();
+      const q = (url.searchParams.get('q')||'');
+      const tag = (url.searchParams.get('tag')||'');
+      if(cat){ setCategory(cat); }
+      if(occ){
+        const sel=document.getElementById('occasion-filter');
+        if(sel){ sel.value = sel.querySelector(`option[value="${occ}"]`) ? occ : 'all'; }
+      }
+      if(q){ const s=document.getElementById('search'); if(s){ s.value=q; } }
+      applyFilters();
+      // highlight filters if tag in use
+      if(tag){
+        const filters = document.querySelector('.filters');
+        if(filters) filters.scrollIntoView({behavior:'smooth', block:'start'});
+      }
+      // stagger reveal after URL filters
+      const tiles = Array.from(document.querySelectorAll('#catalog-grid .tile')).filter(t=> t.style.display !== 'none');
+      tiles.forEach((t,i)=> setTimeout(()=> t.classList.add('reveal'), i*60));
+    }
+
+    // Init
+    (async function(){ await buildGrid(); initFromURL(); })();
+    window.addEventListener('popstate', initFromURL);
+  </script>
+  <!-- Shared main script (menu toggle, etc.) -->
+  <script src="js/main.js" defer></script>
+  <script>
+    (function(){
+      var CART_KEY = 'SCENT_CART_V1';
+      function readCartLocal(){
+        try{ var arr = JSON.parse(localStorage.getItem(CART_KEY) || '[]'); return Array.isArray(arr)?arr:[]; }catch(_){ return []; }
+      }
+      function cartCountLocal(){ return readCartLocal().reduce(function(s,i){ return s + (i.qty||1); }, 0); }
+      function updateCartBadgeLocal(){
+        var b = document.getElementById('cart-count');
+        if(!b) return; 
+        var n = cartCountLocal();
+        b.textContent = n; 
+        b.hidden = !(n>0);
+      }
+      // keep in sync
+      window.addEventListener('storage', function(e){ if(e.key===CART_KEY) updateCartBadgeLocal(); });
+      window.addEventListener('cart:changed', updateCartBadgeLocal);
+      document.addEventListener('DOMContentLoaded', updateCartBadgeLocal);
+      // one more tick for deferred main.js initializations
+      setTimeout(updateCartBadgeLocal, 50);
+    })();
+  </script>
+  <script>
+    // Fallback SPA router (only runs if main router didn't set a flag)
+    (function(){
+      const pageView = document.getElementById('page-view');
+      const pageContent = document.getElementById('page-content');
+      if(!pageView || !pageContent) return;
+      if(window.__HAS_MAIN_ROUTER__) return; // main.js can set this flag to skip fallback
+
+      const PAGES = {
+        '/contact': `
+  <section class="container" aria-labelledby="contact-title" style="padding:20px 0 28px;">
+    <h1 id="contact-title" class="section-title">Contact Us</h1>
+    <p style="max-width:820px;color:var(--muted);margin:6px 0 14px">
+      We reply within 24 hours. For urgent issues, include your order ID. Our support is available 10:00–18:00 IST, Mon–Sat.
+    </p>
+
+    <div class="contact-grid">
+      <!-- Left: Form -->
+      <form id="contact-form" class="contact-form" novalidate>
+        <div class="row2" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <label>Full Name
+            <input id="c-name" type="text" name="name" required placeholder="Your full name">
+          </label>
+          <label>Email
+            <input id="c-email" type="email" name="email" required placeholder="name@example.com" pattern="^(?:[a-z0-9_\\-.+]+)@(?:[a-z0-9\\-]+\\.)+[a-z]{2,}$" title="Enter a valid email address">
+          </label>
+        </div>
+        <div class="row2" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <label>Phone (10 digits)
+            <input id="c-phone" type="tel" name="phone" required inputmode="numeric" pattern="^\\d{10}$" maxlength="10" placeholder="9876543210" title="Enter exactly 10 digits">
+          </label>
+          <label>Order ID (optional)
+            <input id="c-order" type="text" name="order" placeholder="SS123456">
+          </label>
+        </div>
+        <label>Subject
+          <input id="c-subject" type="text" name="subject" required placeholder="How can we help?">
+        </label>
+        <label>Message
+          <textarea id="c-message" name="message" rows="6" required placeholder="Share details so we can assist quickly"></textarea>
+        </label>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:8px">
+            <input id="c-consent" type="checkbox" required>
+            <span style="color:var(--muted)">I agree to the <a href="index.html#/privacy" style="text-decoration:underline">Privacy Policy</a></span>
+          </label>
+          <button type="submit" class="btn-gold">Send Message</button>
+          <span id="c-hint" style="color:#e9b949"></span>
+        </div>
+        <p id="contact-success" role="status" hidden style="margin-top:8px;color:#8de6a2">Thanks! We’ve received your message and will get back within 24 hours.</p>
+      </form>
+
+      <!-- Right: Support info card -->
+      <aside class="panel">
+        <h3 style="margin:0 0 8px;color:#efe2b8">We’re here to help</h3>
+        <ul style="list-style:none;padding:0;margin:0;display:grid;gap:8px;color:var(--muted)">
+          <li><i class="fa-regular fa-envelope" aria-hidden="true"></i> support@scentstory.in</li>
+          <li><i class="fa-solid fa-headset" aria-hidden="true"></i> +91‑804‑000‑0000 (10:00–18:00 IST)</li>
+          <li><i class="fa-regular fa-file-lines" aria-hidden="true"></i> <a href="index.html#/returns">Returns</a> · <a href="index.html#/shipping">Shipping</a></li>
+          <li><i class="fa-regular fa-circle-question" aria-hidden="true"></i> <a href="index.html#/grievance">Grievances</a></li>
+        </ul>
+        <hr style="border:none;border-top:1px solid var(--stroke);margin:12px 0">
+        <div style="display:grid;gap:6px">
+          <strong style="color:#ffc400">Head Office</strong>
+          <address style="font-style:normal;color:var(--muted)">Scent Story Pvt. Ltd.<br>Indiranagar, Bengaluru, KA 560038</address>
+        </div>
+      </aside>
+    </div>
+  </section>
+`,
+        '/track': `
+          <section class="container" style="padding:24px 0 40px;">
+            <h1 class="section-title">Track My Order</h1>
+            <form id="track-form-page" style="display:flex; gap:10px; max-width:560px">
+              <input type="text" name="trackId" placeholder="Enter order ID" required>
+              <button class="btn-gold" type="submit">Track</button>
+            </form>
+            <p id="track-status" style="margin-top:10px"></p>
+          </section>`,
+        '/shipping': `<section class="container" style="padding:24px 0 40px;"><h1 class="section-title">Shipping</h1><p>Ships across India in 3–6 business days.</p></section>`,
+        '/returns': `<section class="container" style="padding:24px 0 40px;"><h1 class="section-title">Returns</h1><p>Easy 7‑day returns on unopened items.</p></section>`,
+        '/gift-ideas': `<section class="container" style="padding:24px 0 40px;"><h1 class="section-title">Gift Ideas</h1><p>Curated sets & bestsellers for every mood.</p></section>`,
+        '/about': `<section class="container" style="padding:24px 0 40px;"><h1 class="section-title">About Us</h1><p>Crafted with care, compliant with IFRA & FDA.</p></section>`,
+        '/terms': `<section class="container" style="padding:24px 0 40px;"><h1 class="section-title">Terms of Service</h1><p>Use of this site constitutes acceptance of our terms. For questions, write to support@scentstory.in.</p></section>`,
+        '/craft': `<section class="container" style="padding:24px 0 40px;"><h1 class="section-title">Craft & Safety</h1><p>We use high‑grade ingredients and rigorous QC.</p></section>`,
+        '/press': `<section class="container" style="padding:24px 0 40px;"><h1 class="section-title">Press</h1><p>Media kit & inquiries: press@scentstory.example</p></section>`,
+        '/grievance': `
+  <section class="container" aria-labelledby="griev-title" style="padding:20px 0 28px;">
+    <h1 id="griev-title" class="section-title">Grievances</h1>
+    <p style="max-width:820px;color:var(--muted);margin:6px 0 14px">
+      Tell us what went wrong and we’ll make it right. We respond within 24 hours (Mon–Sat, 10:00–18:00 IST).
+    </p>
+
+    <div class="grievance-grid">
+      <!-- Left: Form -->
+      <form id="grievance-form" class="grievance-form" novalidate>
+        <div class="row2" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <label>Full Name
+            <input id="g-name" type="text" name="name" required placeholder="Your full name">
+          </label>
+          <label>Email
+            <input id="g-email" type="email" name="email" required placeholder="name@example.com" pattern="^(?:[a-z0-9_\\-.+]+)@(?:[a-z0-9\\-]+\\.)+[a-z]{2,}$" title="Enter a valid email address">
+          </label>
+        </div>
+        <div class="row2" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <label>Phone (10 digits)
+            <input id="g-phone" type="tel" name="phone" required inputmode="numeric" pattern="^\\d{10}$" maxlength="10" placeholder="9876543210" title="Enter exactly 10 digits">
+          </label>
+          <label>Order ID (optional)
+            <input id="g-order" type="text" name="order" placeholder="SS123456">
+          </label>
+        </div>
+        <label>Issue Type
+          <select id="g-issue" name="issue" required>
+            <option value="">Select an issue</option>
+            <option value="delivery">Delivery Delay / Damage</option>
+            <option value="quality">Product Quality</option>
+            <option value="payment">Payment / Refund</option>
+            <option value="account">Account / Access</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>Message
+          <textarea id="g-message" name="message" rows="6" required placeholder="Describe the issue with details (dates, order ID, photos if any)"></textarea>
+        </label>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:8px">
+            <input id="g-consent" type="checkbox" required>
+            <span style="color:var(--muted)">I agree to the <a href="index.html#/privacy" style="text-decoration:underline">Privacy Policy</a></span>
+          </label>
+          <button type="submit" class="btn-gold">Submit Grievance</button>
+          <span id="g-hint" style="color:#e9b949"></span>
+        </div>
+        <p id="grievance-success" role="status" hidden style="margin-top:8px;color:#8de6a2">
+          Thanks. Your grievance has been recorded. Our team will reach out within 24 hours.
+        </p>
+      </form>
+
+      <!-- Right: Policy / help card -->
+      <aside class="panel">
+        <h3 style="margin:0 0 8px;color:#efe2b8">Policy & Help</h3>
+        <ul style="list-style:none;padding:0;margin:0;display:grid;gap:8px;color:var(--muted)">
+          <li><i class="fa-regular fa-file-lines" aria-hidden="true"></i> <a href="index.html#/returns">Returns Policy</a></li>
+          <li><i class="fa-regular fa-file-lines" aria-hidden="true"></i> <a href="index.html#/shipping">Shipping Policy</a></li>
+          <li><i class="fa-regular fa-envelope" aria-hidden="true"></i> support@scentstory.in</li>
+          <li><i class="fa-solid fa-headset" aria-hidden="true"></i> +91‑804‑000‑0000 (10:00–18:00 IST)</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+`,
+        '/cookies': `<section class="container" style="padding:24px 0 40px;"><h1 class="section-title">Cookies & Consent</h1><p>We use cookies to improve your experience.</p></section>`,
+        '/accessibility': `<section class="container" style="padding:24px 0 40px;"><h1 class="section-title">Accessibility</h1><p>We strive to meet WCAG 2.1 AA.</p></section>`
+      };
+
+      function setActiveRoute(){
+        const current = location.hash || '#/home';
+        document.querySelectorAll('a[href^="#/"]').forEach(a => {
+          const on = a.getAttribute('href') === current;
+          a.classList.toggle('is-active', on);
+          a.setAttribute('aria-current', on ? 'page' : 'false');
+        });
+      }
+
+      const mainCatalog = document.querySelector('main > .container.catalog')?.closest('main');
+
+      function showHome(){
+        if(mainCatalog) mainCatalog.style.display = '';
+        pageView.style.display = 'none';
+        pageContent.innerHTML = '';
+        setActiveRoute();
+      }
+
+      function showPage(html){
+        if(mainCatalog) mainCatalog.style.display = 'none';
+        pageView.style.display = 'block';
+        pageContent.innerHTML = html;
+        setActiveRoute();
+        // bind simple forms
+        const cf = document.getElementById('contact-form');
+        if(cf){
+          const nameI = document.getElementById('c-name');
+          const emailI = document.getElementById('c-email');
+          const phoneI = document.getElementById('c-phone');
+          const subjectI = document.getElementById('c-subject');
+          const messageI = document.getElementById('c-message');
+          const consentI = document.getElementById('c-consent');
+          const hint = document.getElementById('c-hint');
+          const ok = ()=>{ document.getElementById('contact-success').hidden = false; hint.textContent=''; };
+          const bad = (t)=>{ hint.textContent = t; };
+
+          phoneI.addEventListener('input', ()=>{
+            const digits = (phoneI.value||'').replace(/\D+/g,'').slice(0,10);
+            phoneI.value = digits;
+          });
+
+          cf.addEventListener('submit', (e)=>{
+            e.preventDefault();
+            const emailOk = /^(?:[a-z0-9_\-.+]+)@(?:[a-z0-9\-]+\.)+[a-z]{2,}$/i.test(emailI.value||'');
+            const phoneOk = /^\d{10}$/.test(phoneI.value||'');
+            if(!(nameI.value||'').trim()){ return bad('Please enter your full name.'); }
+            if(!emailOk){ return bad('Please enter a valid email.'); }
+            if(!phoneOk){ return bad('Phone must be exactly 10 digits.'); }
+            if(!(subjectI.value||'').trim()){ return bad('Please enter a subject.'); }
+            if(!(messageI.value||'').trim()){ return bad('Please enter your message.'); }
+            if(!consentI.checked){ return bad('Please agree to the Privacy Policy to continue.'); }
+            ok();
+          });
+        }
+
+        // Grievance form binding
+        const gf = document.getElementById('grievance-form');
+        if(gf){
+          const nameI = document.getElementById('g-name');
+          const emailI = document.getElementById('g-email');
+          const phoneI = document.getElementById('g-phone');
+          const issueI = document.getElementById('g-issue');
+          const messageI = document.getElementById('g-message');
+          const consentI = document.getElementById('g-consent');
+          const hint = document.getElementById('g-hint');
+          const ok = ()=>{ document.getElementById('grievance-success').hidden = false; hint.textContent=''; };
+          const bad = (t)=>{ hint.textContent = t; };
+
+          phoneI.addEventListener('input', ()=>{
+            const digits = (phoneI.value||'').replace(/\D+/g,'').slice(0,10);
+            phoneI.value = digits;
+          });
+
+          gf.addEventListener('submit', (e)=>{
+            e.preventDefault();
+            const emailOk = /^(?:[a-z0-9_\-.+]+)@(?:[a-z0-9\-]+\.)+[a-z]{2,}$/i.test(emailI.value||'');
+            const phoneOk = /^\d{10}$/.test(phoneI.value||'');
+            if(!(nameI.value||'').trim()){ return bad('Please enter your full name.'); }
+            if(!emailOk){ return bad('Please enter a valid email.'); }
+            if(!phoneOk){ return bad('Phone must be exactly 10 digits.'); }
+            if(!issueI.value){ return bad('Please choose an issue type.'); }
+            if(!(messageI.value||'').trim()){ return bad('Please describe your issue.'); }
+            if(!consentI.checked){ return bad('Please agree to the Privacy Policy to continue.'); }
+            ok();
+          });
+        }
+        const tf = document.getElementById('track-form-page');
+        if(tf){ tf.addEventListener('submit', (e)=>{ e.preventDefault(); const id = new FormData(tf).get('trackId'); const t=document.getElementById('track-status'); t.textContent = id?`Status for ${id}: In transit — expected delivery 3–5 days.`:'Enter a tracking number.'; }); }
+      }
+
+      function route(){
+        const hash = location.hash || '#/home';
+        const key = hash.replace('#','');
+        if(PAGES[key]) return showPage(PAGES[key]);
+        return showHome();
+      }
+
+      window.addEventListener('hashchange', route);
+      window.addEventListener('load', route);
+      route();
+    })();
+  </script>
+</body>
+</html>

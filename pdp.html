@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scent Story – Luxury Fragrances</title>
+  <meta name="description" content="Scent Story – ultimate luxury fragrances. Explore Elixir, Parfum, and EDP chapters crafted for power, romance, and timeless style." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    :root{ --bg:#0B0D10; --surface:#12151A; --text:#EDEDED; --muted:#B7BEC6; --stroke:#2A2F36; --nav-height: 72px; }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:'Playfair Display',serif;line-height:1.5;scroll-behavior:smooth}
+    /* --- SAFETY RESET: prevent any global overlays from blocking PDP --- */
+    /* If index.css defined a full‑screen loader or nav overlay, neutralize it here */
+    #page-loader,
+    .loader-overlay,
+    #nav-overlay,
+    .nav-overlay { display: none !important; opacity: 0 !important; visibility: hidden !important; }
+    /* Ensure page is visible even if a loader expects body.ready */
+    body { opacity: 1 !important; visibility: visible !important; }
+    /* Keep router target hidden by default on PDP; shown only when a hash route is matched */
+    #page-view { display: none; }
+    a{color:inherit;text-decoration:none}
+    /* Global color alignment to match index */
+    h1,h2,h3,h4,h5,h6{ color:#ffffff; }
+    p, li{ color: var(--muted); }
+    strong,b{ color:#ffffff; }
+    .section-title{ color:#ffffff; }
+    .menu a{ color:#ffffff; }
+    .container{max-width:1200px;margin:0 auto;padding:0 20px}
+
+    header{position:sticky;top:0;z-index:50;background:rgba(11,13,16,.7);backdrop-filter:blur(10px);border-bottom:1px solid var(--stroke)}
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      justify-content: space-between;
+      height: var(--nav-height);      /* fixed row height */
+      padding: 0 40px 0 24px;         /* no vertical padding */
+    }
+    @media (max-width:768px){
+      :root{ --nav-height: 64px; }
+      .nav{ height: var(--nav-height); padding: 0 14px; gap:10px; }
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;           /* keeps logo ↔ text tight */
+      margin-right: 20px;  /* visual gap between brand and Home link */
+    }
+    .brand-logo{display:inline-flex;align-items:center;justify-content:flex-start;width:auto;height:auto;border:0;background:transparent;overflow:visible}
+    .brand-logo img{
+      height: 96px;
+      width:auto;
+      object-fit:contain;
+      display:block;
+      animation: logoGlow 3s infinite ease-in-out;
+    }
+    .brand-text {
+      font-family: "Playfair Display", serif;
+      font-size: 21px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: .02em;
+      margin-left: -15px;   /* small positive gap from logo */
+      line-height: 1;     /* keep text from increasing the row height */
+    }
+    .menu {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+    }
+    @media (max-width:768px){ .brand-text{ font-size:21px } }
+    @keyframes logoGlow { 0%,100%{ filter:none; transform:none } 50%{ filter: drop-shadow(0 0 16px rgba(255,196,0,.75)) drop-shadow(0 0 32px rgba(255,196,0,.5)); transform: scale(1.02) } }
+    @media (prefers-reduced-motion: reduce){
+      .brand-logo img, .brand-text{ animation: none; }
+    }
+    .brand b{font-family:"Playfair Display",serif;font-size:20px;letter-spacing:.08em}
+    .menu{display:flex;gap:18px;align-items:center}
+    .menu a{ text-decoration:none; color:#fff; font-weight:500; position:relative; transition: color .25s ease, text-shadow .25s ease; }
+    .menu a:hover, .menu a:focus{ color:#ffc400; text-shadow:0 0 6px rgba(255,196,0,.6), 0 0 12px rgba(255,196,0,.4) }
+    .menu a::after{ content:""; position:absolute; left:0; bottom:-4px; width:0%; height:2px; background:#ffc400; transition:width .25s ease }
+    .menu a:hover::after, .menu a:focus::after{ width:100% }
+    .menu > details{font-weight:500;opacity:.92}
+    .menu details{position:relative}
+    .menu summary{list-style:none;cursor:pointer}
+    .menu summary::-webkit-details-marker{display:none}
+    .dropdown{position:absolute;top:100%;left:0;background:var(--surface);border:1px solid var(--stroke);border-radius:12px;padding:10px;display:grid;gap:6px;min-width:240px}
+    .chip{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid var(--stroke);gap:8px;font-size:12px;color:var(--muted)}
+
+    /* Quick actions (Account + Orders) */
+    .quick-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
+    .icon-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #bfa06a;border-radius:999px;font-size:13px;color:#efba0a;text-decoration:none;background:rgba(191,160,106,.08)}
+    .icon-btn i{font-size:14px}
+    .icon-btn:hover{filter:brightness(1.08);box-shadow:0 6px 18px rgba(191,160,106,.18)}
+    @media (max-width:900px){.icon-btn span{display:none}}
+
+    /* ===== Mobile nav (hamburger + slide drawer) ===== */
+    .nav-toggle{
+      display:none;
+      align-items:center;
+      justify-content:center;
+      width:40px; height:40px;
+      border-radius:8px;
+      border:1px solid var(--stroke);
+      background:#141820;
+      color:#ffc400;
+      cursor:pointer;
+    }
+    .nav-toggle i{ font-size:18px; }
+    @media (max-width: 900px){
+      .menu{ display:none; }
+      .quick-actions{ display:none; }
+      .nav-toggle{ display:inline-flex; }
+    }
+    .mobile-menu{
+      position: fixed;
+      top: var(--nav-height);
+      left: 0; right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--stroke);
+      box-shadow: 0 18px 38px rgba(0,0,0,.45);
+      z-index: 120;
+      display: grid;
+      gap: 10px;
+      padding: 14px 16px 16px;
+      transform: translateY(-12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform .25s ease, opacity .25s ease;
+    }
+    .mobile-menu.open{
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .mobile-menu a{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 12px 10px;
+      border:1px solid var(--stroke);
+      border-radius: 12px;
+      background: #0f1216;
+      color:#fff; text-decoration:none; font-weight:600;
+      font-size:14px;
+    }
+    .mobile-menu a:hover{ filter:brightness(1.08); }
+    .mobile-menu .sub{
+      display:grid; gap:8px; margin-top:4px;
+      padding-left: 10px;
+    }
+    .mobile-menu .label{
+      color:#bfa06a;
+      font-size:12px;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+      margin:4px 2px;
+    }
+    @media (min-width: 901px){
+      .mobile-menu{ display:none !important; }
+    }
+/* Mobile drawer accordions (match pdp1) */
+.mobile-menu details{
+  border:1px solid var(--stroke);
+  border-radius:12px;
+  background:#0f1216;
+}
+.mobile-menu summary{
+  list-style:none;
+  cursor:pointer;
+  padding:12px 10px;
+  font-weight:700;
+  color:#fff;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.mobile-menu details[open] summary{ filter:brightness(1.06); }
+.mobile-menu details .sub{ padding:8px 10px 10px; }
+.mobile-menu details .sub a{ margin-top:6px; }
+    section{padding:60px 0}
+    h2.section-title{font-family:"Playfair Display",serif;font-size:32px;margin:0 0 20px;text-align:center}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+    .card{background:var(--surface);border:1px solid var(--stroke);border-radius:14px;padding:20px;text-align:center;cursor:pointer}
+    .card img{max-width:100%;border-radius:10px;margin-bottom:12px}
+    .card h3{margin:0 0 10px;font-family:"Playfair Display",serif}
+    .card p{margin:0;color:var(--muted)}
+
+    /* Product Detail */
+    .product-detail{display:grid;grid-template-columns:.95fr 1.05fr;gap:44px;align-items:start}
+    /* Left column: gallery (row 1) + thumbs (row 2); Right column: product-info (row 1) */
+    .gallery{ grid-column: 1; grid-row: 1; }
+    .thumbs{  grid-column: 1; grid-row: 2; }
+    .product-info{ grid-column: 2; grid-row: 1; align-self: start; }
+
+    /* Fix carousel overlaps: each slide takes full viewport width */
+    .gallery-viewport{ width:100%; }
+    .gallery-track{ display:flex; transition:transform .5s ease; }
+    .gallery-track > img{ flex:0 0 100%; width:100%; height:575px; object-fit:contain; }
+    .product-info h1{
+      font-family:"Playfair Display",serif;
+      font-size:30px;       /* reduced font size for fragrance title */
+      margin:0 0 8px;
+    }
+    .price{font-size:20px;margin:0 0 18px;color:#e6e6e6}
+    .product-info p{color:var(--muted);line-height:1.75;margin:0 0 20px}
+    .notes-list{margin:0 0 20px;}
+    .notes-list span{display:inline-block;margin:4px 8px;padding:6px 12px;border:1px solid var(--stroke);border-radius:20px;font-size:14px}
+    .controls{display:flex;align-items:center;gap:12px;margin:16px 0}
+    .qty{display:inline-flex;align-items:center;border:1px solid var(--stroke);border-radius:10px}
+    .qty button{width:36px;height:36px;border:none;background:#1a1d22;color:#fff;font-size:18px;cursor:pointer}
+    .qty input{width:56px;height:36px;border:none;background:#0f1216;color:#fff;text-align:center}
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap}
+    .buy-btn{padding:12px 18px;border:none;border-radius:10px;background:#333;color:#fff;font-weight:600;cursor:pointer}
+    .wishlist-btn{padding:12px 18px;border:1px solid var(--stroke);border-radius:10px;background:transparent;color:#EDEDED;cursor:pointer}
+
+    /* PDP Gallery */
+    .gallery{position:relative;border:1px solid var(--stroke);border-radius:14px;overflow:hidden;margin-top:45px;margin-bottom:0}
+    .gallery-viewport{overflow:hidden;padding:8px 10px 2px;background:#0f1216}
+    .gallery-track{display:flex;transition:transform .5s ease}
+    .gallery img{display:block;width:100%;height:575px;object-fit:contain;background:#0f1216}
+    .arrow{position:absolute;top:calc(50% + 4px);transform:translateY(-50%);background:rgba(0,0,0,.5);border:1px solid var(--stroke);color:#fff;width:40px;height:40px;border-radius:999px;display:grid;place-items:center;cursor:pointer}
+    .arrow.left{left:10px}
+    .arrow.right{right:10px}
+
+    /* Thumbnails under the gallery */
+    .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;justify-content:flex-start}
+    .thumbs button{border:0;border-radius:12px;padding:0;background:#0f1216;cursor:pointer;opacity:.95}
+    .thumbs button:focus-visible{outline:2px solid #bfa06a}
+    .thumbs button[aria-current="true"]{outline:2px solid #bfa06a;opacity:1}
+    .thumbs img{width:112px;height:112px;object-fit:cover;display:block}
+
+    /* PDP actions and CTA group */
+    .pdp-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .btn{padding:12px 18px;border-radius:10px;border:1px solid var(--stroke);background:#1a1d22;color:#fff;font-weight:600;cursor:pointer}
+    .btn.primary{background:#333}
+    /* Added-to-cart visual state */
+    .btn.primary.added{ background:#bfa06a; border-color:#bfa06a; color:#111; }
+    .btn.primary.added:disabled{ opacity:.9; cursor:default; }
+    .btn.ghost{background:transparent}
+
+    /* Buy Now CTA (glow + brief shake every 4s) */
+    .pdp-actions.buy-row{ margin-top:8px; }
+    .btn.buy-now{
+      background: linear-gradient(135deg,#f6e7b9,#bfa06a);
+      border-color:#bfa06a;
+      color:#111;
+      position: relative;
+      box-shadow: 0 6px 22px rgba(191,160,106,.28);
+      animation: ctaLoop 4s ease-in-out infinite;
+    }
+    .btn.buy-now:hover{ box-shadow: 0 10px 28px rgba(191,160,106,.38); }
+    @keyframes ctaLoop{
+      0%, 80%{ transform: translateX(0); box-shadow: 0 6px 22px rgba(191,160,106,.28); }
+      /* brief glow + shake window */
+      84%{ transform: translateX(-1px) rotate(-0.2deg); box-shadow: 0 0 0 rgba(191,160,106,0.0), 0 0 18px rgba(191,160,106,.55), 0 12px 30px rgba(191,160,106,.45); }
+      86%{ transform: translateX(1.5px) rotate(0.2deg); }
+      88%{ transform: translateX(-1.5px) rotate(-0.2deg); }
+      90%{ transform: translateX(1px) rotate(0.2deg); }
+      92%{ transform: translateX(-1px) rotate(-0.2deg); }
+      94%{ transform: translateX(0.6px) rotate(0.1deg); }
+      96%{ transform: translateX(-0.6px) rotate(-0.1deg); }
+      100%{ transform: translateX(0); box-shadow: 0 6px 22px rgba(191,160,106,.28); }
+    }
+
+    /* Member button motion + glow (matches site-wide CTA behavior) */
+    @keyframes memberWiggle { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-2px) } }
+    .pulse-glow { animation: pulseGlow 2.4s infinite ease-in-out; }
+    @keyframes pulseGlow { 0%,100%{ box-shadow:0 0 0 0 rgba(255,196,0,0) } 50%{ box-shadow:0 0 18px rgba(255,196,0,.35) } }
+    .member-btn.wiggle { animation: memberWiggle 2.4s ease-in-out infinite, pulseGlow 2.4s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce){ .member-btn.wiggle { animation: none; } }
+
+    @media (prefers-reduced-motion: reduce){
+      .btn.buy-now{ animation: none; }
+    }
+    .price-row{display:flex;align-items:center;gap:16px;margin:6px 0 6px}
+    .price-row .price{margin:0;font-size:22px;color:#e6e6e6}
+    .desc{color:var(--muted);line-height:1.7;margin:8px 0 10px}
+
+    /* USP list & safety badges */
+.safety-badges{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 12px;
+  border:1px solid #bfa06a;border-radius:999px;font-size:12px;color:#111;
+  background:linear-gradient(135deg,#f6e7b9,#bfa06a);
+  box-shadow:0 6px 22px rgba(191,160,106,.18);
+  transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.badge:hover{ transform: translateY(-1px) scale(1.015); box-shadow:0 10px 28px rgba(191,160,106,.28); filter: brightness(1.02); }
+@media (prefers-reduced-motion: reduce){ .badge{ transition:none } .badge:hover{ transform:none; box-shadow:0 6px 22px rgba(191,160,106,.18); filter:none } }
+.badge svg{width:14px;height:14px}
+.badge svg path{stroke:#111}
+
+    /* Toast for feedback */
+    .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111;color:#fff;padding:10px 14px;border-radius:10px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
+
+    .recommend .card{cursor:default}
+
+    /* Hover effects for Recommended/Collections cards */
+    .recommend .card{ transition: transform .25s ease, box-shadow .25s ease; }
+    .recommend .card:hover{ transform: translateY(-4px); box-shadow: 0 14px 34px rgba(0,0,0,.35); }
+    .recommend .card img{ transition: transform .35s ease; }
+    .recommend .card:hover img{ transform: scale(1.045); }
+
+    @media (prefers-reduced-motion: reduce){
+      .recommend .card, .recommend .card img{ transition: none; }
+    }
+
+    /* Recommended to Explore: normalize card images to match Victory Night layout */
+    .recommend .grid{ align-items: stretch; }
+    .recommend .card a{ display:block; }
+    .recommend .card img{
+      width:100%;
+      height:260px;            /* consistent visual height */
+      object-fit:cover;        /* crop to fill like Victory Night */
+      object-position:center;  /* center the focal point */
+      border-radius:12px;
+      display:block;
+    }
+    .recommend .card h3{ margin:12px 0 6px; }
+    .recommend .card p{ margin:0; color:var(--muted); }
+
+
+    /* === Collections & Recommendations: elongated rectangular image tiles === */
+    /* Uniform rectangle for general recommended section */
+    .recommend:not(.elixir-collections) .card img{
+      height: 600px;           /* was 260px → elongate for a rectangular tile */
+      width: 100%;
+      object-fit: cover;
+      object-position: center;
+      border-radius: 14px;
+    }
+
+    /* Slightly taller rectangle for Elixir Collections (to match artwork) */
+    .elixir-collections .card img{
+      height: 400px;           /* was 320px → more vertical presence */
+      width: 100%;
+      object-fit: cover;
+      object-position: center;
+      border-radius: 14px;
+    }
+
+    /* Optional: tighten inner card padding so the rectangle reads cleaner */
+    .recommend .card{ padding: 16px; }
+
+    /* ==== Card image hover crossfade (match index collections/bestsellers) ==== */
+    .recommend .card .img-stack{ position:relative; width:100%; height: var(--stack-h, 600px); overflow:hidden; border-radius:14px; }
+    .recommend .card .img-stack img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; transition: opacity .28s ease, transform .28s ease; }
+    .recommend .card .img-stack .img-primary{ opacity:1; transform: scale(1); }
+    .recommend .card .img-stack .img-alt{ opacity:0; transform: scale(1.02); }
+    .recommend .card:hover .img-stack .img-primary,
+    .recommend .card:focus-within .img-stack .img-primary{ opacity:0; transform: scale(.985); }
+    .recommend .card:hover .img-stack .img-alt,
+    .recommend .card:focus-within .img-stack .img-alt{ opacity:1; transform: scale(1); }
+
+    /* Heights per section (desktop) */
+    .recommend:not(.elixir-collections) .card .img-stack{ --stack-h: 600px; }
+    .recommend.elixir-collections .card .img-stack{ --stack-h: 400px; }
+
+    /* Mobile: show two scents per row, tighter cards */
+    @media (max-width: 900px){
+      .recommend .grid{
+        display:grid;
+        grid-template-columns: repeat(2, minmax(0,1fr));
+        gap:12px;
+      }
+      .recommend .card{ padding:12px; }
+      .recommend .card .img-stack{ height:200px; }
+      .recommend.elixir-collections .card .img-stack{ --stack-h: 200px; }
+      .recommend .card h3{ font-size:14px; margin:8px 0 4px; }
+      .recommend .card p{ font-size:12px; }
+    }
+
+    /* Testimonials */
+    .testimonials{ padding:40px 0 20px; }
+    .testimonials .wrap{ max-width:1100px; margin:0 auto; padding:0 20px; }
+    .testimonials h2{ font-family:"Playfair Display",serif; font-size:28px; margin:0 0 14px; text-align:center; }
+    .t-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:16px; }
+    .t-card{ background:var(--surface); border:1px solid var(--stroke); border-radius:14px; padding:16px; }
+    .t-quote{ font-size:15px; line-height:1.7; color:#dfe3e8; margin:0 0 10px; }
+    .t-meta{ display:flex; align-items:center; gap:10px; color:var(--muted); font-size:14px; }
+    .t-avatar{ width:36px; height:36px; border-radius:50%; background:#1a1d22; border:1px solid var(--stroke); display:inline-block; }
+    .t-stars{ color:#bfa06a; letter-spacing:1px; font-size:14px; }
+
+    /* Brand story under carousel */
+    .brand-story{grid-column:1 / -1;background:#0f1216;border:1px solid var(--stroke);border-radius:12px;padding:22px;margin-top:16px}
+    .brand-story h1{font-family:"Playfair Display",serif;margin:0 0 8px;font-size:28px;letter-spacing:.03em}
+    .brand-story p{margin:0;color:var(--muted);line-height:1.7}
+
+
+    @media(max-width:900px){
+      .product-detail{ grid-template-columns:1fr; gap:28px; }
+      .gallery-track > img,
+      .gallery img{
+        height:45vh;         /* quarter of the viewport height */
+        max-height:260px;    /* tighter cap for large phones */
+        object-fit:contain;
+      }
+      .gallery, .thumbs, .product-info{ grid-row: auto; grid-column: auto; }
+      .thumbs img{ width:96px; height:96px; }
+      /* Pull gallery closer to the sticky nav to close the visual gap */
+      .gallery{ margin-top: 6px; }
+      /* Tighten text spacing after product images for mobile */
+      .product-info {
+        margin-top: -6px;
+        padding-top: 0;
+      }
+      .product-info h1,
+      .product-info .price-row,
+      .product-info .desc,
+      .product-info .notes-list {
+        margin-top: 4px;
+        margin-bottom: 8px;
+      }
+    }
+
+    /* ===== Footer spacing tweaks (PDP only, match index rhythm) ===== */
+    .footer .footer-hero{ padding-top:56px; padding-bottom:36px; gap:32px; }
+    .footer .footer-links{ padding-top:24px; padding-bottom:34px; gap:34px; border-top:1px solid #12151A; }
+    .footer .footer-trust{ padding-top:14px; padding-bottom:24px; }
+    .footer .footer-bottom{ padding-top:16px; padding-bottom:36px; gap:16px; }
+
+    /* Tighten internal spacing for cards */
+    .footer .subscribe-card p{ margin-bottom:14px; }
+    .footer .newsletter-form{ margin-bottom:10px; }
+    .footer .membership-card{ align-self:start; }
+    .footer .membership-card .benefits{ margin-bottom:14px; }
+    .footer .membership-card .btn-gold,
+    .footer .membership-card .member-btn{ margin-top:6px; }
+
+    /* Mobile adjustments */
+    @media (max-width:768px){
+      .footer .footer-hero{ padding-top:44px; padding-bottom:28px; gap:20px; }
+      .footer .footer-links{ padding-top:18px; padding-bottom:26px; gap:18px; }
+      .footer .footer-bottom{ gap:14px; }
+    }
+
+    /* ===== Route enter animations (match index footer interactions) ===== */
+    .route-enter { animation: routeIn .45s ease both; }
+    @keyframes routeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .route-fade { animation: routeFade .45s ease both; }
+    @keyframes routeFade { from { opacity:0 } to { opacity:1 } }
+    /* === Mobile fixes: make Contact & Grievance forms full-width === */
+    @media (max-width: 900px){
+      /* The router injects a two-column grid with inline styles; force a single column */
+      #page-view .container > div[style*="grid-template-columns"]{
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+      }
+      #page-view .container{ padding-left: 16px; padding-right: 16px; }
+      #page-view .container > div[style*="grid-template-columns"] > *{ min-width: 0; }
+
+      /* Ensure the forms themselves stretch edge-to-edge */
+      #page-view .contact-form,
+      #page-view #grievance-form{ width: 100% !important; }
+
+      /* Larger, touch-friendly inputs */
+      #page-view .contact-form input,
+      #page-view .contact-form textarea,
+      #page-view .contact-form select,
+      #page-view #grievance-form input,
+      #page-view #grievance-form textarea,
+      #page-view #grievance-form select{
+        font-size: 16px;            /* readable, prevents iOS zoom */
+        padding: 12px;              /* bigger tap targets */
+        border-radius: 12px;
+      }
+
+      /* Tighten helper text and buttons */
+      #page-view .contact-form small,
+      #page-view #grievance-form small{ font-size: 12px; }
+
+      #page-view .contact-form .btn-gold,
+      #page-view #grievance-form .btn-gold{ width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <script>try{document.body.classList.add('ready');}catch(_){}</script>
+  <header aria-label="Primary Navigation">
+    <div class="container nav">
+      <div class="brand">
+        <a class="brand-logo" href="index.html" aria-label="Scent Story Home">
+          <img src="images/brandlogofin.png" alt="Scent Story logo">
+        </a>
+        <span class="brand-text">Scent Story</span>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-controls="mobileMenu" aria-expanded="false">
+        <i class="fa-solid fa-bars" aria-hidden="true"></i>
+      </button>
+      <nav class="menu">
+        <a href="index.html" style="color:#efba0a">Home</a>
+        <section id="bestsellers"><a href="index.html#bestsellers" aria-current ="location" style="color:#efd8b2">New Launches</a></section>
+        <details>
+          <summary style="color:#efba0a">Explore Chapters ▾</summary>
+          <div class="dropdown" role="menu" aria-label="Explore Chapters">
+            <a href="pdp1.html?tag=ambition" style="color:#efba0a">Ambition</a>
+            <a href="pdp1.html?tag=romantic" style="color:#efba0a">Romantic</a>
+            <a href="pdp1.html?tag=bold" style="color:#efba0a">Bold</a>
+            <a href="pdp1.html?tag=carefree" style="color:#efba0a">Carefree</a>
+            <a href="pdp1.html?tag=power" style="color:#efba0a">Power</a>
+            <a href="pdp1.html?tag=seasons" style="color:#efba0a">Seasons</a>
+          </div>
+        </details>
+        <a href="#/track" style="color:#efba0a">Track My Order</a>
+        <a href="wishlist.html" id="wishlistLink" style="color:#efba0a" data-base-label="Wishlist">
+          Wishlist <span id="wishlist-count" class="cart-badge" aria-live="polite">0</span>
+        </a>
+        <a href="#/contact" style="color:#efba0a">Contact</a>
+        <a id="cart-link" class="cart-link" href="cart.html" style="color:#efba0a">
+          Cart
+          <span id="cart-count" class="cart-badge" aria-live="polite">0</span>
+        </a>
+      </nav>
+      <div class="quick-actions">
+        <a href="login.html" class="icon-btn" style="color:#efba0a" aria-label="Login / Account">
+          <i class="fa-regular fa-user" aria-hidden="true"></i><span>Account</span>
+        </a>
+        <a href="#/track" class="icon-btn" style="color:#efba0a" aria-label="View my orders">
+          <i class="fa-solid fa-box" aria-hidden="true"></i><span>Orders</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <nav id="mobileMenu" class="mobile-menu" aria-label="Mobile Navigation" hidden>
+    <a href="index.html">Home <i class="fa-solid fa-house"></i></a>
+  
+    <details>
+      <summary style="color:#efba0a">Explore by Concentration ▾</summary>
+      <div class="sub">
+        <a href="pdp1.html?cat=edp">EDP</a>
+        <a href="pdp1.html?cat=parfum">Parfum</a>
+        <a href="pdp1.html?cat=elixir">Elixir</a>
+      </div>
+    </details>
+  
+    <details>
+      <summary style="color:#efba0a">Explore by Mood ▾</summary>
+      <div class="sub">
+        <a href="pdp1.html?tag=ambition">Ambition</a>
+        <a href="pdp1.html?tag=bold">Bold</a>
+        <a href="pdp1.html?tag=carefree">Carefree</a>
+        <a href="pdp1.html?tag=power">Power</a>
+        <a href="pdp1.html?tag=seasons">Seasons</a>
+      </div>
+    </details>
+  
+    <a href="#/track" style="color:#e0d2a2">Track My Order <i class="fa-solid fa-box"></i></a>
+    <a href="wishlist.html" style="color:#e0d2a2" id="wishlistLinkMobile" data-base-label="Wishlist">Wishlist <span class="cart-badge" id="wishlist-count-mobile" aria-live="polite">0</span></a>
+    <a href="#/contact" style="color:#e0d2a2">Contact <i class="fa-regular fa-envelope"></i></a>
+    <a href="cart.html" style="color:#e0d2a2">Cart <span class="cart-badge" id="cart-count-mobile" aria-live="polite">0</span></a>
+    <a href="about.html" style="color:#e0d2a2">About Us <i class="fa-solid fa-info-circle"></i></a>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main id="pdp-main">
+    <div class="container">
+      <!-- Product Detail: CEO – Elixir -->
+      <div class="product-detail">
+        <div class="gallery" id="pdp-gallery">
+          <div class="gallery-viewport">
+            <div class="gallery-track" id="gallery-track">
+              <img src="images/CEO.png" alt="CEO Elixir Bottle front">
+              <img src="images/marque bannerelixir.png" alt="CEO Elixir marquee banner">
+            </div>
+          </div>
+          <button class="arrow left" id="prev" aria-label="Previous">‹</button>
+          <button class="arrow right" id="next" aria-label="Next">›</button>
+        </div>
+        <div class="thumbs" id="thumbs" aria-label="Image thumbnails"></div>
+        <div class="product-info">
+          <h1>CEO – Elixir</h1>
+          <div class="price-row"><div class="price">₹ 8,990.00</div></div>
+          <p class="desc">A fragrance that mirrors authority. Opening with the sharp spice of <b>black pepper</b> and the crisp freshness of <b>bergamot</b>, it evolves into a heart of <b>lavender</b> and <b>cardamom</b>, finally grounding itself in the deep confidence of <b>vetiver</b> and <b>cedarwood</b>. This isn’t just a scent—it's a signature for men who are always in control.</p>
+          <div class="safety-badges" aria-label="Safety and compliance badges">
+            <span class="badge" title="FDA-approved formulation">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#bfa06a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              FDA‑approved
+            </span>
+            <span class="badge" title="Phthalate-free">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#bfa06a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Phthalate‑free
+            </span>
+            <span class="badge" title="No harsh chemicals">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#bfa06a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              No harsh chemicals
+            </span>
+            <span class="badge" title="Gentle on skin">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#bfa06a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Gentle on skin
+            </span>
+            <span class="badge" title="Allergen‑conscious">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 12l2 2 4-4" stroke="#bfa06a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Allergen‑free*
+            </span>
+          </div>
+          <small style="color:#9aa3ad;display:block;margin-top:-6px">*Formulated to minimize common fragrance allergens.</small>
+          <div class="notes-list">
+            <span>Black Pepper</span><span>Bergamot</span><span>Lavender</span><span>Cardamom</span><span>Vetiver</span><span>Cedarwood</span>
+          </div>
+          <div class="controls">
+            <div class="qty" aria-label="Quantity selector">
+              <button type="button" id="minus">−</button>
+              <input id="qty" type="number" value="1" min="1" max="10" aria-label="Quantity">
+              <button type="button" id="plus">+</button>
+            </div>
+          </div>
+          <div class="pdp-actions">
+            <button class="btn primary" id="addToCart">Add to Cart</button>
+            <button class="btn ghost" id="shareBtn">Share</button>
+            <button class="btn ghost" id="wishlist">♡ Add to Wishlist</button>
+          </div>
+          <div class="pdp-actions buy-row">
+            <button class="btn buy-now" id="buyNow" aria-label="Buy this product now">Buy Now</button>
+          </div>
+        </div>
+        <div class="brand-story" role="region" aria-label="Scent Story philosophy">
+          <h1>Stories You Wear</h1>
+          <p>Scent Story crafts fragrances as chapters in your life—made to be worn with purpose, presence, and feeling. Our blends balance clarity and depth so they perform from the first impression to the final note. CEO commands stillness and focus; Forever Love softens with quiet warmth; Autumn Fire burns steady with resilience. Every bottle is a keepsake; every spray, a scene you step into.</p>
+        </div>
+      </div>
+
+      <section id="reco" class="recommend" style="padding-top:30px"></section>
+
+      <!-- Testimonials -->
+      <section class="testimonials" aria-label="Customer testimonials">
+        <div class="wrap">
+          <h2>What Customers Are Saying</h2>
+          <div class="t-grid">
+            <div class="t-card">
+              <p class="t-quote">“CEO – Elixir feels like confidence in a bottle. Lasts through 10-hour workdays without ever getting heavy.”</p>
+              <div class="t-meta">
+                <span class="t-avatar" aria-hidden="true"></span>
+                <span>Arjun • Mumbai</span>
+                <span class="t-stars" aria-label="5 out of 5 stars">★★★★★</span>
+              </div>
+            </div>
+            <div class="t-card">
+              <p class="t-quote">“Balanced, refined, and compliment-magnet. My partner asked what I was wearing within minutes.”</p>
+              <div class="t-meta">
+                <span class="t-avatar" aria-hidden="true"></span>
+                <span>Rohan • Bengaluru</span>
+                <span class="t-stars" aria-label="5 out of 5 stars">★★★★★</span>
+              </div>
+            </div>
+            <div class="t-card">
+              <p class="t-quote">“Signature-worthy. Pepper and bergamot up top, then a clean vetiver dry-down. Totally office-safe.”</p>
+              <div class="t-meta">
+                <span class="t-avatar" aria-hidden="true"></span>
+                <span>Aman • Delhi</span>
+                <span class="t-stars" aria-label="5 out of 5 stars">★★★★★</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <main id="page-view" style="display:none;">
+    <div class="container" id="page-content"></div>
+  </main>
+  <script>
+    // ===== Utilities & Constants =====
+    window.CART_KEY = window.CART_KEY || 'SCENT_CART_V1';
+    window.WISHLIST_KEY = window.WISHLIST_KEY || 'SCENT_WISHLIST_V1';
+    const CART_KEY = window.CART_KEY;
+    const WISHLIST_KEY = window.WISHLIST_KEY;
+
+    function readCart(){ return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
+    function writeCart(items){ localStorage.setItem(CART_KEY, JSON.stringify(items)); }
+    function addToCartItem(item){
+      const cart = readCart();
+      const idx = cart.findIndex(i => i.slug === item.slug);
+      if(idx > -1){ cart[idx].qty += item.qty; } else { cart.push(item); }
+      writeCart(cart);
+    }
+
+    // ===== Cart helpers: check/remove item =====
+    function inCart(slug){
+      return readCart().some(i => i.slug === slug && i.qty > 0);
+    }
+    function removeFromCart(slug){
+      const cart = readCart().filter(i => i.slug !== slug);
+      writeCart(cart);
+    }
+// ===== Cart badge updater =====
+function cartQtyTotal(){ return readCart().reduce((sum,i)=> sum + (parseInt(i.qty||0,10)||0), 0); }
+function updateCartBadge(){
+  const badge = document.getElementById('cart-count');
+  if(!badge) return;
+  const n = cartQtyTotal();
+  badge.textContent = n;
+  badge.hidden = n<=0;
+}
+    function readWishlistPDP(){ return JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]'); }
+    function writeWishlistPDP(items){
+      localStorage.setItem(WISHLIST_KEY, JSON.stringify(items));
+      try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){ }
+    }
+    // ===== Local WL badge fallback (keeps navbar count in sync on this page) =====
+    function readWishlistCountLocal(){
+      try{
+        const raw = localStorage.getItem(WISHLIST_KEY) || '[]';
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr.length : 0;
+      }catch(_){ return 0; }
+    }
+    function updateWishlistBadgeLocal(){
+      const n = readWishlistCountLocal();
+      const badge = document.getElementById('wishlist-count');
+      if(badge){ badge.textContent = n; badge.hidden = !(n>0); }
+      // text fallback if badge not present
+      const link = document.getElementById('wishlistLink') || document.querySelector('a[href="wishlist.html"]');
+      if(link && !badge){
+        const base = link.getAttribute('data-base-label') || 'Wishlist';
+        link.textContent = n>0 ? `${base} (${n})` : base;
+      }
+    }
+
+    /* ===== Mobile drawer behavior ===== */
+    (function(){
+      const toggle = document.getElementById('navToggle');
+      const drawer = document.getElementById('mobileMenu');
+      if(!toggle || !drawer) return;
+
+      function openDrawer(){
+        drawer.hidden = false;
+        drawer.classList.add('open');
+        toggle.setAttribute('aria-expanded','true');
+        document.body.style.overflow='hidden';
+      }
+      function closeDrawer(){
+        drawer.classList.remove('open');
+        toggle.setAttribute('aria-expanded','false');
+        document.body.style.overflow='';
+        // hide after animation ends for a11y focus order
+        setTimeout(()=>{ if(!drawer.classList.contains('open')) drawer.hidden = true; }, 220);
+      }
+      function toggleDrawer(){
+        if(drawer.classList.contains('open')) closeDrawer(); else openDrawer();
+      }
+
+      toggle.addEventListener('click', toggleDrawer);
+      drawer.addEventListener('click', (e)=>{
+        const a = e.target.closest('a');
+        if(a){ closeDrawer(); }
+      });
+      window.addEventListener('hashchange', closeDrawer);
+      window.addEventListener('resize', ()=>{ if(window.innerWidth>900) closeDrawer(); });
+
+      // Mirror cart/wishlist counts into mobile drawer badges
+      function syncCounts(){
+        const c = document.getElementById('cart-count');
+        const w = document.getElementById('wishlist-count');
+        const cm = document.getElementById('cart-count-mobile');
+        const wm = document.getElementById('wishlist-count-mobile');
+        if(c && cm) cm.textContent = c.textContent;
+        if(w && wm) wm.textContent = w.textContent;
+        // Hide if zero
+        if(cm) cm.hidden = (parseInt(cm.textContent||'0',10) <= 0);
+        if(wm) wm.hidden = (parseInt(wm.textContent||'0',10) <= 0);
+      }
+      // initial + whenever cart / wishlist badge updates
+      document.addEventListener('DOMContentLoaded', syncCounts);
+      window.addEventListener('storage', syncCounts);
+      window.addEventListener('wishlist:changed', syncCounts);
+    })();
+    function readWishlistPDP(){
+  try{
+    const raw = JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]');
+    return Array.isArray(raw) ? raw : [];
+  }catch(_){ return []; }
+}
+function writeWishlistPDP(items){
+  localStorage.setItem(WISHLIST_KEY, JSON.stringify(items||[]));
+  try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){ }
+}
+function wlKey(x){ return String((x&&x.sku)||(x&&x.slug)||x||'').toLowerCase(); }
+function inWishlistPDP(slug){
+  const key = String(slug||'').toLowerCase();
+  return readWishlistPDP().some(it => wlKey(it) === key);
+}
+function toggleWishlistPDP(slug){
+  const key = String(slug||'').toLowerCase();
+  const list = readWishlistPDP();
+  const idx = list.findIndex(it => wlKey(it) === key);
+  if(idx > -1){
+    list.splice(idx,1);
+  } else {
+    // push a full object so wishlist page can render image/name/price
+    list.push({
+      sku: key,
+      name: PDP_PRODUCT.name,
+      price: String(PDP_PRODUCT.priceINR||PDP_PRODUCT.price||''),
+      image: (PDP_PRODUCT.images&&PDP_PRODUCT.images[0])||'',
+      href: `pdp.html?slug=${key}`
+    });
+  }
+  writeWishlistPDP(list);
+}
+
+    const HAS_GLOBAL_WL = !!(window.ScentWishlist && window.ScentWishlist.read);
+    function inWishlistSafe(slug){
+      return HAS_GLOBAL_WL ? window.ScentWishlist.has(slug) : inWishlistPDP(slug);
+    }
+    function toggleWishlistSafe(slug){
+      if(HAS_GLOBAL_WL){
+        window.ScentWishlist.toggle({
+          sku: slug,
+          name: PDP_PRODUCT.name,
+          price: `₹ ${PDP_PRODUCT.priceINR.toLocaleString('en-IN')}`,
+          image: PDP_PRODUCT.images && PDP_PRODUCT.images[0] || ''
+        });
+      } else {
+        toggleWishlistPDP(slug);
+      }
+    }
+
+    function showToast(msg){
+      const t = document.getElementById('toast');
+      if(!t) return; t.textContent = msg; t.hidden = false;
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(()=> t.hidden = true, 1600);
+    }
+
+    // ===== Static product data for this PDP =====
+    // ===== Full catalog (minimal fields needed by the current PDP) =====
+const PRODUCTS = {
+  // === EDP ===
+  'first-date':   { slug:'first-date',   type:'edp',    name:'First Date — EDP',   priceINR:3890, images:['images/First Date.png','images/firstdate1.png'], desc:'Clean, effortless charm with a soft fruity-citrus lift and white musks.', notes:['Citrus','Apple','Jasmine','White Musk'] },
+  'fresh-salt':   { slug:'fresh-salt',   type:'edp',    name:'Fresh Salt — EDP',   priceINR:4090, images:['images/Fresh Salt.png','images/freshsalt1.png'], desc:'Crisp marine sparkle over citrus and airy musks.', notes:['Sea Salt','Citrus','Aldehydes','Musk'] },
+  'beast':        { slug:'beast',        type:'edp',    name:'Beast — EDP',        priceINR:4290, images:['images/Beast.png','images/beast1.png'], desc:'Dark spicy woods with charged energy for nights out.', notes:['Pepper','Woods','Amber'] },
+  'boardroom':    { slug:'boardroom',    type:'edp',    name:'Boardroom — EDP',    priceINR:4990, images:['images/Boardroom.png','images/boardroom1.png'], desc:'Crisp, suit-ready woods that project focus and clarity.', notes:['Citrus','Iris','Patchouli','Vetiver'] },
+  'summer-drift': { slug:'summer-drift', type:'edp',    name:'Summer Drift — EDP', priceINR:4590, images:['images/Summer Drift.png','images/summerdrift1.png'], desc:'Laid-back citrus sunlight with breezy musks.', notes:['Mandarin','Sea Breeze','Musk'] },
+
+  // === Parfum ===
+  'victory-night':  { slug:'victory-night',  type:'parfum', name:'Victory Night — Parfum',  priceINR:6990, images:['images/Victory Night.png','images/victorynight1.png'], desc:'Charismatic, boozy-woody energy built for nights out.', notes:['Bergamot','Rum Accord','Woods','Amber'] },
+  'tropical-escape':{ slug:'tropical-escape',type:'parfum', name:'Tropical Escape — Parfum', priceINR:7790, images:['images/Tropical Escape.png','images/tropicalescape1.png'], desc:'Sun-warm tropical fruit with a cool ocean drift.', notes:['Pineapple','Coconut','Sea Salt'] },
+  'winter-embrace': { slug:'winter-embrace', type:'parfum', name:'Winter Embrace — Parfum', priceINR:7800, images:['images/Winter Embrace.png','images/winterembrace1.png'], desc:'Cashmere warmth and soft woods against crisp air.', notes:['Cashmere','Tonka','Cedar'] },
+  'the-icon':       { slug:'the-icon',       type:'parfum', name:'The Icon — Parfum',       priceINR:8780, images:['images/Icon.png','images/icon1.png'], desc:'Tailored presence—dry woods, aromatic polish, enduring trail.', notes:['Grapefruit','Aromatics','Dry Woods'] },
+  'intense-romance': { slug:'intense-romance',       type:'parfum', name:'Intense Romance — Parfum',       priceINR:9780, images:['images/Intense Romance.png','images/intenseromance1.png'], desc:'Tailored to attract compliments, fresh, sexy and seductive in a bottle.', notes:['Citric Orange','Amber','Vanilla','Tobacco'] },
+
+  // === Elixir ===
+  'ceo-elixir':     { slug:'ceo-elixir',     type:'elixir', name:'CEO – Elixir',           priceINR:14300, images:['images/CEO.png','images/ceo1.png'], desc:'A fragrance that mirrors authority. Opening with black pepper and bergamot…', notes:['Black Pepper','Bergamot','Lavender','Cardamom','Vetiver','Cedarwood'] },
+  'autumn-fire':    { slug:'autumn-fire',    type:'elixir', name:'Autumn Fire — Elixir',   priceINR:13400, images:['images/Autumn Fire.png','images/autumnfire1.png'], desc:'Smoked leather over glowing amber and patchouli.', notes:['Smoked Leather','Amber','Patchouli'] },
+  'forever-love':   { slug:'forever-love',   type:'elixir', name:'Forever Love — Elixir',  priceINR:13690, images:['images/Forever Love.png','images/foreverlove1.png'], desc:'Velvet rose on ambergris and a ribbon of oud-vanilla.', notes:['Rose','Ambergris','Oud Vanilla'] },
+  };
+
+  const url = new URL(location.href);
+function normalizeSlug(raw){
+  let s = String(raw||'').toLowerCase().trim();
+  // Full → short mapping (kept in sync with your catalog keys)
+  const alias = {
+    // Elixir
+    'ceo-elixir':'ceo-elixir',
+    'autumn-fire-elixir':'autumn-fire',
+    'winter-embrace-elixir':'winter-embrace',
+    // Parfum
+    'intense-romance-parfum':'intense-romance',
+    'victory-night-parfum':'victory-night',
+    'winter-embrace-parfum':'winter-embrace',
+    'the-icon-parfum':'the-icon',
+    'tropical-escape-parfum':'tropical-escape',
+    // EDP
+    'boardroom-edp':'boardroom',
+    'beast-edp':'beast',
+    'fresh-salt-edp':'fresh-salt',
+    'first-date-edp':'first-date',
+    'summer-drift-edp':'summer-drift'
+  };
+  if(alias[s]) return alias[s];
+  // Also tolerate raw short slugs with suffix by stripping known endings
+  s = s.replace(/-(edp|parfum|elixir)$/,'');
+  return s;
+}
+const rawSlug = url.searchParams.get('slug') || location.hash.replace('#','') || 'ceo-elixir';
+const shortKey = normalizeSlug(rawSlug);
+const PDP_PRODUCT = PRODUCTS[shortKey] || PRODUCTS['ceo-elixir'];
+PDP_PRODUCT.slug = PDP_PRODUCT.slug || shortKey;
+// ===== Bind product fields into the DOM =====
+(function bindProduct(){
+  const title = document.querySelector('.product-info h1');
+  const price = document.querySelector('.price-row .price');
+  const desc  = document.querySelector('.product-info .desc');
+  const notesWrap = document.querySelector('.notes-list');
+  if(title) title.textContent = PDP_PRODUCT.name;
+  if(price) price.textContent = `₹ ${PDP_PRODUCT.priceINR.toLocaleString('en-IN')}`;
+  if(desc)  desc.textContent  = PDP_PRODUCT.desc || '';
+  if(notesWrap){ notesWrap.innerHTML = (PDP_PRODUCT.notes||[]).map(n=>`<span>${n}</span>`).join(''); }
+})();
+
+    // ===== Header year =====
+    { const y = document.getElementById('year'); if(y) y.textContent = new Date().getFullYear(); }
+// Initialize cart badge on load
+updateCartBadge();
+    // ===== Quantity controls =====
+    const qtyInput = document.getElementById('qty');
+    document.getElementById('plus').addEventListener('click', ()=>{ qtyInput.stepUp(); });
+    document.getElementById('minus').addEventListener('click', ()=>{ qtyInput.stepDown(); });
+
+    // ===== Wishlist (persistent) =====
+    const wishBtn = document.getElementById('wishlist');
+    function renderWish(){ wishBtn.textContent = inWishlistSafe(PDP_PRODUCT.slug) ? '✓ Wishlisted' : '♡ Add to Wishlist'; }
+    wishBtn.addEventListener('click', ()=>{
+      toggleWishlistSafe(PDP_PRODUCT.slug);
+      renderWish();
+      // Update navbar WL badge (local fallback + global if present)
+      updateWishlistBadgeLocal();
+      try{ if(window.__updateWishlistBadge__) window.__updateWishlistBadge__(); if(window.__pulseWishlistBadge__) window.__pulseWishlistBadge__(); }catch(_){ }
+      try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){}
+      showToast('Wishlist updated');
+    });
+    renderWish();
+    // Initial paint for WL badge on this page
+    updateWishlistBadgeLocal();
+    // Keep badge synced if storage changes in other tabs
+    window.addEventListener('storage', function(e){ if(e.key===WISHLIST_KEY) updateWishlistBadgeLocal(); });
+
+    // ===== Add to Cart (toggle + persistent visual state) =====
+    const addBtn = document.getElementById('addToCart');
+    const ORIGINAL_LABEL = 'Add to Cart';
+    const ADDED_LABEL = '✓ Added to Cart';
+
+    function renderAddState(){
+      const on = inCart(PDP_PRODUCT.slug);
+      if(on){
+        addBtn.textContent = ADDED_LABEL;
+        addBtn.classList.add('added');
+        addBtn.setAttribute('aria-pressed','true');
+      } else {
+        addBtn.textContent = ORIGINAL_LABEL;
+        addBtn.classList.remove('added');
+        addBtn.setAttribute('aria-pressed','false');
+      }
+    }
+    updateCartBadge();
+    addBtn.addEventListener('click', ()=>{
+      const isOn = inCart(PDP_PRODUCT.slug);
+      if(isOn){
+        // User is undoing: remove item from cart
+        removeFromCart(PDP_PRODUCT.slug);
+        showToast('Removed from cart');
+      } else {
+        // User is adding: respect chosen quantity
+        const q = Math.max(1, parseInt(qtyInput.value||'1',10));
+        addToCartItem({ slug: PDP_PRODUCT.slug, name: PDP_PRODUCT.name, price: PDP_PRODUCT.priceINR, qty: q, image: PDP_PRODUCT.images[0] });
+        showToast(`Added ${q} × ${PDP_PRODUCT.name}`);
+      }
+      renderAddState();
+      updateCartBadge();
+    });
+
+    // Initialize cart badge on load
+    updateCartBadge();
+    // ===== Buy Now (adds current qty and redirects to cart, avoids double-add) =====
+    const buyBtn = document.getElementById('buyNow');
+    if(buyBtn){
+      buyBtn.addEventListener('click', ()=>{
+        const q = Math.max(1, parseInt(qtyInput.value||'1',10));
+        if(!inCart(PDP_PRODUCT.slug)){
+          // Only add if not already in cart to avoid double counting
+          addToCartItem({ slug: PDP_PRODUCT.slug, name: PDP_PRODUCT.name, price: PDP_PRODUCT.priceINR, qty: q, image: PDP_PRODUCT.images[0] });
+        }
+        showToast('Proceeding to checkout…');
+        updateCartBadge();
+        setTimeout(()=>{ window.location.href = 'cart.html'; }, 250);
+      });
+    }
+
+    // Initial render based on current cart contents
+    renderAddState();
+
+    // ===== Share button =====
+    const shareBtn = document.getElementById('shareBtn');
+    if(shareBtn){
+      shareBtn.addEventListener('click', async ()=>{
+        const shareData = {
+          title: PDP_PRODUCT.name,
+          text: 'Check out this fragrance from Scent Story',
+          url: window.location.href
+        };
+        try{
+          if(navigator.share){ await navigator.share(shareData); }
+          else{
+            await navigator.clipboard.writeText(shareData.url);
+            showToast('Link copied to clipboard');
+          }
+        }catch(e){ /* user cancelled */ }
+      });
+    }
+
+    // ===== Gallery / Carousel (with thumbnails) =====
+    const track = document.getElementById('gallery-track');
+    const thumbs = document.getElementById('thumbs');
+    const btnNext = document.getElementById('next');
+    const btnPrev = document.getElementById('prev');
+
+    // Preload images and filter out missing files to avoid blank galleries
+    function preload(url){
+      return new Promise(resolve=>{
+        const im = new Image();
+        im.onload = ()=> resolve({ ok:true, url });
+        im.onerror = ()=> resolve({ ok:false, url });
+        im.src = url;
+      });
+    }
+
+    (async function initCarousel(){
+    // ===== Dynamic Recommendations (same concentration + random picks) =====
+(function buildRecs(){
+  const host = document.getElementById('reco');
+  if(!host) return;
+  const sameType = Object.values(PRODUCTS).filter(p => p.type===PDP_PRODUCT.type && p.slug!==PDP_PRODUCT.slug);
+  const others   = Object.values(PRODUCTS).filter(p => p.type!==PDP_PRODUCT.type);
+  function take(arr,n){ return arr.sort(()=>Math.random()-0.5).slice(0, n); }
+  const picks = [...take(sameType,3), ...take(others,2)];
+  const title = PDP_PRODUCT.type.charAt(0).toUpperCase()+PDP_PRODUCT.type.slice(1);
+  host.innerHTML = `
+    <h2 class="section-title">You Might Also Like</h2>
+    <div class="grid">
+      ${picks.map(p=>`
+        <div class="card" tabindex="0">
+          <a href="pdp.html?slug=${p.slug}">
+            <div class="img-stack" aria-hidden="true">
+              <img class="img-primary" src="${p.images[0]}" alt="${p.name} — primary">
+              ${p.images[1] ? `<img class=\"img-alt\" src=\"${p.images[1]}\" alt=\"${p.name} — alternate\" onerror=\"this.style.display='none'\">` : ''}
+            </div>
+            <h3>${p.name}</h3>
+            <p>${(p.notes||[]).slice(0,3).join(' • ')}</p>
+          </a>
+        </div>`).join('')}
+    </div>`;
+})();
+      const candidates = PDP_PRODUCT.images || [];
+      const results = await Promise.all(candidates.map(preload));
+      const IMAGES = results.filter(r=>r.ok).map(r=>r.url);
+      if(!IMAGES.length){
+        // Fallback: show at least one placeholder to prevent empty layout
+        track.innerHTML = `<img src="images/CEO.png" alt="${PDP_PRODUCT.name}">`;
+        thumbs.innerHTML = `<button type="button" data-idx="0" aria-current="true"><img src="images/CEO.png" alt="thumb 1"></button>`;
+        btnNext.hidden = true; btnPrev.hidden = true;
+        return;
+      }
+
+      track.innerHTML = IMAGES.map(src=>`<img src="${src}" alt="${PDP_PRODUCT.name}">`).join('');
+      thumbs.innerHTML = IMAGES.map((src,i)=>`<button type="button" data-idx="${i}" aria-current="${i===0}"><img src="${src}" alt="thumb ${i+1}"></button>`).join('');
+
+      let index = 0; let auto = null; const COUNT = IMAGES.length;
+
+      function go(i){
+        index = (i + COUNT) % COUNT;
+        track.style.transform = `translateX(${ -index*100 }%)`;
+        thumbs.querySelectorAll('button').forEach((b,bi)=> b.setAttribute('aria-current', bi===index));
+      }
+      function next(){ go(index+1); }
+      function prev(){ go(index-1); }
+
+      // Wire buttons
+      btnNext.addEventListener('click', ()=>{ next(); pauseAuto(); });
+      btnPrev.addEventListener('click', ()=>{ prev(); pauseAuto(); });
+      // Hide arrows if only one slide
+      if(COUNT < 2){ btnNext.hidden = true; btnPrev.hidden = true; }
+
+      // Thumbs click
+      thumbs.querySelectorAll('button').forEach(btn => btn.addEventListener('click', ()=>{ go(parseInt(btn.dataset.idx,10)); pauseAuto(); }));
+
+      // Auto-rotate
+      function startAuto(){ stopAuto(); if(COUNT>1) auto = setInterval(next, 3500); }
+      function stopAuto(){ if(auto){ clearInterval(auto); auto = null; } }
+      function pauseAuto(){ stopAuto(); startAuto(); }
+
+      // Accessibility: pause when hovering the viewport
+      const viewport = document.querySelector('.gallery-viewport');
+      viewport.addEventListener('mouseenter', stopAuto);
+      viewport.addEventListener('mouseleave', startAuto);
+
+      // Initialize
+      go(0); startAuto();
+    })();
+  </script>
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+  <footer class="footer">
+    <!-- Top: Newsletter + Membership -->
+    <div class="container footer-hero">
+      <section class="subscribe-card" aria-labelledby="subscribe-title">
+        <h3 id="subscribe-title">Join Our Circle</h3>
+        <p>Be first to new launches, private sales, and members-only stories. <strong>New members get 10% off.</strong></p>
+        <form id="newsletter-form" class="newsletter-form" novalidate>
+          <label class="visually-hidden" for="nl-email">Email</label>
+          <input id="nl-email" name="email" type="email" placeholder="Enter your email" required>
+          <button type="submit" class="btn-gold">Subscribe</button>
+        </form>
+        <p id="newsletter-success" class="newsletter-success" role="status" hidden>
+          🎉 Thank you! You’re subscribed. Check your inbox for a welcome note.
+        </p>
+        <small class="legal">By subscribing you agree to our <a href="#/privacy">Privacy Policy</a>. Unsubscribe anytime.</small>
+      </section>
+
+      <section class="membership-card" aria-labelledby="member-title">
+        <h3 id="member-title" style="color:#efe2b8;">Scent Story Circle — Members Get More</h3>
+        <ul class="benefits">
+          <li style="color:#ffc400">Early access to new Chapters</li>
+          <li style="color:#ffc400">Free sample with orders</li>
+          <li style="color:#ffc400">Birthday reward</li>
+          <li style="color:#ffc400">Priority support</li>
+        </ul>
+        <a class="btn-gold pulse-glow member-btn wiggle" href="becomemem.html" aria-label="Become a member">Become a Member</a>
+      </section>
+    </div>
+
+    <!-- Middle: Navigation columns (point “Brand” back to this page anchors) -->
+    <div class="container footer-links">
+      <div class="col">
+        <h4>Brand</h4>
+        <a href="#/about">About Us</a>
+        <a href="#/craft">Craft & Safety</a>
+        <a href="#/press">Press</a>
+      </div>
+      <div class="col">
+        <h4>Shop</h4>
+        <a href="index.html#new">New Launches</a>
+        <a href="index.html#bestsellers">Bestsellers</a>
+        <a href="index.html#discover">Explore Chapters</a>
+        <a href="#/collections">Gift Ideas</a>
+      </div>
+      <div class="col">
+        <h4>Support</h4>
+        <a href="#/track">Track My Order</a>
+        <a href="#/shipping">Shipping</a>
+        <a href="#/returns">Returns</a>
+        <a href="#/grievance">Grievances</a>
+        <a href="#/contact">Contact</a>
+      </div>
+      <div class="col">
+        <h4>Legal</h4>
+        <a href="#/terms">Terms of Service</a>
+        <a href="#/privacy">Privacy Policy</a>
+        <a href="#/cookies">Cookies & Consent</a>
+        <a href="#/accessibility">Accessibility</a>
+      </div>
+    </div>
+
+    <div class="container footer-trust">
+      <p>Phthalate-Free • Cruelty-Free • IFRA &amp; FDA Compliant • Secure Checkout</p>
+    </div>
+
+    <div class="container footer-bottom">
+      <div class="payments">
+        <i class="fa-brands fa-cc-visa" aria-hidden="true" title="Visa"></i>
+        <i class="fa-brands fa-cc-mastercard" aria-hidden="true" title="Mastercard"></i>
+        <i class="fa-brands fa-cc-amex" aria-hidden="true" title="American Express"></i>
+        <i class="fa-brands fa-cc-paypal" aria-hidden="true" title="PayPal"></i>
+        <span class="badge-upi" aria-label="UPI accepted">UPI</span>
+      </div>
+      <div class="social-icons" aria-label="Social media">
+        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+          <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </div>
+      <div class="copyright">
+        © <span id="year"></span> Scent Story. All Rights Reserved.
+      </div>
+    </div>
+  </footer>
+
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <h3>Thank You!</h3>
+      <p>Your information has been successfully submitted.</p>
+      <button onclick="closePopup()">Close</button>
+    </div>
+  </div>
+
+
+  <script src="app.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <script>
+    // Fallback SPA Router for PDP (runs only if main router didn't initialize)
+    (function(){
+      const pageView = document.getElementById('page-view');
+      const pageContent = document.getElementById('page-content');
+      const pdpMain = document.getElementById('pdp-main');
+      if(!pageView || !pageContent || !pdpMain) return;
+
+      // If a global SPA router exists *and* this page declares a SPA root, skip.
+      // PDP does not declare SPA root, so we still run here.
+      if (window.__HAS_MAIN_ROUTER__ && document.body && document.body.dataset && document.body.dataset.spaRoot === '1') return;
+
+      const PAGES = {
+        '/contact': `
+      <section class="container" aria-labelledby="contact-title" style="max-width:1100px">
+        <h1 id="contact-title" class="section-title" style="margin-bottom:6px">We’re Here to Help</h1>
+        <p style="color:#a8b0ba;margin:0 0 20px">Questions about your order, our fragrances, or membership? Contact our scent concierge below.</p>
+
+        <div style="display:grid;grid-template-columns:1.2fr .8fr;gap:16px">
+          <!-- Contact Form -->
+          <form id="contact-form" class="contact-form" novalidate
+                style="display:grid;gap:10px;background:#12151a;border:1px solid #262b33;border-radius:16px;padding:16px">
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Full Name</label>
+              <input name="name" required placeholder="Your full name"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED" />
+            </div>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Email</label>
+              <input name="email" type="email" inputmode="email" required maxlength="254"
+                     pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[A-Za-z]{2,}$"
+                     placeholder="you@example.com"
+                     oninput="this.value=this.value.replace(/\\s/g,'').toLowerCase()"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED" />
+            </div>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Phone (10 digits)</label>
+              <input name="phone" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" required
+                     placeholder="10-digit mobile"
+                     oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED" />
+            </div>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Reason for Contact</label>
+              <select name="reason" style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED">
+                <option>Order Inquiry</option>
+                <option>Membership & Rewards</option>
+                <option>Return / Exchange</option>
+                <option>Corporate Gifting</option>
+                <option>Press / Collaborations</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Message</label>
+              <textarea name="message" rows="5" minlength="20" required placeholder="How can we help?"
+                        style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED"></textarea>
+              <small style="color:#a8b0ba">Minimum 20 characters for context.</small>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn-gold" type="submit"
+                      style="background:linear-gradient(135deg,#f6e7b9,#bfa06a);border:1px solid #bfa06a;color:#111;border-radius:12px;padding:12px 14px">
+                Send Message
+              </button>
+              <a class="btn" href="#/track"
+                 style="display:inline-flex;align-items:center;gap:8px;border:1px solid #262b33;background:#1a1f26;border-radius:12px;padding:12px 14px;color:#fff;text-decoration:none">
+                Track My Order
+              </a>
+            </div>
+            <p id="contact-success" role="status" hidden
+               style="margin:8px 0 0;color:#45D483;font-weight:600">Thanks! Our concierge will respond within 24 hours.</p>
+          </form>
+
+          <!-- Info Cards -->
+          <div style="display:grid;gap:10px">
+            <div class="card" style="background:#12151a;border:1px solid #262b33;border-radius:16px">
+              <div class="body" style="padding:14px 16px">
+                <h3 style="margin:0 0 6px;font-family:'Playfair Display',serif">Call Us</h3>
+                <p style="margin:0;color:#a8b0ba">+91 98765 43210<br/>Mon–Sat, 10 AM – 7 PM IST</p>
+              </div>
+            </div>
+            <div class="card" style="background:#12151a;border:1px solid #262b33;border-radius:16px">
+              <div class="body" style="padding:14px 16px">
+                <h3 style="margin:0 0 6px;font-family:'Playfair Display',serif">Email Support</h3>
+                <p style="margin:0;color:#a8b0ba">support@scentstory.in<br/>Response within 24–48 hrs</p>
+              </div>
+            </div>
+            <div class="card" style="background:#12151a;border:1px solid #262b33;border-radius:16px">
+              <div class="body" style="padding:14px 16px">
+                <h3 style="margin:0 0 6px;font-family:'Playfair Display',serif">Corporate Office</h3>
+                <p style="margin:0;color:#a8b0ba">21, Park Street, Bangalore, India</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+        '/track': `
+          <section class="container" aria-labelledby="track-title" style="padding:42px 0 60px;">
+            <h1 id="track-title" class="section-title">Track My Order</h1>
+            <form id="track-form-page" class="newsletter-form" style="max-width:420px;display:flex;gap:10px;margin:24px 0;">
+              <input type="text" name="trackId" placeholder="Order ID" required>
+              <button class="btn-gold" type="submit">Track</button>
+            </form>
+            <p id="track-status" style="margin-top:10px"></p>
+            <p style="color:#b7bec6;font-size:15px;margin:16px 0 0;">Need help? <a href="#/contact">Contact support</a>.</p>
+          </section>`,
+        '/shipping': `
+          <section class="container" aria-labelledby="shipping-title" style="padding:42px 0 60px;">
+            <h1 id="shipping-title" class="section-title">Shipping</h1>
+            <p>We ship across India via insured express partners. Orders are dispatched within 1–2 business days and typically delivered in 3–6 business days. You’ll receive tracking details by email once shipped.</p>
+            <ul>
+              <li>Free shipping on prepaid orders</li>
+              <li>COD available in select locations</li>
+              <li>All parcels are securely packed and tamper-evident</li>
+            </ul>
+          </section>`,
+        '/returns': `
+          <section class="container" aria-labelledby="returns-title" style="padding:42px 0 60px;">
+            <h1 id="returns-title" class="section-title">Returns</h1>
+            <p>If you’re not delighted, you may return unopened products within 7 days of delivery for a refund or exchange. Used/opened fragrances cannot be returned for hygiene reasons.</p>
+            <ul>
+              <li>Email <a href="mailto:support@scentstory.example">support@scentstory.example</a> with your order ID</li>
+              <li>Return shipping is free for damaged/incorrect items</li>
+              <li>Refunds are processed within 5 business days after inspection</li>
+            </ul>
+          </section>`,
+        '/gift-ideas': `
+          <section class="container" aria-labelledby="gift-title" style="padding:42px 0 60px;">
+            <h1 id="gift-title" class="section-title">Gift Ideas</h1>
+            <p>Surprise someone special with our curated gift sets and bestsellers—perfect for every mood and moment.</p>
+            <ul>
+              <li>Gift boxes available at checkout</li>
+              <li>Personalized gift notes (free)</li>
+              <li>Explore <a href="index.html#bestsellers">Bestsellers</a> or <a href="index.html#discover">Collections</a></li>
+            </ul>
+          </section>`,
+        '/about': `
+          <section class="container" aria-labelledby="about-title" style="padding:42px 0 60px;">
+            <h1 id="about-title" class="section-title">About Us</h1>
+            <p>Scent Story crafts fragrances as chapters in your life—made to be worn with purpose, presence, and feeling. Our blends balance clarity and depth so they perform from the first impression to the final note. Every bottle is a keepsake; every spray, a scene you step into.</p>
+            <ul>
+              <li>Made in India, inspired by global artistry</li>
+              <li>IFRA &amp; FDA compliant</li>
+              <li>Phthalate-free, cruelty-free</li>
+            </ul>
+          </section>`,
+        '/craft': `
+          <section class="container" aria-labelledby="craft-title" style="padding:42px 0 60px;">
+            <h1 id="craft-title" class="section-title">Craft &amp; Safety</h1>
+            <p>We use only high-grade, globally sourced ingredients—no harsh chemicals, ever. Every batch is tested for safety and performance, and our formulas comply with IFRA and Indian FDA standards.</p>
+            <ul>
+              <li>Phthalate-free</li>
+              <li>Allergen-conscious</li>
+              <li>Gentle on skin</li>
+            </ul>
+          </section>`,
+        '/press': `
+          <section class="container" aria-labelledby="press-title" style="padding:42px 0 60px;">
+            <h1 id="press-title" class="section-title">Press</h1>
+            <p>For media kits, collaborations, or interviews, email <a href="mailto:press@scentstory.example">press@scentstory.example</a>. We’re happy to share our story.</p>
+          </section>`,
+        '/grievance': `
+      <section class="container" aria-labelledby="grievance-title" style="max-width:1100px;">
+        <h1 id="grievance-title" class="section-title" style="margin-bottom:6px">Raise a Grievance</h1>
+        <p style="color:#a8b0ba;margin:0 0 20px">We take every concern seriously. Please provide complete details so our team can respond quickly and fairly.</p>
+
+        <div style="display:grid;grid-template-columns:1.2fr .8fr;gap:16px">
+          <!-- Grievance Form -->
+          <form id="grievance-form" class="contact-form" novalidate
+                style="display:grid;gap:12px;background:#12151a;border:1px solid #262b33;border-radius:16px;padding:16px;">
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Full Name</label>
+              <input name="name" required placeholder="Your full name"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED"/>
+            </div>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Email</label>
+              <input name="email" type="email" inputmode="email" required maxlength="254"
+                     pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[A-Za-z]{2,}$"
+                     placeholder="you@example.com"
+                     oninput="this.value=this.value.replace(/\\s/g,'').toLowerCase()"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED"/>
+            </div>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Phone (optional, 10 digits)</label>
+              <input name="phone" inputmode="numeric" pattern="[0-9]{10}" maxlength="10"
+                     placeholder="10-digit mobile"
+                     oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED"/>
+            </div>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Order ID (if applicable)</label>
+              <input name="orderId" placeholder="Optional – helps us locate your order"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED"/>
+            </div>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Issue Type</label>
+              <select name="issue" required
+                      style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED">
+                <option value="">Select issue type</option>
+                <option>Damaged / Missing Product</option>
+                <option>Payment / Refund Issue</option>
+                <option>Delayed Delivery</option>
+                <option>Quality Concern</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Describe Your Issue</label>
+              <textarea name="message" rows="6" minlength="30" required
+                        placeholder="Please describe your concern in detail..."
+                        style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED"></textarea>
+              <small style="color:#a8b0ba">Minimum 30 characters for clarity.</small>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn-gold" type="submit"
+                      style="background:linear-gradient(135deg,#f6e7b9,#bfa06a);border:1px solid #bfa06a;color:#111;border-radius:12px;padding:12px 14px">
+                Submit Grievance
+              </button>
+            </div>
+            <p id="grievance-success" role="status" hidden
+               style="margin:8px 0 0;color:#45D483;font-weight:600">Your grievance has been received. We’ll respond within 48 hours.</p>
+          </form>
+
+          <!-- Policy / Escalation -->
+          <div style="display:grid;gap:10px;">
+            <div class="card" style="background:#12151a;border:1px solid #262b33;border-radius:16px;">
+              <div class="body" style="padding:14px 16px">
+                <h3 style="margin:0 0 6px;font-family:'Playfair Display',serif">Escalation Matrix</h3>
+                <p style="margin:0;color:#a8b0ba">
+                  Level 1: Support Team — <b>support@scentstory.in</b><br>
+                  Level 2: Grievance Officer — <b>grievance@scentstory.in</b><br>
+                  Level 3: Management Desk (if unresolved beyond 7 days)
+                </p>
+              </div>
+            </div>
+            <div class="card" style="background:#12151a;border:1px solid #262b33;border-radius:16px;">
+              <div class="body" style="padding:14px 16px">
+                <h3 style="margin:0 0 6px;font-family:'Playfair Display',serif">Resolution Timeline</h3>
+                <p style="margin:0;color:#a8b0ba">Most issues are resolved within <b>48–72 hours</b>. We’ll keep you updated on progress.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+        '/cookies': `
+          <section class="container" aria-labelledby="cookies-title" style="padding:42px 0 60px;">
+            <h1 id="cookies-title" class="section-title">Cookies &amp; Consent</h1>
+            <p>We use cookies to improve your browsing and shopping experience. By using our site, you consent to our use of cookies as described in our <a href="#/privacy">Privacy Policy</a>.</p>
+          </section>`,
+        '/accessibility': `
+          <section class="container" aria-labelledby="accessibility-title" style="padding:42px 0 60px;">
+            <h1 id="accessibility-title" class="section-title">Accessibility</h1>
+            <p>We strive to meet WCAG 2.1 AA accessibility standards. If you encounter any barriers, please <a href="#/contact">let us know</a> so we can improve your experience.</p>
+          </section>`,
+        '/terms': `
+          <section class="container" aria-labelledby="terms-title" style="padding:42px 0 60px;">
+            <h1 id="terms-title" class="section-title">Terms of Service</h1>
+            <p>By using this website, you agree to our terms and conditions. For details, please read our full policy or <a href="#/contact">contact us</a> with any questions.</p>
+          </section>`,
+        '/privacy': `
+          <section class="container" aria-labelledby="privacy-title" style="padding:42px 0 60px;">
+            <h1 id="privacy-title" class="section-title">Privacy Policy</h1>
+            <p>We respect your privacy and protect your data. We never share your information with third parties except as required to fulfill your order or by law. For more, see our full policy or <a href="#/contact">contact us</a>.</p>
+          </section>`,
+        '/collections': `
+          <section class="container" aria-labelledby="collections-title" style="padding:42px 0 60px;">
+            <h1 id="collections-title" class="section-title">Explore All Collections</h1>
+            <p>Browse all scents by concentration—EDP, Parfum, and Elixir. Find your next signature fragrance or a gift for someone special.</p>
+            <div class="grid" style="margin-top:20px;">
+              <a class="card" href="index.html#bestsellers"><h3>EDP</h3><p>Effortless, everyday clarity.</p></a>
+              <a class="card" href="index.html#discover"><h3>Parfum</h3><p>Rich, longer-wearing signatures.</p></a>
+              <a class="card" href="index.html#new"><h3>Elixir</h3><p>Bold, concentrated presence.</p></a>
+            </div>
+          </section>`,
+        '/wishlist': `
+          <section class="container" style="padding:42px 0 60px;">
+            <h1 class="section-title">Your Wishlist</h1>
+            <div id="wishlist-content" style="margin-top:20px;">
+              <p>Your saved fragrances will appear here.</p>
+            </div>
+          </section>`,
+      };
+
+      function setActiveRoute(){
+        const current = location.hash || '#/home';
+        document.querySelectorAll('a[href^="#/"]').forEach(a => {
+          const on = a.getAttribute('href') === current;
+          a.classList.toggle('is-active', on);
+          a.setAttribute('aria-current', on ? 'page' : 'false');
+        });
+      }
+
+      function showHome(){
+        pdpMain.style.display = '';
+        pageView.style.display = 'none';
+        pageContent.innerHTML = '';
+        setActiveRoute();
+      }
+
+      function showPage(html){
+        pdpMain.style.display = 'none';
+        pageView.style.display = 'block';
+        pageContent.innerHTML = `<div class="route-enter">${html}</div>`;
+        setActiveRoute();
+        // Smoothly bring routed content into view, similar to index
+        try{ pageView.scrollIntoView({ behavior:'smooth', block:'start' }); }catch(_){}
+
+        // Bind forms if present (mirror main.js)
+        (function bindForms(){
+          // Contact form
+          (function(){
+            const form = document.getElementById('contact-form');
+            if(!form) return;
+            const email = form.elements.email;
+            const phone = form.elements.phone;
+            const message = form.elements.message;
+            const success = document.getElementById('contact-success');
+            if(email){
+              const re = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+              const checkEmail = ()=> email.setCustomValidity(re.test((email.value||'').trim()) ? '' : 'Please enter a valid email (e.g., name@example.com)');
+              ['input','change','blur'].forEach(ev=> email.addEventListener(ev, checkEmail));
+              checkEmail();
+            }
+            if(phone){
+              const clamp = ()=>{ phone.value = (phone.value||'').replace(/\D/g,'').slice(0,10); };
+              ['input','change'].forEach(ev=> phone.addEventListener(ev, clamp));
+              clamp();
+            }
+            if(message){
+              const min = 20;
+              const checkMsg = ()=> message.setCustomValidity((message.value||'').length >= min ? '' : `Please provide at least ${min} characters.`);
+              ['input','change','blur'].forEach(ev=> message.addEventListener(ev, checkMsg));
+              checkMsg();
+            }
+            form.addEventListener('submit', (e)=>{
+              e.preventDefault();
+              if(!form.checkValidity()){ form.reportValidity(); return; }
+              if(success){ success.hidden = false; success.scrollIntoView({behavior:'smooth', block:'center'}); }
+              form.reset();
+            });
+          })();
+
+          // Grievance form
+          (function(){
+            const form = document.getElementById('grievance-form');
+            if(!form) return;
+            const email = form.elements.email;
+            const phone = form.elements.phone;
+            const issue = form.elements.issue;
+            const message = form.elements.message;
+            const success = document.getElementById('grievance-success');
+            if(email){
+              const re = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+              const checkEmail = ()=> email.setCustomValidity(re.test((email.value||'').trim()) ? '' : 'Please enter a valid email (e.g., name@example.com)');
+              ['input','change','blur'].forEach(ev=> email.addEventListener(ev, checkEmail));
+              checkEmail();
+            }
+            if(phone){
+              const clamp = ()=>{ phone.value = (phone.value||'').replace(/\D/g,'').slice(0,10); };
+              ['input','change'].forEach(ev=> phone.addEventListener(ev, clamp));
+              clamp();
+            }
+            if(issue){
+              const checkIssue = ()=> issue.setCustomValidity(issue.value ? '' : 'Please select an issue type.');
+              ['change','blur'].forEach(ev=> issue.addEventListener(ev, checkIssue));
+              checkIssue();
+            }
+            if(message){
+              const min = 30;
+              const checkMsg = ()=> message.setCustomValidity((message.value||'').length >= min ? '' : `Please provide at least ${min} characters.`);
+              ['input','change','blur'].forEach(ev=> message.addEventListener(ev, checkMsg));
+              checkMsg();
+            }
+            form.addEventListener('submit', (e)=>{
+              e.preventDefault();
+              if(!form.checkValidity()){ form.reportValidity(); return; }
+              if(success){ success.hidden = false; success.scrollIntoView({behavior:'smooth', block:'center'}); }
+              form.reset();
+            });
+          })();
+        })();
+
+        // Track form (unchanged)
+        const tf = document.getElementById('track-form-page');
+        if(tf){ tf.addEventListener('submit', (e)=>{ e.preventDefault(); const id = new FormData(tf).get('trackId'); const t=document.getElementById('track-status'); t.textContent = id?`Status for ${id}: In transit — expected delivery 3–5 days.`:'Enter a tracking number.'; }); }
+      }
+
+      function route(){
+        const hash = location.hash || '#/home';
+        const key = hash.replace('#','');
+        if(PAGES[key]) return showPage(PAGES[key]);
+        return showHome();
+      }
+
+      // Run this router in the capture phase so it cannot be blocked by other handlers
+      window.addEventListener('hashchange', route, true);
+      window.addEventListener('popstate', route, true);
+      window.addEventListener('load', route, true);
+      route();
+    })();
+  </script>
+
+</body>
+<script>
+  (function(){
+    try{
+      var pv = document.getElementById('page-view');
+      var pdp = document.getElementById('pdp-main');
+      var hasHash = !!location.hash && location.hash !== '#/home';
+      var known = { '/contact':1,'/track':1,'/shipping':1,'/returns':1,'/gift-ideas':1,'/about':1,'/craft':1,'/press':1,'/grievance':1,'/cookies':1,'/accessibility':1,'/terms':1,'/privacy':1,'/collections':1 };
+      if (!hasHash || !known[location.hash.replace('#','')]) {
+        if (pdp) pdp.style.display = '';
+        if (pv)  pv.style.display  = 'none';
+      }
+    }catch(e){}
+  })();
+</script>
+</html>

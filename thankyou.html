@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Scent Story — Thank You</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root{
+      --bg:#0b0d10; --surface:#12151a; --surface-2:#0f1216; --text:#EDEDED; --muted:#a8b0ba; --stroke:#262b33;
+      --gold:#bfa06a; --accent:#ffc400; --ok:#45D483;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+    a{color:var(--text);text-decoration:none}
+    h1,h2,h3{font-family:"Playfair Display",serif}
+
+    .wrap{max-width:1200px;margin:0 auto;padding:26px 20px 64px}
+    header.top{display:flex;align-items:center;gap:14px;margin:6px 0 14px}
+    header.top img{height:40px;width:auto;display:block}
+    .crumbs a{color:var(--muted);font-size:13px}
+
+    .hero{
+      background:linear-gradient(180deg,#101419,#0c0f13);
+      border:1px solid var(--stroke); border-radius:16px;
+      padding:22px 20px; display:flex; gap:18px; align-items:center;
+    }
+    .hero .icon{
+      width:48px; height:48px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(135deg,#f6e7b9,#bfa06a); color:#111; font-size:20px;
+      box-shadow:0 6px 22px rgba(191,160,106,.25);
+    }
+    .hero h1{margin:0; font-size:28px}
+    .hero p{margin:6px 0 0; color:#cfd6df}
+
+    .grid{display:grid; grid-template-columns:1.2fr 0.8fr; gap:16px; margin-top:16px}
+    @media(max-width:992px){ .grid{grid-template-columns:1fr} }
+
+    .card{background:var(--surface); border:1px solid var(--stroke); border-radius:16px; overflow:hidden}
+    .card .head{padding:14px 16px;border-bottom:1px solid var(--stroke);display:flex;justify-content:space-between;align-items:center}
+    .card .body{padding:14px 16px}
+
+    .order-item{display:grid;grid-template-columns:72px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px dashed #1d2229}
+    .order-item:last-child{border-bottom:0}
+    .order-item img{width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid var(--stroke);background:#0f1216}
+    .order-item h4{margin:0 0 4px;font-size:15px;font-weight:600}
+    .sku{color:var(--muted);font-size:12px}
+    .price{font-weight:700}
+
+    .summary .row{display:flex;justify-content:space-between;margin:8px 0;color:#dce2e9}
+    .summary .row small{color:var(--muted)}
+    .summary .total{border-top:1px solid var(--stroke);margin-top:10px;padding-top:10px;font-weight:800;font-size:18px}
+
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 12px;border-radius:999px;border:1px solid var(--stroke);background:#0f1216;color:#dce2e9;font-size:13px}
+    .muted{color:var(--muted)}
+
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 14px;border-radius:12px;border:1px solid var(--stroke);background:#1a1f26;color:#fff;cursor:pointer}
+    .btn.gold{background:linear-gradient(135deg,#f6e7b9,#bfa06a);border-color:#bfa06a;color:#111;box-shadow:0 6px 22px rgba(191,160,106,.28)}
+    .btn.ghost{background:transparent}
+    .cta-row{display:flex;flex-wrap:wrap;gap:10px}
+
+    .block{display:grid; gap:8px}
+    .rowline{display:flex; gap:10px; align-items:center; color:#cfd6df}
+    .rowline i{color:var(--gold)}
+
+    /* mini progress vibe */
+    .progress{height:6px; background:#0f1216; border:1px solid var(--stroke); border-radius:999px; overflow:hidden; margin:14px 0 0}
+    .progress .bar{height:100%; width:100%; background: linear-gradient(90deg,#f6e7b9,#bfa06a); position:relative}
+    .progress .bar::after{content:""; position:absolute; inset:0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent); background-size:200% 100%; animation: gloss 2.4s linear infinite}
+    @keyframes gloss{ from{background-position:200% 0} to{background-position:-200% 0} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="index.html" aria-label="Back to home">
+        <img src="images/brandlogofin.png" alt="Scent Story"/>
+        <h1 style="font-size:18px;margin:0">Order Confirmed</h1>
+      </a>
+      <div class="crumbs" aria-label="breadcrumbs"><a href="index.html">Continue shopping</a></div>
+    </header>
+
+    <section class="hero" id="hero">
+      <div class="icon"><i class="fa-solid fa-check"></i></div>
+      <div class="text">
+        <h1>Thank you! Your order is confirmed.</h1>
+        <p id="orderLine" class="muted">Order <span class="pill" id="orderId">#SS-XXXX</span> has been placed. We’ve emailed a confirmation to <strong id="orderEmail">you@example.com</strong>.</p>
+        <div class="progress" aria-hidden="true"><div class="bar"></div></div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <!-- Left: items -->
+      <section class="card" aria-labelledby="sec-items">
+        <div class="head">
+          <h2 id="sec-items" style="margin:0;font-size:18px">Your Items</h2>
+          <span class="pill"><i class="fa-solid fa-box"></i> <span id="itemCount">0</span> item(s)</span>
+        </div>
+        <div class="body" id="items"></div>
+      </section>
+
+      <!-- Right: summary + next actions -->
+      <aside class="card" aria-labelledby="sec-summary">
+        <div class="head"><h2 id="sec-summary" style="margin:0;font-size:18px">Order Summary</h2></div>
+        <div class="body">
+          <div class="block" style="margin-bottom:8px">
+            <div class="rowline"><i class="fa-solid fa-truck-fast"></i> <span id="shipMethod">Shipping</span></div>
+            <div class="rowline"><i class="fa-solid fa-location-dot"></i> <span id="shipAddress" class="muted">—</span></div>
+          </div>
+
+          <div class="summary" id="summary">
+            <div class="row"><span>Subtotal</span><strong id="s-sub">₹0</strong></div>
+            <div class="row"><span>Shipping</span><span id="s-ship">₹0</span></div>
+            <div class="row"><span>Sales tax <small>(GST 12%)</small></span><span id="s-tax">₹0</span></div>
+            <div class="row total"><span>Total Paid</span><span id="s-total">₹0</span></div>
+          </div>
+
+          <div class="cta-row" style="margin-top:12px">
+            <a class="btn gold" href="#/track"><i class="fa-solid fa-location-crosshairs"></i> Track My Order</a>
+            <a class="btn" href="#/contact"><i class="fa-regular fa-envelope"></i> Contact Support</a>
+            <a class="btn ghost" href="index.html"><i class="fa-solid fa-arrow-left"></i> Continue Shopping</a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // ===== Constants & helpers (match cart page) =====
+    const CART_KEY = 'SCENT_CART_V1';
+    const LAST_ORDER_KEY = 'SCENT_LAST_ORDER';
+    const SHIP_ID_KEY = 'SCENT_SHIP_ID';
+    const TAX_RATE = 0.12;
+    const SHIPPING = [
+      {id:'std', name:'Free Standard', days:'3–7 business days', cost:0},
+      {id:'exp', name:'Express Air', days:'1–3 business days', cost:199},
+      {id:'nd',  name:'Next Day', days:'1–2 business days (select cities)', cost:499}
+    ];
+    const fmt = new Intl.NumberFormat('en-IN', {style:'currency', currency:'INR', maximumFractionDigits:0});
+
+    const $ = sel => document.querySelector(sel);
+
+    function read(key, fallback){ try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch(e){ return fallback; } }
+    function write(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+    function selectedShip(){
+      const id = localStorage.getItem(SHIP_ID_KEY) || 'std';
+      return SHIPPING.find(s => s.id === id) || SHIPPING[0];
+    }
+
+    function calc(items){
+      const sub = (items||[]).reduce((s,i)=> s + (i.price * (i.qty||1)), 0);
+      const ship = selectedShip().cost;
+      const tax = Math.round(sub * TAX_RATE);
+      const total = sub + ship + tax;
+      return { sub, ship, tax, total };
+    }
+
+    function genOrderId(){
+      const d = new Date();
+      const pad = n => String(n).padStart(2,'0');
+      const stamp = `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`;
+      const rnd = Math.floor(Math.random()*9000)+1000;
+      return `SS-${stamp}-${rnd}`;
+    }
+
+    // ===== Bootstrap order data =====
+    (function init(){
+      // If a LAST_ORDER exists, prefer it (e.g., user refreshes this page)
+      let order = read(LAST_ORDER_KEY, null);
+      let fromCart = false;
+
+      if(!order){
+        const items = read(CART_KEY, []);
+        // If cart empty (deep refresh), still show a graceful page
+        const id = genOrderId();
+        order = {
+          id,
+          email: (document.referrer && sessionStorage.getItem('checkoutEmail')) || 'customer@scentstory.example',
+          items,
+          shipId: localStorage.getItem(SHIP_ID_KEY) || 'std',
+          address: sessionStorage.getItem('checkoutAddress') || '',
+          createdAt: Date.now()
+        };
+        // Snapshot to LAST_ORDER and then clear cart
+        write(LAST_ORDER_KEY, order);
+        localStorage.removeItem(CART_KEY);
+        fromCart = true;
+      }
+
+      // Render header line
+      $('#orderId').textContent = order.id;
+      $('#orderEmail').textContent = order.email || 'customer@scentstory.example';
+
+      // Items
+      const list = $('#items');
+      list.innerHTML = '';
+      const items = order.items || [];
+      $('#itemCount').textContent = items.reduce((n, i)=> n + (parseInt(i.qty||0,10)||0), 0);
+      if(items.length === 0){
+        list.innerHTML = '<p class="muted">No items available to display.</p>';
+      } else {
+        items.forEach(it => {
+          const row = document.createElement('div');
+          row.className = 'order-item';
+          row.innerHTML = `
+            <img src="${it.image}" alt="${it.name}">
+            <div>
+              <h4>${it.name}</h4>
+              <div class="sku">Qty: ${it.qty || 1}</div>
+            </div>
+            <div class="price">${fmt.format(it.price * (it.qty || 1))}</div>`;
+          list.appendChild(row);
+        });
+      }
+
+      // Summary math
+      const m = calc(items);
+      $('#s-sub').textContent = fmt.format(m.sub);
+      $('#s-ship').textContent = fmt.format(m.ship);
+      $('#s-tax').textContent = fmt.format(m.tax);
+      $('#s-total').textContent = fmt.format(m.total);
+
+      // Shipping + address lines
+      const ship = SHIPPING.find(s => s.id === (order.shipId || 'std')) || SHIPPING[0];
+      $('#shipMethod').textContent = `${ship.name} • ${ship.days}`;
+      $('#shipAddress').textContent = order.address || 'We’ll dispatch to the address provided at checkout.';
+
+      // If we just snapshot from cart, also update any cross-page cart badge if present
+      try{
+        const badge = (parent.document || document).getElementById('cart-count');
+        if(badge){ badge.textContent = '0'; badge.hidden = true; }
+      }catch(e){}
+    })();
+  </script>
+</body>
+</html>

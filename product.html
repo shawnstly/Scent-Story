@@ -1,0 +1,180 @@
+<script>
+(function(){
+  function getSlug(){
+    try{
+      const qs = new URLSearchParams(location.search).get('slug');
+      const h  = (location.hash||'').replace(/^#/,'');
+      return (qs && qs.trim()) ? qs.trim() : (h && h.trim()) ? h.trim() : '';
+    }catch(_){ return ''; }
+  }
+  const ALIAS = {
+    // Elixir
+    'ceo':'ceo-elixir','autumn-fire':'autumn-fire-elixir','forever-love':'forever-love-elixir',
+    // Parfum
+    'intense-romance':'intense-romance-parfum','victory-night':'victory-night-parfum','winter-embrace':'winter-embrace-parfum','the-icon':'the-icon-parfum','tropical-escape':'tropical-escape-parfum',
+    // EDP
+    'boardroom':'boardroom-edp','beast':'beast-edp','fresh-salt':'fresh-salt-edp','first-date':'first-date-edp','summer-drift':'summer-drift-edp'
+  };
+  var mapped = ALIAS[slug] || slug;
+if (mapped) {
+  location.replace('pdp.html?slug=' + encodeURIComponent(mapped));
+} else {
+  console.warn('No valid slug detected, staying on page');
+}
+})();
+</script>
+/* ===== PDP: Stacked images (one after another) ===== */
+.pdp .pdp-images #mainImage{ display:none; }
+.pdp .pdp-images .thumbs{ display:block; gap:0; }
+.pdp .pdp-images .thumbs img{
+  width:100%;
+  height:420px;              /* reduced but impactful size */
+  object-fit:cover;
+  display:block;
+  border-radius:16px;
+  border:1px solid var(--border, #e5e7eb);
+  margin-bottom:12px;
+  image-rendering:auto;
+  backface-visibility:hidden;
+  transform: translateZ(0);              /* GPU hint to prevent blurriness */
+  transition: transform .35s ease, opacity .35s ease, box-shadow .35s ease;
+  will-change: transform, opacity;
+}
+/* Gentle hover lift for luxury feel */
+.pdp .pdp-images .thumbs img:hover{ transform: scale(1.015); box-shadow: 0 10px 30px rgba(0,0,0,.18); }
+
+/* Fade-in utility applied by JS on first paint */
+.fade-in{ opacity:0; }
+.fade-in.is-in{ opacity:1; transition: opacity .45s ease; }
+
+.pdp .pdp-images .thumbs img:last-child{ margin-bottom:0; }
+
+@media (max-width: 860px){
+  .pdp .pdp-images .thumbs img{ height:300px; }
+  .pdp .pdp-images .thumbs img:hover{ transform:none; } /* calmer on small screens */
+}
+
+/* ===== PDP: Sticky image column (desktop) + Lightbox ===== */
+@media (min-width: 900px){
+  .pdp .pdp-images{ position: sticky; top: 80px; }
+}
+
+/* Make stacked gallery images clearly interactive */
+.pdp .pdp-images .thumbs img{ cursor: zoom-in; }
+
+/* Lightbox overlay */
+body.no-scroll{ overflow: hidden; }
+.lightbox{ position: fixed; inset:0; background: rgba(0,0,0,.85); display:none; align-items:center; justify-content:center; z-index: 1200; padding: 24px; opacity:0; transform: scale(.985); transition: opacity .28s ease, transform .28s ease; }
+.lightbox.open{ display:flex; opacity:1; transform: scale(1); }
+.lightbox img{ max-width: 92vw; max-height: 92vh; border-radius: 12px; box-shadow: 0 12px 40px rgba(0,0,0,.5); transition: transform .28s ease; cursor: zoom-in; }
+.lightbox img.zoom{ cursor: zoom-out; transform: scale(1.06); }
+.lightbox button{ position:absolute; background: rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.2); backdrop-filter: blur(4px); cursor:pointer; width:44px; height:44px; border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:22px; }
+.lightbox .lb-close{ top: 18px; right: 18px; }
+.lightbox .lb-prev{ left: 16px; top: 50%; transform: translateY(-50%); }
+.lightbox .lb-next{ right: 16px; top: 50%; transform: translateY(-50%); }
+.lightbox button:hover{ background: rgba(255,255,255,.18); }
+/* Ensure hidden attribute wins */
+.lightbox[hidden]{ display:none !important; }
+@media (prefers-reduced-motion: reduce){
+  .pdp .pdp-images .thumbs img, .lightbox, .lightbox img { transition: none !important; }
+}
+<!-- Lightbox (fullscreen image preview) -->
+<div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Image preview" hidden>
+  <button class="lb-close" id="lbClose" aria-label="Close">×</button>
+  <button class="lb-prev" id="lbPrev" aria-label="Previous">‹</button>
+  <img id="lbImg" alt="Product preview" />
+  <button class="lb-next" id="lbNext" aria-label="Next">›</button>
+</div>
+<script>
+(function(){
+  const thumbs = Array.from(document.querySelectorAll('.pdp .pdp-images .thumbs img'));
+  // apply fade-in class, then flip to visible on next frame
+  thumbs.forEach(img => img.classList.add('fade-in'));
+  requestAnimationFrame(()=> thumbs.forEach(img => img.classList.add('is-in')));
+  const overlay = document.getElementById('lightbox');
+  const imgEl   = document.getElementById('lbImg');
+  const btnClose= document.getElementById('lbClose');
+  const btnPrev = document.getElementById('lbPrev');
+  const btnNext = document.getElementById('lbNext');
+  if(!overlay || !imgEl || !thumbs.length) return;
+
+  function preload(src){ if(!src) return; const im = new Image(); im.decoding = 'async'; im.src = src; }
+
+  let idx = 0;
+  function setImage(i){
+    idx = (i + thumbs.length) % thumbs.length;
+    const src = thumbs[idx].getAttribute('data-large') || thumbs[idx].src;
+    imgEl.src = src;
+    imgEl.alt = thumbs[idx].alt || 'Product preview';
+    // Preload neighbors
+    const nextIdx = (idx + 1) % thumbs.length;
+    const prevIdx = (idx - 1 + thumbs.length) % thumbs.length;
+    preload(thumbs[nextIdx].getAttribute('data-large') || thumbs[nextIdx].src);
+    preload(thumbs[prevIdx].getAttribute('data-large') || thumbs[prevIdx].src);
+  }
+  function openLb(i){
+    setImage(i);
+    document.body.classList.add('no-scroll');
+    overlay.hidden = false;
+    // small RAF to ensure the browser applies hidden=false before adding .open
+    requestAnimationFrame(()=> overlay.classList.add('open'));
+    // focus management
+    btnClose && btnClose.focus();
+  }
+  function closeLb(){
+    overlay.classList.remove('open');
+    // wait for transition end before hiding to avoid jump
+    const onEnd = ()=>{ overlay.hidden = true; overlay.removeEventListener('transitionend', onEnd); };
+    overlay.addEventListener('transitionend', onEnd);
+    document.body.classList.remove('no-scroll');
+    imgEl.classList.remove('zoom');
+  }
+  function prev(){ setImage(idx - 1); }
+  function next(){ setImage(idx + 1); }
+
+  // Make stacked images keyboard/touch accessible
+  thumbs.forEach((t, i)=>{
+    t.setAttribute('tabindex','0');
+    t.setAttribute('role','button');
+    t.setAttribute('aria-label','Open image preview');
+    t.addEventListener('click', ()=>openLb(i));
+    t.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openLb(i); }
+    });
+  });
+
+  btnClose && btnClose.addEventListener('click', closeLb);
+  btnPrev  && btnPrev.addEventListener('click', prev);
+  btnNext  && btnNext.addEventListener('click', next);
+
+  imgEl.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    imgEl.classList.toggle('zoom');
+  });
+
+  // touch swipe navigation
+  let touchX = null, touchY = null;
+  overlay.addEventListener('touchstart', (e)=>{
+    const t = e.touches && e.touches[0];
+    if(!t) return; touchX = t.clientX; touchY = t.clientY;
+  }, {passive:true});
+  overlay.addEventListener('touchend', (e)=>{
+    if(touchX==null) return; const t = e.changedTouches && e.changedTouches[0];
+    if(!t) return; const dx = t.clientX - touchX; const dy = t.clientY - touchY;
+    // horizontal swipe with minimal vertical movement
+    if(Math.abs(dx) > 40 && Math.abs(dy) < 30){ dx > 0 ? prev() : next(); }
+    touchX = touchY = null;
+  }, {passive:true});
+
+  // Close when clicking backdrop (but not when clicking the image or buttons)
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closeLb(); });
+
+  // Keyboard support while lightbox is open
+  document.addEventListener('keydown', (e)=>{
+    if(overlay.hidden) return;
+    if(e.key === 'Escape')      return closeLb();
+    if(e.key === 'ArrowLeft')   return prev();
+    if(e.key === 'ArrowRight')  return next();
+  });
+})();
+</script>

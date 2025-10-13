@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scent Story – Luxury Fragrances</title>
+  <meta name="description" content="Scent Story – ultimate luxury fragrances. Explore Elixir, Parfum, and EDP chapters crafted for power, romance, and timeless style." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Inter:wght@400;500;600&family=Montserrat:wght@500&display=swap" rel="stylesheet">
+  <!-- Font Awesome for social icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* === Discover section overrides: enlarge cards by ~10% without overlap === */
+    #discover .container { max-width: 1400px; padding-left: 0; padding-right: 0; }
+    #discover .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); /* wider min card */
+      gap: 28px; /* a bit more spacing to avoid crowding */
+      align-items: stretch;
+    }
+    #discover .card {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-radius: 16px;
+      overflow: hidden; /* prevents image overflow */
+    }
+    #discover .card img {
+      width: 100%;
+      height: 420px;
+      object-fit: cover;          /* fill container edge-to-edge */
+      background: #0f1216;
+      padding: 0;                 /* remove inner padding so it fills sides */
+      display: block;
+    }
+    /* Force square canvas for vertical images in Discover */
+    #discover .card img.square-canvas{ aspect-ratio: 1 / 1; height: auto; width: 100%; object-fit: cover; background:#0f1216; padding: 0; }
+    /* Discover: hover/focus animation */
+    #discover .card{transition:transform .22s ease, box-shadow .22s ease}
+    #discover .card:hover, #discover .card:focus-within{transform:translateY(-2px);box-shadow:0 10px 28px rgba(0,0,0,.18)}
+    #discover .card h3 {
+      font-size: 1.6rem;
+      margin: 12px 12px 6px;
+    }
+    #discover .card p {
+      font-size: 1rem;
+      margin: 0 12px 14px;
+      color: #c9c9c9; /* keep subtle */
+    }
+    /* keep section title aligned and roomy */
+    #discover .section-title {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    /* ensure the cards don't scale/overlap on smaller screens */
+    @media (max-width: 768px) {
+      #discover .grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+      #discover .card img { height: 340px; object-fit: cover; padding: 0; }
+      #discover .card h3 { font-size: 1.35rem; }
+    }
+
+    /* === Bestsellers section overrides: enlarge cards horizontally/vertically === */
+    /* Hero hover/touch glow + smooth fade */
+    .hero .hero-rotator{transform:translateY(-30%);transition:filter .28s ease, transform .28s ease, opacity .28s ease}
+    .hero .hero-rotator.glow{filter: drop-shadow(0 0 20px rgba(255,196,0,.45)) saturate(1.06); transform: translateY(-10%) scale(1.01)}
+    @keyframes heroGlowPulse{0%,100%{filter: drop-shadow(0 0 8px rgba(255,196,0,.28))}50%{filter: drop-shadow(0 0 18px rgba(255,196,0,.55))}}
+    .hero .hero-rotator.glow-pulse{animation: heroGlowPulse 1.6s ease-in-out infinite}
+/* Header brand logo — hard-left, clean, larger with hover glow */
+/* Header brand logo — hard-left, clean, larger, no hover/box effect */
+.brand-logo {
+  display: inline-block;
+  line-height: 0;
+  margin-right: 12px;
+  background: transparent;    /* ensure no background */
+  border: 0;                   /* ensure no border */
+}
+.brand-logo:focus-visible{ outline: none; }
+  .brand-logo img {
+    height: 100px !important;   /* larger, clearly visible */
+    width: auto !important;    /* keep aspect ratio; no squish */
+    display: block;
+    transition: none;
+    background: transparent;
+  }
+  /* Remove hover glow/scale so it sits “free” */
+  .brand-logo img:hover { filter: none; transform: none; }
+  @media (max-width:768px){
+    .brand-logo img { height: 96px !important; }
+  }
+  .brand-text {
+      font-family: "Playfair Display", serif;
+      font-size: 21px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: .02em;
+      margin-left: -25px; /* spacing between logo and text */
+  }
+    /* === Mobile: keep logo + brand text together on one side with minimal gap === */
+    @media (max-width: 900px){
+      /* Keep them grouped on the left; hamburger pushed to the right */
+      .container.nav{
+        justify-content: flex-start;
+        gap: 8px;                     /* tighter spacing between items */
+      }
+      .brand-logo{ 
+        margin-right: 6px;            /* small gap before brand text */
+      }
+      .brand-text{
+        margin-left: -15px !important;    /* cancel desktop negative offset */
+      }
+      .nav-toggle{
+        margin-left: auto;            /* push toggle to far right */
+      }
+    }
+ /* Ensure header row aligns nicely */ /* Ensure header row aligns nicely and has enough height for larger logo */
+.container.nav {
+  display: flex;
+  align-items: center;
+  position: relative;
+  left: 100px;
+  gap: 12px;
+  min-height: 120px;          /* accommodates ~100px logo comfortably */
+  padding: 8px 20px;          /* vertical breathing room */
+}
+@media (max-width:768px){
+  .container.nav{ min-height: 92px; padding: 6px 14px; gap: 10px; }
+}
+    /* Marquee hero: edge-to-edge banners */
+    .hero .slide img{ width:100%; height:auto; margin:0; display:block; }
+    .hero .slide{ overflow:hidden; }
+    @media (max-width:768px){ .hero .slide img{ width:100%; } }
+    @media (max-width:768px){ .hero .hero-rotator{ transform: translateY(-6%); } .hero .hero-rotator.glow{ transform: translateY(-6%) scale(1.01); } }
+
+    /* ===== Exciteful bounce + smooth transitions ===== */
+    .hero .hero-rotator, #discover .discover-rotator { cursor: pointer; will-change: transform, opacity; }
+    .bounce-swap { animation: swapBounce .6s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes swapBounce {
+      0%   { transform: scale(.98) translateY(1px); opacity:.85; }
+      45%  { transform: scale(1.02) translateY(-2px); opacity:1; }
+      70%  { transform: scale(.995) translateY(0); }
+      100% { transform: scale(1) translateY(0); }
+    }
+    /* Subtle idle pulse when hovered/focused */
+    .rotator-active { animation: idlePulse 1.8s ease-in-out infinite; }
+    @keyframes idlePulse { 0%,100%{ transform: scale(1) } 50%{ transform: scale(1.01) } }
+    @media (prefers-reduced-motion: reduce){
+      .bounce-swap, .rotator-active { animation: none !important; }
+      .hero .hero-rotator, #discover .discover-rotator { transition: opacity .2s ease; }
+    }
+    #bestsellers .container { max-width: 1400px; padding-left: 0; padding-right: 0; }
+    #bestsellers .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 28px;
+      align-items: stretch;
+    }
+    #bestsellers .card {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    #bestsellers .card img {
+      width: 100%;
+      height: 420px;              /* increased for better visibility */
+      object-fit: cover;
+      display: block;
+    }
+    /* Hover swap for Bestsellers */
+    #bestsellers .img-stack{position:relative;width:100%;height:420px;overflow:hidden}
+    #bestsellers .img-stack img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:opacity .28s ease, transform .28s ease}
+    #bestsellers .img-stack .img-primary{opacity:1;transform:scale(1)}
+    #bestsellers .img-stack .img-alt{opacity:0;transform:scale(1.02)}
+    #bestsellers .card:hover .img-stack .img-primary,
+    #bestsellers .card:focus-within .img-stack .img-primary{opacity:0;transform:scale(.985)}
+    #bestsellers .card:hover .img-stack .img-alt,
+    #bestsellers .card:focus-within .img-stack .img-alt{opacity:1;transform:scale(1)}
+    @media (max-width: 768px){
+      #bestsellers .img-stack{height:340px}
+    }
+    #bestsellers .card h3 {
+      font-size: 1.6rem;
+      margin: 12px 12px 6px;
+    }
+    #bestsellers .card p {
+      font-size: 1rem;
+      margin: 0 12px 14px;
+      color: #c9c9c9;
+    }
+    #bestsellers .section-title {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 768px) {
+      #bestsellers .grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+      #bestsellers .card img { height: 340px; }
+      #bestsellers .card h3 { font-size: 1.35rem; }
+    }
+    /* Global font reset */
+    html, body, h1, h2, h3, h4, h5, h6, p, a, li, nav, button, input, textarea {
+      font-family: 'Playfair Display', serif !important;
+    }
+
+    /* Special Become a Member button style */
+    /* Header quick actions: Account & Orders */
+    .quick-actions{display:flex;align-items:center;gap:10px;margin-left:auto}
+    .quick-actions .chip{margin:0}
+    .icon-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #bfa06a;border-radius:999px;font-size:13px;color:#efba0a;text-decoration:none;background:rgba(191,160,106,.08)}
+    .icon-btn i{font-size:14px}
+    .icon-btn:hover{filter:brightness(1.08);box-shadow:0 6px 18px rgba(191,160,106,.18)}
+    @media (max-width:900px){.icon-btn span{display:none}}
+    .btn-outline.member-btn {
+      background-color: #ffc400;
+      color: #111 !important;
+      border: none;
+      font-weight: 600;
+      animation: shakeAnim 3s infinite;
+    }
+    @keyframes shakeAnim {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-3px); }
+      40% { transform: translateX(3px); }
+      60% { transform: translateX(-2px); }
+      80% { transform: translateX(2px); }
+    }
+    /* Footer alignment tweak: shift containers slightly right for visual alignment */
+    .footer .container{ padding-left: 28px; }
+    @media (max-width:768px){
+      .footer .container{ padding-left: 40px; }
+    }
+    /* Small gap between Scent Story text and Home link */
+    #primary-nav.menu { margin-left: 95px; }
+    /* Lede: compact hero copy (desktop + mobile) */
+    .lede{ 
+      font-family: Playfair Display, serif; 
+      font-size: 20px; 
+      line-height: 1.45; 
+      letter-spacing: .01em; 
+      color:#EDEDED; 
+      opacity:.95; 
+      margin:10px auto 0; 
+      max-width: 980px; 
+    }
+    @media (max-width: 720px){ .lede{ font-size:16px; line-height:1.5; max-width: 92%; } }
+
+    /* ===== Responsive Typographic Scale (mobile-first refinement) ===== */
+    @media (max-width: 900px){
+      /* Keep brand readable but compact */
+      .brand-text{ font-size: 25px; letter-spacing: .01em; }
+      #primary-nav.menu a{ font-size: 14px; }
+      .icon-btn{ font-size: 12px; padding: 5px 9px; }
+    }
+
+    @media (max-width: 720px){
+      /* Hero lede and section titles */
+      .lede{ font-size: 15px; line-height: 1.48; max-width: 94%; }
+      .section-title{ font-size: 20px; line-height: 1.2; }
+
+      /* Cards: titles & body copy */
+      #discover .card h3, #bestsellers .card h3{ font-size: 1.2rem; }
+      #discover .card p,  #bestsellers .card p{ font-size: .95rem; }
+
+      /* Buttons: slightly smaller for thumb reach */
+      .btn-gold, .btn-outline, .pulse-glow{ font-size: 14px; padding: 10px 14px; }
+
+      /* Footer link columns */
+      .footer .footer-links a{ font-size: 14px; }
+      .footer .footer-links h4{ font-size: 15px; }
+    }
+
+    @media (max-width: 480px){
+      /* Tighten nav further and ensure one-line menu items */
+      .brand-text{ font-size: 22px; }
+      #primary-nav.menu a{ font-size: 13px; }
+
+      /* Headings & lede */
+      .section-title{ font-size: 18px; }
+      .lede{ font-size: 14px; line-height: 1.46; }
+
+      /* Card text */
+      #discover .card h3, #bestsellers .card h3{ font-size: 1.1rem; }
+      #discover .card p,  #bestsellers .card p{ font-size: .9rem; }
+
+      /* Buttons */
+      .btn-gold, .btn-outline, .pulse-glow{ font-size: 13px; padding: 9px 12px; }
+
+      /* Footer */
+      .footer .footer-links a{ font-size: 13px; }
+      .footer .footer-links h4{ font-size: 14px; }
+    }
+    /* ===== Section Rhythm: unify font sizes + tighten vertical gaps ===== */
+:root{ --nav-height: 120px; --nav-offset-extra: 35px; } /* global vars for header height + extra drop */
+@media (max-width: 900px){
+  :root{ --nav-height: 92px; }
+}
+/* Mobile drawer accordions (match pdp.html) */
+.mobile-menu details{
+  border:1px solid var(--stroke);
+  border-radius:12px;
+  background:#0f1216;
+}
+.mobile-menu summary{
+  list-style:none;
+  cursor:pointer;
+  padding:12px 10px;
+  font-weight:700;
+  color:#fff;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.mobile-menu details[open] summary{ filter:brightness(1.06); }
+.mobile-menu details .sub{ padding:8px 10px 10px; }
+.mobile-menu details .sub a{ margin-top:6px; }
+
+    /* ===== Mobile nav (hamburger + slide drawer) ===== */
+.nav-toggle{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  width:40px; height:40px;
+  border-radius:8px;
+  border:1px solid var(--stroke);
+  background:#141820;
+  color:#ffc400;
+  cursor:pointer;
+}
+.nav-toggle i{ font-size:18px; }
+@media (max-width: 900px){
+  .menu{ display:none; }
+  .quick-actions{ display:none; }
+  .nav-toggle{ display:inline-flex; }
+}
+.mobile-menu{
+  position: fixed;
+  top: calc(var(--nav-height, 120px) + var(--nav-offset-extra, 0px));
+  left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--stroke);
+  box-shadow: 0 18px 38px rgba(0,0,0,.45);
+  z-index: 120;
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  transform: translateY(-12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .25s ease, opacity .25s ease;
+}
+.mobile-menu.open{
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.mobile-menu a{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 10px;
+  border:1px solid var(--stroke);
+  border-radius: 12px;
+  background: #0f1216;
+  color:#fff; text-decoration:none; font-weight:600;
+  font-size:14px;
+}
+.mobile-menu a:hover{ filter:brightness(1.08); }
+.mobile-menu .sub{
+  display:grid; gap:8px; margin-top:4px;
+  padding-left: 10px;
+}
+.mobile-menu .label{
+  color:#bfa06a;
+  font-size:12px;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  margin:4px 2px;
+}
+@media (min-width: 901px){
+  .mobile-menu{ display:none !important; }
+}
+    /* Titles across sections match the lede scale for luxury balance */
+    .section-title{ font-size: clamp(18px, 2.1vw, 20px); line-height: 1.25; letter-spacing:.01em; margin: 0 0 14px; }
+
+    /* Apply a consistent vertical rhythm for home sections */
+    section[data-home]{ padding-top: 22px; padding-bottom: 28px; }
+
+    /* Tighten gaps immediately after hero */
+    .hero + section[data-home]{ margin-top: -6px; }
+
+    /* Normalize inner container spacing for discover/bestsellers */
+    #discover .container, #bestsellers .container{ padding-top: 10px; padding-bottom: 6px; }
+
+    /* Reduce extra whitespace below grids */
+    #discover .grid, #bestsellers .grid{ margin-bottom: 4px; }
+
+    /* Match card heading/body sizes to lede scale subtly */
+    #discover .card h3, #bestsellers .card h3{ font-size: clamp(18px, 2vw, 19px); }
+    #discover .card p,  #bestsellers .card p{ font-size: clamp(14px, 1.6vw, 16px); }
+
+    /* Footer top spacing trimmed to sit closer to content without crowding */
+    .footer{ margin-top: 14px; }
+
+    /* Mobile refinements (keep copy compact, avoid large voids) */
+    @media (max-width: 720px){
+      section[data-home]{ padding-top: 18px; padding-bottom: 22px; }
+      #discover .container, #bestsellers .container{ padding-top: 8px; padding-bottom: 4px; }
+      .hero .container{ padding-bottom: 16px !important; }
+      .section-title{ margin: 0 0 12px; }
+    }
+
+    @media (max-width: 480px){
+      section[data-home]{ padding-top: 14px; padding-bottom: 18px; }
+      #discover .container, #bestsellers .container{ padding-top: 6px; padding-bottom: 2px; }
+      #discover .card p,  #bestsellers .card p{ font-size: 14px; }
+    }
+    /* ===== Responsive forms: Contact & Grievance (Index) ===== */
+    /* Base grid for two-column desktop layout */
+    #page-content .contact-grid, 
+    #page-content .grievance-grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:24px;
+      align-items:start;
+    }
+
+    /* Shared form styling */
+    #page-content .contact-form, 
+    #page-content .grievance-form{ 
+      display:grid; 
+      gap:12px; 
+      max-width:720px; 
+    }
+    #page-content .contact-form label, 
+    #page-content .grievance-form label{ 
+      display:block; 
+      color:var(--muted); 
+      font-weight:600; 
+    }
+    #page-content .contact-form input, 
+    #page-content .grievance-form input,
+    #page-content .contact-form select, 
+    #page-content .grievance-form select,
+    #page-content .contact-form textarea, 
+    #page-content .grievance-form textarea{
+      width:100%;
+      margin-top:6px;
+      padding:10px 12px;
+      border:1px solid var(--stroke);
+      border-radius:10px;
+      background:#0f1216;
+      color:#EDEDED;
+    }
+    #page-content .contact-form .btn-gold, 
+    #page-content .grievance-form .btn-gold{ 
+      padding:12px 16px; 
+      border-radius:12px; 
+    }
+    #page-content .panel{ 
+      border:1px solid var(--stroke); 
+      border-radius:14px; 
+      padding:16px; 
+      background:linear-gradient(180deg,#0b0d10,#0e1116) 
+    }
+
+    /* Two-up rows that collapse on mobile */
+    #page-content .row2{ 
+      display:grid; 
+      grid-template-columns:1fr 1fr; 
+      gap:10px; 
+    }
+
+    /* Mobile stacking */
+    @media (max-width: 900px){
+      #page-content .contact-grid, 
+      #page-content .grievance-grid{ 
+        grid-template-columns: 1fr; 
+        gap:16px; 
+      }
+      #page-content .contact-form, 
+      #page-content .grievance-form{ 
+        max-width:100%; 
+      }
+      #page-content .contact-form .btn-gold, 
+      #page-content .grievance-form .btn-gold{ 
+        width:100%; 
+      }
+      #page-content .row2{ grid-template-columns:1fr; }
+    }
+
+    @media (max-width: 560px){
+      #page-content .contact-form input, 
+      #page-content .grievance-form input,
+      #page-content .contact-form select, 
+      #page-content .grievance-form select,
+      #page-content .contact-form textarea, 
+      #page-content .grievance-form textarea{ 
+        font-size:15px; 
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER / NAV (no structural change) -->
+  <header aria-label="Primary Navigation">
+    <div class="container nav">
+      <a class="brand-logo" href="index.html" aria-label="Scent Story Home">
+        <img src="images/brandlogofin.png" alt="Scent Story logo">
+      </a>
+      <span class="brand-text">Scent Story</span>
+      <!-- Mobile hamburger button -->
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Open menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <nav id="primary-nav" class="menu" style="font-family:Playfair Display,serif; color:#efba0a; opacity:.95">
+        <a href="index.html" style="color:#efba0a">Home</a>
+        <a href="#bestsellers" style="color:#efd8b2">New Launches</a>
+        <details>
+          <summary id="nav-explore">Explore Chapters ▾</summary>
+          <div class="dropdown" role="menu" aria-label="Explore Chapters">
+            <a href="#/collections" style="
+              display:block;
+              margin:4px 0 8px;
+              padding:8px 10px;
+              border-radius:8px;
+              font-weight:700;
+              color:#111;
+              background:linear-gradient(135deg,#f6e7b9,#bfa06a);
+              text-align:center;
+            ">See Full Collections →</a>
+            <a href="pdp1.html?tag=ambition" style="color:#efba0a">Ambition</a>
+            <a href="pdp1.html?tag=bold" style="color:#efba0a">Bold</a>
+            <a href="pdp1.html?tag=carefree" style="color:#efba0a">Carefree</a>
+            <a href="pdp1.html?tag=power" style="color:#efba0a">Power</a>
+            <a href="pdp1.html?tag=seasons" style="color:#efba0a">Seasons</a>
+          </div>
+        </details>
+        <a href="#/track" style="color:#efba0a">Track My Order</a>
+        <a href="wishlist.html" id="wishlistLink" style="color:#efba0a" data-base-label="Wishlist">
+          Wishlist <span id="wishlist-count" class="cart-badge" aria-live="polite">0</span>
+        </a>
+        <a href="#/contact" style="color:#efba0a">Contact</a>
+        <a id="cart-link" class="cart-link" href="cart.html" style="color:#efba0a">Cart
+          <span id="cart-count" class="cart-badge" aria-live="polite">0</span>
+        </span></a>
+      </nav>
+      <!-- Mobile dropdown container -->
+      <nav id="mobileMenu" class="mobile-menu" aria-label="Mobile Navigation" hidden>
+        <a href="index.html">Home <i class="fa-solid fa-house"></i></a>
+
+        <details>
+          <summary style="color:#efba0a">Explore by Concentration ▾</summary>
+          <div class="sub">
+            <a href="pdp1.html?cat=edp">EDP</a>
+            <a href="pdp1.html?cat=parfum">Parfum</a>
+            <a href="pdp1.html?cat=elixir">Elixir</a>
+          </div>
+        </details>
+
+        <details>
+          <summary style="color:#efba0a">Explore by Mood ▾</summary>
+          <div class="sub">
+            <a href="pdp1.html?tag=ambition">Ambition</a>
+            <a href="pdp1.html?tag=bold">Bold</a>
+            <a href="pdp1.html?tag=carefree">Carefree</a>
+            <a href="pdp1.html?tag=power">Power</a>
+            <a href="pdp1.html?tag=seasons">Seasons</a>
+          </div>
+        </details>
+
+        <a href="#/track" style="color:#e0d2a2">Track My Order <i class="fa-solid fa-box"></i></a>
+        <a href="wishlist.html" id="wishlistLinkMobile" data-base-label="Wishlist" style="color:#e0d2a2">
+          Wishlist <span class="cart-badge" id="wishlist-count-mobile" aria-live="polite">0</span>
+        </a>
+        <a href="cart.html" style="color:#e0d2a2">
+          Cart <span class="cart-badge" id="cart-count-mobile" aria-live="polite">0</span>
+        </a>
+        <a href="#/contact" style="color:#e0d2a2">Contact <i class="fa-regular fa-envelope"></i></a>
+        </nav>
+    </div>
+  </header>
+
+  <!-- Page Hero -->
+  <section class="hero" style="padding:38px 0">
+    <div class="container" style="text-align:center">
+      <h1 style="margin:0 0 6px">About Us</h1>
+      <p style="max-width:900px;margin:19px auto 0;color:#a5b3c2">
+        Scent Story — Est. 1984. Stories you wear. Crafted with precision, designed for the modern man.
+      </p>
+    </div>
+  </section>
+
+  <!-- Core Story -->
+  <section>
+    <div class="container" style="max-width:920px">
+      <h2 class="section-title" style="color:#efd8b2; text-align:left">Our Philosophy</h2>
+      <p>
+        At Scent Story, we believe fragrance is the most personal form of storytelling. Long after words fade, scent lingers - evoking places, people, and emotions like nothing else can. Each creation is built to capture moods, reflect lifestyles, and define legacies.
+      </p>
+      <p>
+        From boardrooms to date nights, celebrations to escapes, every chapter in our collection is crafted to move with life’s moments - turning them into lasting memories.
+      </p>
+
+      <h2 id="craft" class="section-title" style="color:#efd8b2; text-align:left;margin-top:36px">Craft &amp; Safety</h2>
+      <ul style="color:#B7BEC6; margin-top:14px"></ul>
+        <li>Rare natural extracts &amp; modern accords balanced for freshness, depth, and longevity.</li>
+        <li>Signature bottle design - crystal clarity for EDP, deep glass for Parfum, bold matte for Elixir.</li>
+        <li>Phthalate-free, Paraben-free, Cruelty-free.</li>
+        <li>IFRA &amp; FDA compliant, Dermatologically tested.</li>
+      </ul>
+
+      <h2 id="press" class="section-title" style="color:#efd8b2; text-align:left;margin-top:36px">Press &amp; Recognition</h2>
+      <p style="margin:0 0 10px">Highlights &amp; mentions (samples):</p>
+      <div class="grid">
+        <div class="card">
+          <h3 style="margin:0 0 8px">“Stories You Wear”</h3>
+          <p class="muted">A modern manifesto of luxury scent design.</p>
+        </div>
+        <div class="card">
+          <h3 style="margin:0 0 8px">Design Icons</h3>
+          <p class="muted">Our signature bottle received a spotlight in style editorials.</p>
+        </div>
+        <div class="card">
+          <h3 style="margin:0 0 8px">Editor’s Pick</h3>
+          <p class="muted">Seasonal blends ranked top for longevity & sillage.</p>
+        </div>
+      </div>
+
+      <div class="cta-center" style="margin-top:26px">
+        <a class="btn-gold" href="index.html#bestsellers" aria-label="See our bestsellers">Explore Bestsellers ➜</a>
+      </div>
+    </div>
+  </section>
+
+  
+  <!-- 🔻 FOOTER (Modern, split layout) -->
+<footer class="footer">
+  <!-- Top: Newsletter + Membership -->
+  <div class="container footer-hero">
+    <section class="subscribe-card" aria-labelledby="subscribe-title">
+      <h3 id="subscribe-title">Join Our Circle</h3>
+      <p>Be first to new launches, private sales, and members-only stories. <strong>New members get <span style="color:#efba0a">10% off</span>.</strong></p>
+
+      <form id="newsletter-form" class="newsletter-form" novalidate>
+        <label class="visually-hidden" for="nl-email">Email</label>
+        <input id="nl-email" name="email" type="email" placeholder="Enter your email" required>
+        <button type="submit" class="btn-gold">Subscribe</button>
+      </form>
+
+      <!-- Inline success (stays within the card) -->
+      <p id="newsletter-success" class="newsletter-success" role="status" hidden>
+        🎉 Thank you! You’re subscribed. Check your inbox for a welcome note.
+      </p>
+
+      <small class="legal">By subscribing you agree to our <a href="#/privacy">Privacy Policy</a>. Unsubscribe anytime.</small>
+    </section>
+
+    <section class="membership-card" aria-labelledby="member-title">
+      <h3 id="member-title" style="color:#efe2b8;">Scent Story Circle — Members Get More !!!</h3>
+      <ul class="benefits">
+        <li style="color:#efba0a">Early access to new Chapters</li>
+        <li style="color:#efba0a">Free samples with every order</li>
+        <li style="color:#efba0a">Birthday reward, extra 10% offer</li>
+        <li style="color:#ffc400">Priority customer support and care</li>
+      </ul>
+      <a class="btn-outline member-btn" href="becomemem.html" aria-label="Become a member">Become a Member</a>
+    </section>
+  </div>
+
+  <!-- Middle: Navigation columns -->
+  <div class="container footer-links">
+    <div class="col">
+      <h4>Brand</h4>
+      <a href="about.html">About Us</a>
+      <a href="about.html#craft">Craft & Safety</a>
+      <a href="about.html#press">Press</a>
+    </div>
+    <div class="col">
+      <h4>Shop</h4>
+      <a href="#bestsellers">New Launches</a>
+      <a href="#bestsellers">Bestsellers</a>
+      <a href="#discover">Explore Chapters</a>
+      <a href="pdp1.html?cat=all">Gift Ideas</a>
+    </div>
+    <div class="col">
+      <h4>Support</h4>
+      <a href="#/track">Track My Order</a>
+      <a href="#/shipping">Shipping</a>
+      <a href="#/returns">Returns</a>
+      <a href="#/grievance">Grievances</a>
+      <a href="#/contact">Contact</a>
+    </div>
+    <div class="col">
+      <h4>Legal</h4>
+      <a href="#/terms">Terms of Service</a>
+      <a href="#/privacy">Privacy Policy</a>
+      <a href="#/privacy">Cookies & Consent</a>
+      <a href="#/accessibility">Accessibility</a>
+    </div>
+  </div>
+
+  <!-- Trust line -->
+  <div class="container footer-trust">
+    <p>Phthalate-Free • Cruelty-Free • IFRA &amp; FDA Compliant • Secure Checkout</p>
+  </div>
+
+  <!-- Bottom: payments, socials, copyright -->
+  <div class="container footer-bottom">
+    <div class="payments">
+      <i class="fa-brands fa-cc-visa" aria-hidden="true" title="Visa"></i>
+      <i class="fa-brands fa-cc-mastercard" aria-hidden="true" title="Mastercard"></i>
+      <i class="fa-brands fa-cc-amex" aria-hidden="true" title="American Express"></i>
+      <i class="fa-brands fa-cc-paypal" aria-hidden="true" title="PayPal"></i>
+      <span class="badge-upi" aria-label="UPI accepted">UPI</span>
+    </div>
+
+    <div class="social-icons" aria-label="Social media">
+      <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+        <i class="fab fa-facebook-f"></i>
+      </a>
+      <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+        <i class="fab fa-instagram"></i>
+      </a>
+      <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+        <i class="fab fa-twitter"></i>
+      </a>
+    </div>
+
+    <div class="copyright">
+      © <span id="year"></span> Scent Story. All Rights Reserved.
+    </div>
+  </div>
+</footer>
+  <!-- POPUP (Contact submit) -->
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <h3>Thank You!</h3>
+      <p>Your information has been successfully submitted.</p>
+      <button onclick="closePopup()">Close</button>
+    </div>
+  </div>
+  <!-- Preload hero rotator images -->
+  <link rel="preload" as="image" href="images/banneredp3png.png">
+  <link rel="preload" as="image" href="images/First Date.png">
+  <link rel="preload" as="image" href="images/Fresh Salt.png">
+  <link rel="preload" as="image" href="images/Beast.png">
+  <link rel="preload" as="image" href="images/Boardroom.png">
+  <link rel="preload" as="image" href="images/Summer Drift.png">
+  <link rel="preload" as="image" href="images/Victory Night.png">
+  <!-- Preload rotating EDP images to avoid first-hover lag -->
+  <script>
+    (function(){
+      const INTERVAL_MS = 1000; // 1 second per image
+      const heroImg = document.querySelector('.hero .hero-rotator');
+      if(!heroImg) return;
+      let timer = null;
+      let list = (heroImg.getAttribute('data-images')||'').split('|').map(s=>s.trim()).filter(Boolean);
+      if(list.length < 2) return;
+      let i = 0;
+
+      function swap(){
+        i = (i + 1) % list.length;
+        const next = list[i];
+        heroImg.classList.add('bounce-swap');
+        // fade swap
+        heroImg.style.opacity = 0;
+        const tmp = new Image();
+        tmp.onload = ()=>{
+          heroImg.src = next;
+          heroImg.style.opacity = 1;
+          setTimeout(()=>heroImg.classList.remove('bounce-swap'), 300);
+        };
+        tmp.src = next;
+      }
+      function start(){
+        clear();
+        heroImg.classList.add('glow','glow-pulse');
+        heroImg.classList.add('rotator-active');
+        timer = setInterval(swap, INTERVAL_MS);
+      }
+      function clear(){
+        if(timer){ clearInterval(timer); timer = null; }
+        i = 0; // reset to first
+        if(list[0]){
+          // if not on first image, restore with fade
+          if(heroImg.src.indexOf(list[0]) === -1){
+            heroImg.style.opacity = 0;
+            const tmp = new Image();
+            tmp.onload = ()=>{ heroImg.src = list[0]; heroImg.style.opacity = 1; };
+            tmp.src = list[0];
+          }
+        }
+        heroImg.classList.remove('glow','glow-pulse');
+        heroImg.classList.remove('rotator-active');
+      }
+
+      const wrap = heroImg.closest('.hero-wrap') || heroImg;
+      wrap.addEventListener('mouseenter', start);
+      wrap.addEventListener('mouseleave', clear);
+      wrap.addEventListener('focusin', start);
+      wrap.addEventListener('focusout', clear);
+      wrap.addEventListener('touchstart', ()=>{
+        start();
+        setTimeout(clear, list.length * INTERVAL_MS + 250); // auto-stop after one loop
+      }, {passive:true});
+      wrap.addEventListener('touchend', clear);
+      wrap.addEventListener('touchcancel', clear);
+    })();
+  </script>
+  <link rel="preload" as="image" href="images/FirstDate.png">
+  <link rel="preload" as="image" href="images/Fresh Salt.png">
+  <link rel="preload" as="image" href="images/Beast.png">
+  <link rel="preload" as="image" href="images/Boardroom.png">
+  <link rel="preload" as="image" href="images/Summer Drift.png">
+  <link rel="preload" as="image" href="images/Victory Night.png">
+  <script>
+    (function(){
+      const START_DELAY = 0;           // start immediately
+      const INTERVAL_MS = 1000;        // 1 second per image
+      const SELECTOR = '.discover-rotator';
+      const rotators = document.querySelectorAll(SELECTOR);
+      const timers = new WeakMap();
+      const indexes = new WeakMap();
+
+      function startRotate(img){
+        const list = (img.getAttribute('data-images')||'').split('|').map(s=>s.trim()).filter(Boolean);
+        if(list.length < 2) return;
+        clearRotate(img);
+        const card = img.closest('.card') || img;
+        img.classList.add('rotator-active');
+        card.style.cursor='pointer';
+        // ensure we begin from current if present
+        let i = Math.max(0, list.indexOf(img.src.split('/').slice(-1)[0]) );
+        indexes.set(img, i);
+        const tick = ()=>{
+          i = (i + 1) % list.length;
+          indexes.set(img, i);
+          img.classList.add('bounce-swap');
+          img.src = list[i];
+          setTimeout(()=>img.classList.remove('bounce-swap'), 300);
+        };
+        const t = setInterval(tick, INTERVAL_MS);
+        timers.set(img, t);
+      }
+      function clearRotate(img){
+        img.classList.remove('rotator-active');
+        const card = img.closest('.card') || img;
+        card.style.cursor='';
+        const t = timers.get(img);
+        if(t){ clearInterval(t); timers.delete(img); }
+        const list = (img.getAttribute('data-images')||'').split('|').map(s=>s.trim()).filter(Boolean);
+        if(list.length) img.src = list[0]; // reset to first
+      }
+
+      function addHandlers(img){
+        const card = img.closest('.card') || img;
+        card.addEventListener('mouseenter', ()=>startRotate(img));
+        card.addEventListener('mouseleave', ()=>clearRotate(img));
+        card.addEventListener('focusin',   ()=>startRotate(img));
+        card.addEventListener('focusout',  ()=>clearRotate(img));
+        // Touch: start on touchstart, stop on touchend/cancel, auto-stop after one full cycle
+        card.addEventListener('touchstart', ()=>{
+          startRotate(img);
+          const list = (img.getAttribute('data-images')||'').split('|').map(s=>s.trim()).filter(Boolean);
+          if(list.length){ setTimeout(()=>clearRotate(img), list.length*INTERVAL_MS + 200); }
+        }, {passive:true});
+        card.addEventListener('touchend', ()=>clearRotate(img));
+        card.addEventListener('touchcancel', ()=>clearRotate(img));
+      }
+
+      rotators.forEach(addHandlers);
+    })();
+  </script>
+  <script src="js/main.js" defer></script>
+  <script>
+    (function(){
+      const CART_KEY='SCENT_CART_V1';
+      function readCart(){ try{return JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch(e){return []} }
+      function total(){ return readCart().reduce((s,i)=> s + (parseInt(i.qty||0,10)||0), 0); }
+      function update(){ const b=document.getElementById('cart-count'); if(!b) return; const n=total(); b.textContent=n; b.hidden=n<=0; }
+      document.addEventListener('visibilitychange', update);
+      window.addEventListener('storage', update);
+      update();
+    })();
+  </script>
+  <script>
+  (function(){
+    const toggle = document.getElementById('navToggle');
+    const drawer = document.getElementById('mobileMenu');
+    if(!toggle || !drawer) return;
+
+    function openDrawer(){
+      drawer.hidden = false;
+      drawer.classList.add('open');
+      toggle.setAttribute('aria-expanded','true');
+      document.body.style.overflow='hidden';
+      syncCounts();
+    }
+    function closeDrawer(){
+      drawer.classList.remove('open');
+      toggle.setAttribute('aria-expanded','false');
+      document.body.style.overflow='';
+      setTimeout(()=>{ if(!drawer.classList.contains('open')) drawer.hidden = true; }, 250);
+    }
+    function toggleDrawer(){
+      if(drawer.classList.contains('open')) closeDrawer(); else openDrawer();
+    }
+
+    toggle.addEventListener('click', toggleDrawer);
+    drawer.addEventListener('click', (e)=>{
+      const a = e.target.closest('a');
+      if(!a) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const href = (a.getAttribute('href')||'').trim();
+      const go = ()=>{
+        if(href.startsWith('#/')) window.location.href = 'index.html' + href;
+        else window.location.href = href || 'index.html';
+      };
+      closeDrawer();
+      setTimeout(go, 220);
+    });
+    window.addEventListener('resize', ()=>{ if(window.innerWidth > 900) closeDrawer(); });
+
+    // Mirror cart/wishlist counts into the mobile drawer badges
+    function syncCounts(){
+      const c = document.getElementById('cart-count');
+      const w = document.getElementById('wishlist-count');
+      const cm = document.getElementById('cart-count-mobile');
+      const wm = document.getElementById('wishlist-count-mobile');
+      if(c && cm) cm.textContent = c.textContent || '0';
+      if(w && wm) wm.textContent = w.textContent || '0';
+      if(cm) cm.hidden = (parseInt(cm.textContent||'0',10) <= 0);
+      if(wm) wm.hidden = (parseInt(wm.textContent||'0',10) <= 0);
+    }
+    document.addEventListener('DOMContentLoaded', syncCounts);
+    window.addEventListener('storage', syncCounts);
+    window.addEventListener('wishlist:changed', syncCounts);
+  })();
+  </script>
+</script>
+  <script>
+  // Normalize SPA (hash) links on this page to the Index router
+  document.addEventListener('click', function(e){
+    const a = e.target.closest('a[href^="#/"]');
+    if(!a) return;
+    // If this click is inside the mobile drawer, it is handled by the drawer handler above
+    if(a.closest('#mobileMenu')) return;
+    e.preventDefault();
+    const hash = a.getAttribute('href') || '#/';
+    window.location.href = 'index.html' + hash;
+  });
+  // If someone lands here directly with a hash route, push them to Index
+  if(location.hash && location.hash.startsWith('#/')){
+    location.replace('index.html' + location.hash);
+  }
+  </script>
+</body>
+</html>
