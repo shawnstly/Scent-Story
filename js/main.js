@@ -415,69 +415,89 @@ document.addEventListener('click', (e)=>{
     '/shipping': `<h1 style="font-family:Playfair Display,serif">Shipping Policy</h1><p>Processing 1–2 business days. Standard delivery 3–7 days.</p>`,
     '/returns': `<h1 style="font-family:Playfair Display,serif">Delivery & Returns Policy</h1><p>Unused products in original packaging may be returned within 14 days.</p>`,
     '/contact': `
-      <section class="container" aria-labelledby="contact-title" style="padding:20px 0 28px;max-width:1100px">
-        <h1 id="contact-title" class="section-title">We’re Here to Help</h1>
-        <p style="max-width:820px;color:var(--muted);margin:6px 0 14px">
-          Questions about your order, our fragrances, or membership? Contact our scent concierge below.
-        </p>
+    <section class="container" aria-labelledby="contact-title" style="max-width:1100px">
+        <h1 id="contact-title" class="section-title" style="margin-bottom:6px">We’re Here to Help</h1>
+        <p style="color:#a8b0ba;margin:0 0 20px">Questions about your order, our fragrances, or membership? Contact our scent concierge below.</p>
 
-        <div class="contact-grid">
-          <!-- Left: Form -->
-          <form id="contact-form" class="contact-form" novalidate>
-            <div class="row2">
-              <label>Full Name
-                <input name="name" type="text" required placeholder="Your full name">
-              </label>
-              <label>Email
-                <input name="email" type="email" required placeholder="you@example.com"
-                       pattern="^(?:[a-z0-9_\-.+]+)@(?:[a-z0-9\-]+\.)+[a-z]{2,}$"
-                       title="Enter a valid email address">
-              </label>
+        <div style="display:grid;grid-template-columns:1.2fr .8fr;gap:16px">
+          <!-- Contact Form -->
+          <form id="contact-form" class="contact-form" novalidate
+                style="display:grid;gap:10px;background:#12151a;border:1px solid #262b33;border-radius:16px;padding:16px">
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Full Name</label>
+              <input name="name" required placeholder="Your full name"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED" />
             </div>
-            <div class="row2">
-              <label>Phone (10 digits)
-                <input name="phone" type="tel" required inputmode="numeric" pattern="^\d{10}$" maxlength="10"
-                       placeholder="10-digit mobile" title="Enter exactly 10 digits">
-              </label>
-              <label>Reason for Contact
-                <select name="reason" required>
-                  <option value="">Select a reason</option>
-                  <option value="order">Order Inquiry</option>
-                  <option value="product">Fragrance / Product Question</option>
-                  <option value="membership">Membership</option>
-                  <option value="returns">Returns / Exchanges</option>
-                  <option value="shipping">Shipping</option>
-                  <option value="other">Other</option>
-                </select>
-              </label>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Email</label>
+              <input name="email" type="email" inputmode="email" required maxlength="254"
+                     pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[A-Za-z]{2,}$"
+                     placeholder="you@example.com"
+                     oninput="this.value=this.value.replace(/\\s/g,'').toLowerCase()"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED" />
             </div>
-            <label>Message
-              <textarea name="message" rows="6" required placeholder="How can we help? Minimum 20 characters for context."></textarea>
-            </label>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <label style="display:flex;align-items:center;gap:8px">
-                <input id="c-consent" type="checkbox" required>
-                <span style="color:var(--muted)">I agree to the <a href="index.html#/privacy" style="text-decoration:underline">Privacy Policy</a></span>
-              </label>
-              <button type="submit" class="btn-gold">Send Message</button>
-              <span id="c-hint" style="color:#e9b949"></span>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Phone (10 digits)</label>
+              <input name="phone" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" required
+                     placeholder="10-digit mobile"
+                     oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED" />
             </div>
-            <p id="contact-success" role="status" hidden style="margin-top:8px;color:#8de6a2">Thanks! We’ve received your message and will get back within 24 hours.</p>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Reason for Contact</label>
+              <select name="reason" style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED">
+                <option>Order Inquiry</option>
+                <option>Membership & Rewards</option>
+                <option>Return / Exchange</option>
+                <option>Corporate Gifting</option>
+                <option>Press / Collaborations</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Message</label>
+              <textarea name="message" rows="5" minlength="20" required placeholder="How can we help?"
+                        style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED"></textarea>
+              <small style="color:#a8b0ba">Minimum 20 characters for context.</small>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn-gold" type="submit"
+                      style="background:linear-gradient(135deg,#f6e7b9,#bfa06a);border:1px solid #bfa06a;color:#111;border-radius:12px;padding:12px 14px">
+                Send Message
+              </button>
+              <a class="btn" href="#/track"
+                 style="display:inline-flex;align-items:center;gap:8px;border:1px solid #262b33;background:#1a1f26;border-radius:12px;padding:12px 14px;color:#fff;text-decoration:none">
+                Track My Order
+              </a>
+            </div>
+            <p id="contact-success" role="status" hidden
+               style="margin:8px 0 0;color:#45D483;font-weight:600">Thanks! Our concierge will respond within 24 hours.</p>
           </form>
 
-          <!-- Right: Support info card -->
-          <aside class="panel">
-            <h3 style="margin:0 0 8px;color:#efe2b8">Quick Help</h3>
-            <ul style="list-style:none;padding:0;margin:0;display:grid;gap:10px;color:var(--muted)">
-              <li><i class="fa-solid fa-truck-fast" aria-hidden="true"></i> <a href="index.html#/track">Track My Order</a></li>
-              <li><i class="fa-solid fa-phone" aria-hidden="true"></i> Call Us: <strong style="color:#fff">+91 98765 43210</strong><br><small>Mon–Sat, 10 AM – 7 PM IST</small></li>
-              <li><i class="fa-regular fa-envelope" aria-hidden="true"></i> Email Support: <a href="mailto:support@scentstory.in">support@scentstory.in</a><br><small>Response within 24–48 hrs</small></li>
-              <li><i class="fa-solid fa-building" aria-hidden="true"></i> Corporate Office<br><address style="font-style:normal;color:var(--muted)">21, Park Street, Bangalore, India</address></li>
-            </ul>
-          </aside>
+          <!-- Info Cards -->
+          <div style="display:grid;gap:10px">
+            <div class="card" style="background:#12151a;border:1px solid #262b33;border-radius:16px">
+              <div class="body" style="padding:14px 16px">
+                <h3 style="margin:0 0 6px;font-family:'Playfair Display',serif">Call Us</h3>
+                <p style="margin:0;color:#a8b0ba">+91 98765 43210<br/>Mon–Sat, 10 AM – 7 PM IST</p>
+              </div>
+            </div>
+            <div class="card" style="background:#12151a;border:1px solid #262b33;border-radius:16px">
+              <div class="body" style="padding:14px 16px">
+                <h3 style="margin:0 0 6px;font-family:'Playfair Display',serif">Email Support</h3>
+                <p style="margin:0;color:#a8b0ba">support@scentstory.in<br/>Response within 24–48 hrs</p>
+              </div>
+            </div>
+            <div class="card" style="background:#12151a;border:1px solid #262b33;border-radius:16px">
+              <div class="body" style="padding:14px 16px">
+                <h3 style="margin:0 0 6px;font-family:'Playfair Display',serif">Corporate Office</h3>
+                <p style="margin:0;color:#a8b0ba">21, Park Street, Bangalore, India</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     `,
+
     '/grievance': `
       <section class="container" aria-labelledby="griev-title" style="padding:20px 0 28px;max-width:1100px;">
         <h1 id="griev-title" class="section-title">Grievances</h1>
