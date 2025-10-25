@@ -499,59 +499,89 @@ document.addEventListener('click', (e)=>{
     `,
 
     '/grievance': `
-      <section class="container" aria-labelledby="griev-title" style="padding:20px 0 28px;max-width:1100px;">
-        <h1 id="griev-title" class="section-title">Grievances</h1>
-        <p style="max-width:820px;color:var(--muted);margin:6px 0 14px">
-          Tell us what went wrong and we’ll make it right. We respond within 24 hours (Mon–Sat, 10:00–18:00 IST).
-        </p>
+      <section class="container" aria-labelledby="grievance-title" style="max-width:1100px;">
+        <h1 id="grievance-title" class="section-title" style="margin-bottom:6px">Raise a Grievance</h1>
+        <p style="color:#a8b0ba;margin:0 0 20px">We take every concern seriously. Please provide complete details so our team can respond quickly and fairly.</p>
 
-        <div class="grievance-grid">
-          <!-- Left: Form -->
-          <form id="grievance-form" class="grievance-form" novalidate>
-            <div class="row2">
-              <label>Full Name
-                <input name="name" type="text" required placeholder="Your full name">
-              </label>
-              <label>Email
-                <input name="email" type="email" required placeholder="name@example.com"
-                       pattern="^(?:[a-z0-9_\-.+]+)@(?:[a-z0-9\-]+\.)+[a-z]{2,}$"
-                       title="Enter a valid email address">
-              </label>
+        <div style="display:grid;grid-template-columns:1.2fr .8fr;gap:16px">
+          <!-- Grievance Form -->
+          <form id="grievance-form" class="contact-form" novalidate
+                style="display:grid;gap:12px;background:#12151a;border:1px solid #262b33;border-radius:16px;padding:16px;">
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Full Name</label>
+              <input name="name" required placeholder="Your full name"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED"/>
             </div>
-            <div class="row2">
-              <label>Phone (10 digits)
-                <input name="phone" type="tel" inputmode="numeric" pattern="^\d{10}$" maxlength="10"
-                       placeholder="9876543210" title="Enter exactly 10 digits">
-              </label>
-              <label>Order ID (optional)
-                <input name="order" type="text" placeholder="SS123456">
-              </label>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Email</label>
+              <input name="email" type="email" inputmode="email" required maxlength="254"
+                     pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[A-Za-z]{2,}$"
+                     placeholder="you@example.com"
+                     oninput="this.value=this.value.replace(/\\s/g,'').toLowerCase()"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED"/>
             </div>
-            <label>Issue Type
-              <select name="issue" required>
-                <option value="">Select an issue</option>
-                <option value="delivery">Delivery Delay / Damage</option>
-                <option value="quality">Product Quality</option>
-                <option value="payment">Payment / Refund</option>
-                <option value="account">Account / Access</option>
-                <option value="other">Other</option>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Phone (optional, 10 digits)</label>
+              <input name="phone" inputmode="numeric" pattern="[0-9]{10}" maxlength="10"
+                     placeholder="10-digit mobile"
+                     oninput="this.value=this.value.replace(/\\D/g,'').slice(0,10)"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED"/>
+            </div>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Order ID (if applicable)</label>
+              <input name="orderId" placeholder="Optional – helps us locate your order"
+                     style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED"/>
+            </div>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Issue Type</label>
+              <select name="issue" required
+                      style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED">
+                <option value="">Select issue type</option>
+                <option>Damaged / Missing Product</option>
+                <option>Payment / Refund Issue</option>
+                <option>Delayed Delivery</option>
+                <option>Quality Concern</option>
+                <option>Other</option>
               </select>
-            </label>
-            <label>Message
-              <textarea name="message" rows="6" required placeholder="Describe the issue with details (dates, order ID, photos if any)"></textarea>
-            </label>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <label style="display:flex;align-items:center;gap:8px">
-                <input id="g-consent" type="checkbox" required>
-                <span style="color:var(--muted)">I agree to the <a href="index.html#/privacy" style="text-decoration:underline">Privacy Policy</a></span>
-              </label>
-              <button type="submit" class="btn-gold">Submit Grievance</button>
-              <span id="g-hint" style="color:#e9b949"></span>
             </div>
-            <p id="grievance-success" role="status" hidden style="margin-top:8px;color:#8de6a2">
-              Thanks. Your grievance has been recorded. Our team will reach out within 24 hours.
-            </p>
+            <div>
+              <label style="font-size:12px;color:#a8b0ba">Describe Your Issue</label>
+              <textarea name="message" rows="6" minlength="30" required
+                        placeholder="Please describe your concern in detail..."
+                        style="width:100%;padding:10px;border-radius:10px;border:1px solid #262b33;background:#0f1216;color:#EDEDED"></textarea>
+              <small style="color:#a8b0ba">Minimum 30 characters for clarity.</small>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn-gold" type="submit"
+                      style="background:linear-gradient(135deg,#f6e7b9,#bfa06a);border:1px solid #bfa06a;color:#111;border-radius:12px;padding:12px 14px">
+                Submit Grievance
+              </button>
+            </div>
+            <p id="grievance-success" role="status" hidden
+               style="margin:8px 0 0;color:#45D483;font-weight:600">Your grievance has been received. We’ll respond within 48 hours.</p>
           </form>
+
+          <!-- Policy / Escalation -->
+          <div style="display:grid;gap:10px;">
+            <div class="card" style="background:#12151a;border:1px solid #262b33;border-radius:16px;">
+              <div class="body" style="padding:14px 16px">
+                <h3 style="margin:0 0 6px;font-family:'Playfair Display',serif">Escalation Matrix</h3>
+                <p style="margin:0;color:#a8b0ba">
+                  Level 1: Support Team — <b>support@scentstory.in</b><br>
+                  Level 2: Grievance Officer — <b>grievance@scentstory.in</b><br>
+                  Level 3: Management Desk (if unresolved beyond 7 days)
+                </p>
+              </div>
+            </div>
+            <div class="card" style="background:#12151a;border:1px solid #262b33;border-radius:16px;">
+              <div class="body" style="padding:14px 16px">
+                <h3 style="margin:0 0 6px;font-family:'Playfair Display',serif">Resolution Timeline</h3>
+                <p style="margin:0;color:#a8b0ba">Most issues are resolved within <b>48–72 hours</b>. We’ll keep you updated on progress.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
           <!-- Right: Policy / help card -->
           <aside class="panel">

@@ -331,33 +331,6 @@ function renderPDP(){
     renderCartLink();
   }
   
-  // 10) Contact/Support forms (demo only)
-  function submitContact(e){
-    e.preventDefault();
-    const name = el("firstName")?.value.trim();
-    const phone = el("phone")?.value.trim();
-    const email = el("email")?.value.trim();
-    if(!name || !/^\d{10}$/.test(phone||"") || !email?.includes("@")){
-      alert("Please fill all fields correctly.");
-      return false;
-    }
-    alert("Thank you. Your details have been submitted successfully.");
-    e.target.reset(); return false;
-  }
-  function submitGrievance(e){
-    e.preventDefault();
-    const full = el("gName")?.value.trim();
-    const oid = el("gOrder")?.value.trim();
-    const mail = el("gEmail")?.value.trim();
-    const msg = el("gMsg")?.value.trim();
-    if(!full || !mail?.includes("@") || !msg){
-      alert("Please fill all required fields.");
-      return false;
-    }
-    alert("Your issue has been recorded. Our team will reach out within 24–48 hours.");
-    e.target.reset(); return false;
-  }
-  
   // 11) Track order (demo)
   function trackOrder(e){
     e.preventDefault();
