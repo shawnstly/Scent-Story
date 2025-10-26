@@ -296,17 +296,27 @@
       const CURRENCY='INR';
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({ event:'page_context', page_type:'thankyou', currency:CURRENCY });
-
+    
       let order=null;
       try{ order = JSON.parse(localStorage.getItem('SCENT_LAST_ORDER')||'null'); }catch(_){}
       if(!order || order.__fired) return;
-
+    
       const items = Array.isArray(order.items) ? order.items : [];
       const value = Number(order.total || items.reduce((s,i)=> s + (Number(i.price||0) * Number(i.quantity||1)), 0));
       const tax = Number(order.tax || 0);
       const shipping = Number(order.shipping || 0);
       const txId = String(order.order_id || order.id || Date.now());
-
+    
+      // 🏠 Extract shipping state (simple heuristic)
+      let shipping_state = '';
+      if(order.address){
+        const parts = order.address.split(',').map(p=>p.trim());
+        shipping_state = parts[parts.length-1] || ''; // last comma-separated piece
+      }
+    
+      const shipInfo = localStorage.getItem('SCENT_SHIP_ID') || 'std';
+      const shipping_tier = (shipInfo==='exp' ? 'Express Air' : shipInfo==='nd' ? 'Next Day' : 'Standard');
+    
       window.dataLayer.push({
         event:'purchase',
         transaction_id: txId,
@@ -314,9 +324,11 @@
         value,
         tax,
         shipping,
+        shipping_state,
+        shipping_tier,
         items
       });
-
+    
       order.__fired = true;
       localStorage.setItem('SCENT_LAST_ORDER', JSON.stringify(order));
     })();
