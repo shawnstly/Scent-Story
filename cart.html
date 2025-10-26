@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>window.dataLayer = window.dataLayer || [];</script>
+  <script src="dl.js" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -125,6 +127,142 @@
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5SX8RV8P"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
+  <script>
+    (function(){
+      const CURRENCY = 'INR';
+      const BC_FLAG = 'begin_checkout_fired_v1';
+    
+      // ---------- Cart snapshot ----------
+      function readCart(){ try{ return JSON.parse(localStorage.getItem('SCENT_CART_V1')||'[]'); }catch(_){ return []; } }
+      function mapItem(i){
+        return {
+          item_id: String(i.sku || i.slug || '').toLowerCase(),
+          item_name: i.name || '',
+          item_category: (i.type || i.tier || 'fragrance').toLowerCase(),
+          price: Number(i.price || 0),
+          quantity: Number(i.qty || 1),
+          currency: CURRENCY
+        };
+      }
+      function cartPayload(){
+        const items = readCart().map(mapItem);
+        const value = items.reduce((s,i)=> s + i.price * i.quantity, 0);
+        return { items, value };
+      }
+    
+      // ---------- 1) view_cart on load ----------
+      (function pushViewCartOnce(){
+        const {items, value} = cartPayload();
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event:'page_context', page_type:'cart', currency:CURRENCY });
+        window.dataLayer.push({ event:'view_cart', currency:CURRENCY, value, items });
+      })();
+    
+      // ---------- Helpers to find the checkout form + fields ----------
+      function getCheckoutForm(){
+        // Prefer explicit marker if you add it: data-checkout-form
+        return (
+  document.querySelector('[data-checkout-form]') ||
+  document.getElementById('addrForm') ||
+  document.getElementById('checkout-form') ||
+  document.querySelector('form.checkout') ||
+  document.querySelector('form[action*="order"], form[action*="checkout"]') ||
+  // fallback: first form in the right/side column
+  document.querySelector('aside form') ||
+  document.querySelector('form')
+);
+      }
+    
+      // Heuristics: we try to find typical inputs by name/id
+      function pickField(root, names){
+        const sel = names.map(n => [
+          `input[name*="${n}"]`, `input[id*="${n}"]`, `input[data-${n}]`,
+          `textarea[name*="${n}"]`, `textarea[id*="${n}"]`, `textarea[data-${n}]`,
+          `select[name*="${n}"]`, `select[id*="${n}"]`, `select[data-${n}]`
+        ].join(',')).join(',');
+        return root.querySelector(sel);
+      }
+    
+      function getFields(form){
+        const email = pickField(form, ['email','e-mail']);
+        const phone = pickField(form, ['phone','mobile','tel']);
+        // name can be one field or two; fall back to any "name" like full_name
+        const name  = pickField(form, ['full','name','fname','first']) || pickField(form, ['lname','last']);
+        const address = pickField(form, ['address','addr1','line1','street']);
+        const city = pickField(form, ['city','town']);
+        const pincode = pickField(form, ['pin','pincode','postal','zip']);
+        // if you use explicit required attributes, we’ll respect them too
+        return { email, phone, name, address, city, pincode };
+      }
+    
+      // ---------- Validation ----------
+      function digitsOnly(s){ return String(s||'').replace(/\D+/g,''); }
+      function isEmail(s){ return /\S+@\S+\.\S+/.test(String(s||'').trim()); }
+      function isReady(fields){
+        const e = (fields.email && isEmail(fields.email.value));
+        const p = (fields.phone && digitsOnly(fields.phone.value).length >= 7);
+        const n = (fields.name && String(fields.name.value||'').trim().length >= 2);
+        const a = (fields.address && String(fields.address.value||'').trim().length >= 5);
+        const c = (fields.city && String(fields.city.value||'').trim().length >= 2);
+        // Indian pincodes are 6 digits, but support 4-8 to be lenient for testing
+        const z = (fields.pincode && digitsOnly(fields.pincode.value).length >= 4);
+        return e && p && n && a && c && z;
+      }
+    
+      // ---------- 2) begin_checkout when form becomes valid ----------
+      function setupBeginCheckoutWatcher(){
+        if (sessionStorage.getItem(BC_FLAG) === '1') return; // already fired
+        const form = getCheckoutForm();
+        if (!form) return;
+    
+        const fields = getFields(form);
+        const inputs = Array.from(form.querySelectorAll('input,select,textarea'));
+    
+        let lastReady = false;
+    
+        function maybeFire(){
+          if (sessionStorage.getItem(BC_FLAG) === '1') return;
+          const ready = isReady(fields);
+          // Fire once on the FIRST transition to ready
+          if (!lastReady && ready){
+            const {items, value} = cartPayload();
+            window.dataLayer.push({ event:'begin_checkout', currency:CURRENCY, value, items });
+            sessionStorage.setItem(BC_FLAG, '1');
+          }
+          lastReady = ready;
+        }
+    
+        // Watch for user typing/selecting
+        inputs.forEach(el => {
+          el.addEventListener('input', maybeFire);
+          el.addEventListener('change', maybeFire);
+          el.addEventListener('blur', maybeFire);
+        });
+    
+        // Safety: check once after a short delay (in case autofill happened)
+        setTimeout(maybeFire, 300);
+      }
+    
+      // ---------- 3) Fallback: fire on "Complete Order" click if present ----------
+      function setupCompleteOrderFallback(){
+        if (sessionStorage.getItem(BC_FLAG) === '1') return;
+        const submitBtn = document.querySelector('#completeOrder, [data-complete-order], button[type="submit"].btn-gold, button[type="submit"].btn');
+        if (!submitBtn) return;
+        submitBtn.addEventListener('click', function(){
+          if (sessionStorage.getItem(BC_FLAG) === '1') return;
+          const {items, value} = cartPayload();
+          window.dataLayer.push({ event:'begin_checkout', currency:CURRENCY, value, items });
+          sessionStorage.setItem(BC_FLAG, '1');
+        }, {capture:true});
+      }
+    
+      // Init
+      document.addEventListener('DOMContentLoaded', function(){
+        setupBeginCheckoutWatcher();
+        setupCompleteOrderFallback();
+      });
+    })();
+    </script>
   <div class="wrap">
     <header class="top">
       <a class="brand" href="index.html" aria-label="Back to home">
@@ -158,7 +296,7 @@
       <section class="card" aria-labelledby="sec-addr">
         <div class="head"><h2 id="sec-addr" style="margin:0;font-size:18px">2. Delivery Address</h2></div>
         <div class="body">
-          <form class="addr" id="addrForm">
+          <form class="addr" id="addrForm" data-checkout-form>
             <div class="full">
               <label>Email address*</label>
               <input type="email" name="email" required autocomplete="email" inputmode="email" placeholder="you@example.com" maxlength="254" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[A-Za-z]{2,}$" oninput="this.value=this.value.replace(/\\s/g,'').toLowerCase()" />
@@ -277,7 +415,7 @@
             <div class="row total"><span>Order Total</span><span id="s-total">₹0</span></div>
           </div>
 
-          <button class="btn gold" id="completeOrder" style="width:100%;margin-top:12px">Complete Order</button>
+          <button class="btn gold" id="completeOrder" data-complete-order style="width:100%;margin-top:12px">Complete Order</button>
           <div class="muteline"><input id="emailOpt" type="checkbox" checked> <label for="emailOpt">Email me about new products and private sales</label></div>
         </div>
       </aside>

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>window.dataLayer = window.dataLayer || [];</script>
+  <script src="dl.js" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -517,6 +519,16 @@
      <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5SX8RV8P"
        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
        <!-- End Google Tag Manager (noscript) -->
+       <script>
+        (function(){
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({ event:'page_context', page_type:'login', currency:'INR' });
+          const f=document.getElementById('newsletter-form'), e=document.getElementById('nl-email'), ok=document.getElementById('newsletter-success');
+          f?.addEventListener('submit', ()=> window.dataLayer.push({ event:'newsletter_subscription', method:'footer_form', email:(e?.value||'').trim().toLowerCase() }));
+          if(ok){ const vis=()=>ok.offsetParent!==null && !ok.hidden; const fire=()=>window.dataLayer.push({event:'newsletter_subscription', method:'footer_form'}); 
+            const o=new MutationObserver(()=>{ if(vis()){ fire(); o.disconnect(); }}); o.observe(ok,{attributes:true,attributeFilter:['hidden','style','class']}); if(vis()) fire(); }
+        })();
+        </script>
        <!-- HEADER / NAV (no structural change) -->
        <header aria-label="Primary Navigation">
          <div class="container nav">

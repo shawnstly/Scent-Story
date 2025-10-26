@@ -1,8 +1,8 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>window.dataLayer = window.dataLayer || [];</script>
+  <script src="dl.js" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -121,6 +121,48 @@
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5SX8RV8P"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
+  <script>
+    (function(){
+      const CURRENCY='INR';
+      const STORE_KEY='SCENT_MEM_SELECTION';
+      const FIRE_KEY='SCENT_LAST_MEMBERSHIP_OK';
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event:'page_context', page_type:'welcomemembership', currency:CURRENCY });
+    
+      if(localStorage.getItem(FIRE_KEY)==='1') return;
+    
+      // Load selected tier; fallback if missing
+      let sel=null;
+      try{ sel = JSON.parse(localStorage.getItem(STORE_KEY)||'null'); }catch(_){}
+      const tier_id   = (sel?.tier_id   || 'basic').toString().toLowerCase();
+      const tier_name = sel?.tier_name || 'Basic';
+      const price     = Number(sel?.price || 1999); // fallback to default if not stored
+    
+      window.dataLayer.push({
+        event:'membership_purchase',
+        transaction_id: 'MEM-' + Date.now(),
+        currency: CURRENCY,
+        value: price,
+        items: [{
+          // GA4 item fields
+          item_id: 'membership-' + tier_id,            // unique per tier for SKU-like granularity
+          item_name: 'Membership — ' + tier_name,      // readable name
+          item_category: 'membership',                 // keep category consistent
+          item_variant: tier_name,                     // optional: also store tier here
+          price: price,
+          quantity: 1,
+          currency: CURRENCY
+        }],
+        membership:{
+          tier_id: tier_id,
+          tier_name: tier_name
+        }
+      });
+    
+      // mark as fired
+      try{ localStorage.setItem(FIRE_KEY,'1'); }catch(_){}
+    })();
+    </script>
   <!-- Minimal header: brand + Continue Shopping -->
   <header class="site" aria-label="Minimal Navigation">
     <div class="nav-wrap">

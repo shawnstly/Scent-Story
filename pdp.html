@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>window.dataLayer = window.dataLayer || [];</script>
+  <script src="dl.js" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -705,11 +707,6 @@ function updateCartBadge(){
   badge.textContent = n;
   badge.hidden = n<=0;
 }
-    function readWishlistPDP(){ return JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]'); }
-    function writeWishlistPDP(items){
-      localStorage.setItem(WISHLIST_KEY, JSON.stringify(items));
-      try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){ }
-    }
     // ===== Local WL badge fallback (keeps navbar count in sync on this page) =====
     function readWishlistCountLocal(){
       try{
@@ -891,15 +888,36 @@ const shortKey = normalizeSlug(rawSlug);
 const PDP_PRODUCT = PRODUCTS[shortKey] || PRODUCTS['ceo-elixir'];
 PDP_PRODUCT.slug = PDP_PRODUCT.slug || shortKey;
 // ===== Bind product fields into the DOM =====
-(function bindProduct(){
-  const title = document.querySelector('.product-info h1');
-  const price = document.querySelector('.price-row .price');
-  const desc  = document.querySelector('.product-info .desc');
-  const notesWrap = document.querySelector('.notes-list');
-  if(title) title.textContent = PDP_PRODUCT.name;
-  if(price) price.textContent = `₹ ${PDP_PRODUCT.priceINR.toLocaleString('en-IN')}`;
-  if(desc)  desc.textContent  = PDP_PRODUCT.desc || '';
-  if(notesWrap){ notesWrap.innerHTML = (PDP_PRODUCT.notes||[]).map(n=>`<span>${n}</span>`).join(''); }
+  (function bindProduct(){
+    const title = document.querySelector('.product-info h1');
+    const price = document.querySelector('.price-row .price');
+    const desc  = document.querySelector('.product-info .desc');
+    const notesWrap = document.querySelector('.notes-list');
+    if(title) title.textContent = PDP_PRODUCT.name;
+    if(price) price.textContent = `₹ ${PDP_PRODUCT.priceINR.toLocaleString('en-IN')}`;
+    if(desc)  desc.textContent  = PDP_PRODUCT.desc || '';
+    if(notesWrap){ notesWrap.innerHTML = (PDP_PRODUCT.notes||[]).map(n=>`<span>${n}</span>`).join(''); }
+  })();
+
+// ===== GA4 / GTM helpers for PDP events =====
+(function(){
+  const CURRENCY = 'INR';
+  window.dataLayer = window.dataLayer || [];
+  function gaItemFromProduct(qty){
+    return {
+      item_id: String(PDP_PRODUCT.slug || '').toLowerCase(),
+      item_name: PDP_PRODUCT.name || '',
+      item_category: String(PDP_PRODUCT.type || 'fragrance').toLowerCase(),
+      price: Number(PDP_PRODUCT.priceINR || PDP_PRODUCT.price || 0),
+      quantity: Math.max(1, Number(qty || 1)),
+      currency: CURRENCY
+    };
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    window.dataLayer.push({ event: 'page_context', page_type: 'pdp', currency: CURRENCY });
+    window.dataLayer.push({ event: 'view_item', currency: CURRENCY, items: [ gaItemFromProduct(1) ] });
+  });
+  window.__gaItemFromProduct = gaItemFromProduct;
 })();
 
     // ===== Header year =====
@@ -915,12 +933,23 @@ updateCartBadge();
     const wishBtn = document.getElementById('wishlist');
     function renderWish(){ wishBtn.textContent = inWishlistSafe(PDP_PRODUCT.slug) ? '✓ Wishlisted' : '♡ Add to Wishlist'; }
     wishBtn.addEventListener('click', ()=>{
+      const wasIn = inWishlistSafe(PDP_PRODUCT.slug);
       toggleWishlistSafe(PDP_PRODUCT.slug);
       renderWish();
-      // Update navbar WL badge (local fallback + global if present)
       updateWishlistBadgeLocal();
       try{ if(window.__updateWishlistBadge__) window.__updateWishlistBadge__(); if(window.__pulseWishlistBadge__) window.__pulseWishlistBadge__(); }catch(_){ }
-      try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){}
+      try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){ }
+      try{
+        const item = (window.__gaItemFromProduct ? window.__gaItemFromProduct(1) : null) || {
+          item_id: String(PDP_PRODUCT.slug||'').toLowerCase(),
+          item_name: PDP_PRODUCT.name||'',
+          item_category: String(PDP_PRODUCT.type||'fragrance').toLowerCase(),
+          price: Number(PDP_PRODUCT.priceINR||0),
+          quantity: 1,
+          currency: 'INR'
+        };
+        window.dataLayer.push({ event: wasIn ? 'remove_from_wishlist' : 'add_to_wishlist', currency:'INR', items:[item] });
+      }catch(_){ }
       showToast('Wishlist updated');
     });
     renderWish();
@@ -950,14 +979,23 @@ updateCartBadge();
     addBtn.addEventListener('click', ()=>{
       const isOn = inCart(PDP_PRODUCT.slug);
       if(isOn){
-        // User is undoing: remove item from cart
         removeFromCart(PDP_PRODUCT.slug);
         showToast('Removed from cart');
       } else {
-        // User is adding: respect chosen quantity
         const q = Math.max(1, parseInt(qtyInput.value||'1',10));
         addToCartItem({ slug: PDP_PRODUCT.slug, name: PDP_PRODUCT.name, price: PDP_PRODUCT.priceINR, qty: q, image: PDP_PRODUCT.images[0] });
         showToast(`Added ${q} × ${PDP_PRODUCT.name}`);
+        try{
+          const item = (window.__gaItemFromProduct ? window.__gaItemFromProduct(q) : null) || {
+            item_id: String(PDP_PRODUCT.slug||'').toLowerCase(),
+            item_name: PDP_PRODUCT.name||'',
+            item_category: String(PDP_PRODUCT.type||'fragrance').toLowerCase(),
+            price: Number(PDP_PRODUCT.priceINR||0),
+            quantity: q,
+            currency: 'INR'
+          };
+          window.dataLayer.push({ event:'add_to_cart', currency:'INR', value: Number(item.price||0)*Number(item.quantity||1), items:[item] });
+        }catch(_){ }
       }
       renderAddState();
       updateCartBadge();
@@ -970,12 +1008,26 @@ updateCartBadge();
     if(buyBtn){
       buyBtn.addEventListener('click', ()=>{
         const q = Math.max(1, parseInt(qtyInput.value||'1',10));
+        let addedNow = false;
         if(!inCart(PDP_PRODUCT.slug)){
-          // Only add if not already in cart to avoid double counting
           addToCartItem({ slug: PDP_PRODUCT.slug, name: PDP_PRODUCT.name, price: PDP_PRODUCT.priceINR, qty: q, image: PDP_PRODUCT.images[0] });
+          addedNow = true;
         }
         showToast('Proceeding to checkout…');
         updateCartBadge();
+        try{
+          if(addedNow){
+            const item = (window.__gaItemFromProduct ? window.__gaItemFromProduct(q) : null) || {
+              item_id: String(PDP_PRODUCT.slug||'').toLowerCase(),
+              item_name: PDP_PRODUCT.name||'',
+              item_category: String(PDP_PRODUCT.type||'fragrance').toLowerCase(),
+              price: Number(PDP_PRODUCT.priceINR||0),
+              quantity: q,
+              currency: 'INR'
+            };
+            window.dataLayer.push({ event:'add_to_cart', currency:'INR', value: Number(item.price||0)*Number(item.quantity||1), items:[item] });
+          }
+        }catch(_){ }
         setTimeout(()=>{ window.location.href = 'cart.html'; }, 250);
       });
     }
@@ -1596,7 +1648,45 @@ updateCartBadge();
       route();
     })();
   </script>
-
+  <script>
+    (function(){
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event:'page_context', page_type:'pdp', currency:'INR' });
+    
+      // Resolve product from DOM/URL
+      const url=new URL(location.href);
+      const slug=(url.searchParams.get('slug')||'').toLowerCase();
+      const name=(document.querySelector('.product-info h1')?.textContent||'').trim();
+      const price=Number(String(document.querySelector('.price-row .price')?.textContent||'').replace(/[^\d]/g,'')||0);
+    
+      // Try to find type from global PRODUCTS if present
+      let type='fragrance';
+      try{
+        const list=Array.isArray(window.PRODUCTS)?window.PRODUCTS:[];
+        const p=list.find(x=>String(x.slug||'').toLowerCase()===slug)||list.find(x=>String(x.name||'').toLowerCase()===name.toLowerCase());
+        type = (p?.type||'fragrance').toLowerCase();
+      }catch(_){}
+    
+      // view_item on load
+      window.dataLayer.push({ event:'view_item', currency:'INR', items:[{ item_id:slug||name.toLowerCase(), item_name:name, item_category:type, price, quantity:1 }] });
+    
+      // Add to cart
+      const addBtn=document.querySelector('#addToCart,#addToCartBtn');
+      addBtn?.addEventListener('click', ()=>{
+        const qty=Math.max(1, parseInt((document.getElementById('qty')||document.getElementById('qtyInput'))?.value||'1',10));
+        window.dataLayer.push({ event:'add_to_cart', currency:'INR', value:price*qty, items:[{ item_id:slug||name.toLowerCase(), item_name:name, item_category:type, price, quantity:qty, currency:'INR' }] });
+      });
+    
+      // Wishlist toggle (decide intent before UI toggles)
+      function inWL(sl){ try{ const a=JSON.parse(localStorage.getItem('SCENT_WISHLIST_V1')||'[]'); return a.some(it=>String(it.sku||it.slug||'').toLowerCase()===String(sl).toLowerCase()); }catch(_){return false;} }
+      const wishBtn=document.getElementById('wishlist');
+      wishBtn?.addEventListener('click', function(){
+        const wasIn=inWL(slug||name.toLowerCase());
+        const evt= wasIn ? 'remove_from_wishlist' : 'add_to_wishlist';
+        window.dataLayer.push({ event:evt, items:[{ item_id:slug||name.toLowerCase(), item_name:name, item_category:type, price, quantity:1, currency:'INR' }] });
+      }, {capture:true});
+    })();
+    </script>
 </body>
 <script>
   (function(){

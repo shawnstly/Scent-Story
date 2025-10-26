@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>window.dataLayer = window.dataLayer || [];</script>
+  <script src="dl.js" defer></script>
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
@@ -23,12 +25,16 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     // EDP
     'boardroom':'boardroom-edp','beast':'beast-edp','fresh-salt':'fresh-salt-edp','first-date':'first-date-edp','summer-drift':'summer-drift-edp'
   };
-  var mapped = ALIAS[slug] || slug;
-if (mapped) {
-  location.replace('pdp.html?slug=' + encodeURIComponent(mapped));
-} else {
-  console.warn('No valid slug detected, staying on page');
-}
+  const slug = getSlug();
+  const mapped = ALIAS[slug] || slug;
+  if (mapped) {
+    // brief delay so body DL events (page_context/view_item_list) can fire
+    setTimeout(()=>{
+      location.replace('pdp.html?slug=' + encodeURIComponent(mapped));
+    }, 120);
+  } else {
+    console.warn('No valid slug detected, staying on page');
+  }
 })();
 </script>
 <style>
@@ -92,6 +98,40 @@ body.no-scroll{ overflow: hidden; }
 <body>
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5SX8RV8P"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<script>
+  (function(){
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event:'page_context', page_type:'product', currency:'INR' });
+  
+    // Expect each card has data-* attributes
+    const cards = document.querySelectorAll('[data-sku][data-name][data-price]');
+    const items = Array.from(cards).map(c=>({
+      item_id: c.getAttribute('data-sku'),
+      item_name: c.getAttribute('data-name'),
+      item_category: (c.getAttribute('data-tier')||'fragrance').toLowerCase(),
+      price: Number(c.getAttribute('data-price')||0),
+      quantity: 1, currency:'INR'
+    }));
+    if(items.length){ window.dataLayer.push({ event:'view_item_list', currency:'INR', items }); }
+  
+    document.addEventListener('click', (e)=>{
+      const card = e.target.closest('[data-sku][data-name][data-price]');
+      if(!card) return;
+      const sku = card.dataset.sku;
+      const item = {
+        item_id: sku,
+        item_name: card.dataset.name,
+        item_category: (card.dataset.tier||'fragrance').toLowerCase(),
+        price: Number(card.dataset.price||0),
+        quantity: 1,
+        currency: 'INR'
+      };
+      window.dataLayer.push({ event:'select_item', currency:'INR', items:[item] });
+      // navigate to PDP after a brief delay so the event is captured reliably
+      setTimeout(()=>{ window.location.href = 'pdp.html?slug=' + encodeURIComponent(sku); }, 120);
+    });
+  })();
+  </script>
 <!-- Lightbox (fullscreen image preview) -->
 <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Image preview" hidden>
   <button class="lb-close" id="lbClose" aria-label="Close">×</button>

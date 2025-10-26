@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>window.dataLayer = window.dataLayer || [];</script>
+  <script src="dl.js" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -85,6 +87,7 @@
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5SX8RV8P"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
+
   <div class="wrap">
     <header class="top">
       <a class="brand" href="index.html" aria-label="Back to home">
@@ -150,6 +153,7 @@
       {id:'exp', name:'Express Air', days:'1–3 business days', cost:199},
       {id:'nd',  name:'Next Day', days:'1–2 business days (select cities)', cost:499}
     ];
+    const CURRENCY = 'INR';
     const fmt = new Intl.NumberFormat('en-IN', {style:'currency', currency:'INR', maximumFractionDigits:0});
 
     const $ = sel => document.querySelector(sel);
@@ -184,22 +188,59 @@
       let order = read(LAST_ORDER_KEY, null);
       let fromCart = false;
 
-      if(!order){
-        const items = read(CART_KEY, []);
-        // If cart empty (deep refresh), still show a graceful page
+      if (!order) {
+        const rawCart = read(CART_KEY, []);
         const id = genOrderId();
+        // Map cart items to GA4 shape
+        const gaItems = Array.isArray(rawCart) ? rawCart.map(it => ({
+          item_id: String(it.sku || it.slug || it.id || it.name || '').toLowerCase(),
+          item_name: it.name || String(it.sku || it.slug || ''),
+          item_category: String(it.type || it.tier || 'fragrance').toLowerCase(),
+          price: Number(it.price || 0),
+          quantity: Number(it.qty || 1),
+          currency: CURRENCY
+        })) : [];
+        // Build order object
         order = {
           id,
+          order_id: id,
           email: (document.referrer && sessionStorage.getItem('checkoutEmail')) || 'customer@scentstory.example',
-          items,
+          items: gaItems,
           shipId: localStorage.getItem(SHIP_ID_KEY) || 'std',
           address: sessionStorage.getItem('checkoutAddress') || '',
           createdAt: Date.now()
         };
-        // Snapshot to LAST_ORDER and then clear cart
+        // Compute totals from GA4 items
+        const sub = (order.items || []).reduce((s,i)=> s + (Number(i.price||0) * Number(i.quantity||1)), 0);
+        const shipCost = selectedShip().cost;
+        const tax = Math.round(sub * TAX_RATE);
+        const total = sub + shipCost + tax;
+        order.subtotal = sub; order.tax = tax; order.shipping = shipCost; order.total = total;
+        // Persist order and clear cart
         write(LAST_ORDER_KEY, order);
         localStorage.removeItem(CART_KEY);
         fromCart = true;
+      }
+
+      // Normalize legacy orders (ensure GA4 item shape and totals)
+      if (order && (!Array.isArray(order.items) || !order.items.length || !('item_id' in (order.items[0] || {})))) {
+        const src = Array.isArray(order.items) ? order.items : [];
+        const gaItems = src.map(it => ({
+          item_id: String(it.sku || it.slug || it.id || it.name || '').toLowerCase(),
+          item_name: it.name || String(it.sku || it.slug || ''),
+          item_category: String(it.type || it.tier || 'fragrance').toLowerCase(),
+          price: Number(it.price || 0),
+          quantity: Number(it.qty || it.quantity || 1),
+          currency: CURRENCY
+        }));
+        order.items = gaItems;
+        if (!order.order_id) order.order_id = order.id || genOrderId();
+        const sub = (order.items || []).reduce((s,i)=> s + (Number(i.price||0) * Number(i.quantity||1)), 0);
+        const shipCost = selectedShip().cost;
+        const tax = Math.round(sub * TAX_RATE);
+        const total = sub + shipCost + tax;
+        order.subtotal = sub; order.tax = tax; order.shipping = shipCost; order.total = total;
+        write(LAST_ORDER_KEY, order);
       }
 
       // Render header line
@@ -209,8 +250,8 @@
       // Items
       const list = $('#items');
       list.innerHTML = '';
-      const items = order.items || [];
-      $('#itemCount').textContent = items.reduce((n, i)=> n + (parseInt(i.qty||0,10)||0), 0);
+      const items = Array.isArray(order.items) ? order.items : [];
+      $('#itemCount').textContent = items.reduce((n, i)=> n + (parseInt(i.quantity||0,10)||0), 0);
       if(items.length === 0){
         list.innerHTML = '<p class="muted">No items available to display.</p>';
       } else {
@@ -218,26 +259,29 @@
           const row = document.createElement('div');
           row.className = 'order-item';
           row.innerHTML = `
-            <img src="${it.image}" alt="${it.name}">
+            <img src="${it.image || ''}" alt="${it.item_name || ''}">
             <div>
-              <h4>${it.name}</h4>
-              <div class="sku">Qty: ${it.qty || 1}</div>
+              <h4>${it.item_name || ''}</h4>
+              <div class="sku">Qty: ${it.quantity || 1}</div>
             </div>
-            <div class="price">${fmt.format(it.price * (it.qty || 1))}</div>`;
+            <div class="price">${fmt.format((Number(it.price||0)) * (Number(it.quantity||1)))}</div>`;
           list.appendChild(row);
         });
       }
 
       // Summary math
-      const m = calc(items);
-      $('#s-sub').textContent = fmt.format(m.sub);
-      $('#s-ship').textContent = fmt.format(m.ship);
-      $('#s-tax').textContent = fmt.format(m.tax);
-      $('#s-total').textContent = fmt.format(m.total);
+      const sub = Number(order.subtotal || 0);
+      const ship = Number(order.shipping || 0);
+      const tax = Number(order.tax || 0);
+      const total = Number(order.total || (sub + ship + tax));
+      $('#s-sub').textContent = fmt.format(sub);
+      $('#s-ship').textContent = fmt.format(ship);
+      $('#s-tax').textContent = fmt.format(tax);
+      $('#s-total').textContent = fmt.format(total);
 
       // Shipping + address lines
-      const ship = SHIPPING.find(s => s.id === (order.shipId || 'std')) || SHIPPING[0];
-      $('#shipMethod').textContent = `${ship.name} • ${ship.days}`;
+      const shipInfo = SHIPPING.find(s => s.id === (order.shipId || 'std')) || SHIPPING[0];
+      $('#shipMethod').textContent = `${shipInfo.name} • ${shipInfo.days}`;
       $('#shipAddress').textContent = order.address || 'We’ll dispatch to the address provided at checkout.';
 
       // If we just snapshot from cart, also update any cross-page cart badge if present
@@ -247,5 +291,35 @@
       }catch(e){}
     })();
   </script>
+  <script>
+    (function(){
+      const CURRENCY='INR';
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event:'page_context', page_type:'thankyou', currency:CURRENCY });
+
+      let order=null;
+      try{ order = JSON.parse(localStorage.getItem('SCENT_LAST_ORDER')||'null'); }catch(_){}
+      if(!order || order.__fired) return;
+
+      const items = Array.isArray(order.items) ? order.items : [];
+      const value = Number(order.total || items.reduce((s,i)=> s + (Number(i.price||0) * Number(i.quantity||1)), 0));
+      const tax = Number(order.tax || 0);
+      const shipping = Number(order.shipping || 0);
+      const txId = String(order.order_id || order.id || Date.now());
+
+      window.dataLayer.push({
+        event:'purchase',
+        transaction_id: txId,
+        currency: CURRENCY,
+        value,
+        tax,
+        shipping,
+        items
+      });
+
+      order.__fired = true;
+      localStorage.setItem('SCENT_LAST_ORDER', JSON.stringify(order));
+    })();
+    </script>
 </body>
 </html>

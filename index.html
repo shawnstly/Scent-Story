@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>window.dataLayer = window.dataLayer || [];</script>
+  <script src="dl.js" defer></script>
   <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -514,6 +516,42 @@
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5SX8RV8P"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
+  <script>
+    (function(){
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event:'page_context', page_type:'home', currency:'INR' });
+    
+      // Newsletter
+      const form = document.getElementById('newsletter-form');
+      const emailEl = document.getElementById('nl-email');
+      const ok = document.getElementById('newsletter-success');
+      if(form){
+        form.addEventListener('submit', ()=> {
+          const email=(emailEl?.value||'').trim().toLowerCase();
+          window.dataLayer.push({ event:'newsletter_subscription', method:'footer_form', email }); // fire on submit OR prefer on visible success below
+        });
+      }
+      if(ok){
+        const visible = ()=> (ok.offsetParent!==null) && !ok.hidden;
+        const fire = ()=> window.dataLayer.push({ event:'newsletter_subscription', method:'footer_form' });
+        const obs = new MutationObserver(()=>{ if(visible()){ fire(); obs.disconnect(); }});
+        obs.observe(ok,{attributes:true,attributeFilter:['hidden','style','class']});
+        if(visible()) fire();
+      }
+    
+      // If contact/grievance forms mount on home via SPA
+      const contact = document.getElementById('contact-form');
+      const grievance = document.getElementById('grievance-form');
+      contact?.addEventListener('submit', ()=>{
+        const email=(contact.querySelector('input[type="email"]')?.value||'').toLowerCase().trim();
+        window.dataLayer.push({ event:'contact_form_submit', email });
+      });
+      grievance?.addEventListener('submit', ()=>{
+        const email=(grievance.querySelector('input[type="email"]')?.value||'').toLowerCase().trim();
+        window.dataLayer.push({ event:'grievance_form_submit', email });
+      });
+    })();
+    </script>
   <!-- HEADER / NAV (no structural change) -->
   <header aria-label="Primary Navigation">
     <div class="container nav">
