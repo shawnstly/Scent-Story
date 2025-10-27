@@ -490,6 +490,97 @@
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5SX8RV8P"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
+  <script>
+    (function(){
+      // --- Guard + basics
+      if(!window.dataLayer) window.dataLayer = [];
+      window.__PDP_DL = window.__PDP_DL || {};
+      const CURRENCY = 'INR';
+    
+      // Use your global normalizer if present; fallback keeps only edp/parfum/elixir
+      function toTierSafe(){
+        if (typeof window.toTier === 'function') return window.toTier.apply(null, arguments);
+        for (var i=0;i<arguments.length;i++){
+          var t = String(arguments[i]||'').toLowerCase();
+          if(/\belixir\b/.test(t)) return 'elixir';
+          if(/\bparfum\b/.test(t)) return 'parfum';
+          if(/\bedp\b/.test(t))    return 'edp';
+        }
+        return 'fragrance';
+      }
+    
+      function itemFrom(product, qty){
+        return {
+          item_id:    product.slug,
+          item_name:  product.name,
+          item_category: toTierSafe(product.type, product.name),
+          price:      product.priceINR,
+          quantity:   qty || 1,
+          currency:   CURRENCY
+        };
+      }
+    
+      // --- 1) page_context (once)
+      if (!window.__PDP_DL.pageCtx){
+        window.dataLayer.push({ event:'page_context', page_type:'pdp', currency:CURRENCY });
+        window.__PDP_DL.pageCtx = true;
+      }
+    
+      // --- 2) view_item (once, after PDP_PRODUCT is ready)
+      function fireView(){
+        if (window.__PDP_DL.view || !window.PDP_PRODUCT) return;
+        window.dataLayer.push({
+          event:'view_item',
+          page_type:'pdp',
+          currency:CURRENCY,
+          items:[ itemFrom(window.PDP_PRODUCT, 1) ]
+        });
+        window.__PDP_DL.view = true;
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fireView);
+      } else {
+        fireView();
+      }
+    
+      // --- 3) Click handlers for add_to_cart / wishlist toggle
+      document.addEventListener('DOMContentLoaded', function(){
+        // Add to Cart
+        var addBtn = document.getElementById('addToCart');
+        var qtyEl  = document.getElementById('qty');
+        if (addBtn){
+          addBtn.addEventListener('click', function(){
+            if(!window.PDP_PRODUCT) return;
+            var q = Math.max(1, parseInt((qtyEl && qtyEl.value) || '1', 10));
+            window.dataLayer.push({
+              event:'add_to_cart',
+              page_type:'pdp',
+              currency:CURRENCY,
+              items:[ itemFrom(window.PDP_PRODUCT, q) ],
+              value: (window.PDP_PRODUCT.priceINR || 0) * q
+            });
+          }, {capture:false});
+        }
+    
+        // Wishlist toggle (emit add/remove based on current state)
+        var wishBtn = document.getElementById('wishlist');
+        if (wishBtn){
+          wishBtn.addEventListener('click', function(){
+            if(!window.PDP_PRODUCT) return;
+            var inList = (typeof window.inWishlistSafe === 'function')
+              ? window.inWishlistSafe(window.PDP_PRODUCT.slug)
+              : false;
+            window.dataLayer.push({
+              event: inList ? 'remove_from_wishlist' : 'add_to_wishlist',
+              page_type:'pdp',
+              currency:CURRENCY,
+              items:[ itemFrom(window.PDP_PRODUCT, 1) ]
+            });
+          }, {capture:true});
+        }
+      });
+    })();
+    </script>
   <script>try{document.body.classList.add('ready');}catch(_){}</script>
   <header aria-label="Primary Navigation">
     <div class="container nav">
