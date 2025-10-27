@@ -183,11 +183,16 @@
     }
 
     // Normalize product tier to one of: edp | parfum | elixir | fragrance
-    function toTier(x){
-      const t = String(x||'').toLowerCase();
-      if(/\belixir\b/.test(t)) return 'elixir';
-      if(/\bparfum\b/.test(t)) return 'parfum';
-      if(/\bedp\b/.test(t))    return 'edp';
+    function toTier(){
+      // accepts any number of args; picks the first hint that maps to a known tier
+      for (var a=0; a<arguments.length; a++){
+        var x = arguments[a];
+        if (!x) continue;
+        var t = String(x).toLowerCase();
+        if (/\belixir\b/.test(t)) return 'elixir';
+        if (/\bparfum\b/.test(t)) return 'parfum';
+        if (/\bedp\b/.test(t))    return 'edp';
+      }
       return 'fragrance';
     }
     function niceTier(t){
@@ -195,6 +200,37 @@
       if(t==='parfum') return 'Parfum';
       if(t==='elixir') return 'Elixir';
       return 'Fragrance';
+    }
+
+    // ===== Image resolver for order items =====
+    const PRODUCT_IMAGE_MAP = {
+      // EDP
+      'first-date': 'images/First Date.png',
+      'fresh-salt': 'images/Fresh Salt.png',
+      'beast': 'images/Beast.png',
+      'boardroom': 'images/Boardroom.png',
+      'summer-drift': 'images/Summer Drift.png',
+      // Parfum
+      'victory-night': 'images/Victory Night.png',
+      'tropical-escape': 'images/Tropical Escape.png',
+      'winter-embrace': 'images/Winter Embrace.png',
+      'the-icon': 'images/Icon.png',
+      'intense-romance': 'images/Intense Romance.png',
+      // Elixir
+      'ceo-elixir': 'images/CEO.png',
+      'autumn-fire': 'images/Autumn Fire.png',
+      'forever-love': 'images/Forever Love.png'
+    };
+    function resolveImage(itemId, itemName){
+      const id = String(itemId||'').toLowerCase();
+      if (PRODUCT_IMAGE_MAP[id]) return PRODUCT_IMAGE_MAP[id];
+      const name = String(itemName||'').toLowerCase();
+      // fuzzy pick by slug token inclusion
+      for (const key in PRODUCT_IMAGE_MAP){
+        if (name.includes(key)) return PRODUCT_IMAGE_MAP[key];
+      }
+      // last-resort placeholder if nothing matches
+      return 'images/Boardroom.png';
     }
 
     // ===== Bootstrap order data =====
@@ -207,14 +243,19 @@
         const rawCart = read(CART_KEY, []);
         const id = genOrderId();
         // Map cart items to GA4 shape
-        const gaItems = Array.isArray(rawCart) ? rawCart.map(it => ({
-          item_id: String(it.sku || it.slug || it.id || it.name || '').toLowerCase(),
-          item_name: it.name || String(it.sku || it.slug || ''),
-          item_category: toTier(it.type || it.tier || it.category || it.slug),
-          price: Number(it.price || 0),
-          quantity: Number(it.qty || 1),
-          currency: CURRENCY
-        })) : [];
+        const gaItems = Array.isArray(rawCart) ? rawCart.map(it => {
+          const id  = String(it.sku || it.slug || it.id || it.name || '').toLowerCase();
+          const name= it.name || String(it.sku || it.slug || '');
+          return {
+            item_id: id,
+            item_name: name,
+            item_category: toTier(it.type, it.tier, it.category, it.slug, it.name),
+            price: Number(it.price || 0),
+            quantity: Number(it.qty || 1),
+            currency: CURRENCY,
+            image: it.image || resolveImage(id, name)
+          };
+        }) : [];
         // Build order object
         order = {
           id,
@@ -240,14 +281,19 @@
       // Normalize legacy orders (ensure GA4 item shape and totals)
       if (order && (!Array.isArray(order.items) || !order.items.length || !('item_id' in (order.items[0] || {})))) {
         const src = Array.isArray(order.items) ? order.items : [];
-        const gaItems = src.map(it => ({
-          item_id: String(it.sku || it.slug || it.id || it.name || '').toLowerCase(),
-          item_name: it.name || String(it.sku || it.slug || ''),
-          item_category: toTier(it.type || it.tier || it.category || it.slug),
-          price: Number(it.price || 0),
-          quantity: Number(it.qty || it.quantity || 1),
-          currency: CURRENCY
-        }));
+        const gaItems = src.map(it => {
+          const id  = String(it.sku || it.slug || it.id || it.name || '').toLowerCase();
+          const name= it.name || String(it.sku || it.slug || '');
+          return {
+            item_id: id,
+            item_name: name,
+            item_category: toTier(it.type, it.tier, it.category, it.slug, it.name),
+            price: Number(it.price || 0),
+            quantity: Number(it.qty || it.quantity || 1),
+            currency: CURRENCY,
+            image: it.image || resolveImage(id, name)
+          };
+        });
         order.items = gaItems;
         if (!order.order_id) order.order_id = order.id || genOrderId();
         const sub = (order.items || []).reduce((s,i)=> s + (Number(i.price||0) * Number(i.quantity||1)), 0);
@@ -338,11 +384,15 @@
     return '';
   }
 
-  function toTier(x){
-    const t = String(x||'').toLowerCase();
-    if(/\belixir\b/.test(t)) return 'elixir';
-    if(/\bparfum\b/.test(t)) return 'parfum';
-    if(/\bedp\b/.test(t))    return 'edp';
+  function toTier(){
+    for (var a=0; a<arguments.length; a++){
+      var x = arguments[a];
+      if (!x) continue;
+      var t = String(x).toLowerCase();
+      if (/\belixir\b/.test(t)) return 'elixir';
+      if (/\bparfum\b/.test(t)) return 'parfum';
+      if (/\bedp\b/.test(t))    return 'edp';
+    }
     return 'fragrance';
   }
 
@@ -350,15 +400,26 @@
   const items = srcItems.map(i=>({
     item_id: String(i.item_id || i.sku || i.slug || i.id || i.name || '').toLowerCase(),
     item_name: i.item_name || i.name || String(i.sku || i.slug || ''),
-    item_category: toTier(i.item_category || i.category || i.type || i.tier || i.item_variant),
+    item_category: toTier(i.item_category, i.category, i.type, i.tier, i.item_variant, i.item_name, i.name, i.slug),
     price: Number(i.price || 0),
     quantity: Number(i.quantity || i.qty || 1),
     currency: CURRENCY
   }));
 
-  // Build unique tier list for the order
-  const tiersSet = new Set(items.map(it=>it.item_category));
-  const order_category_tiers_array = Array.from(tiersSet);
+  // Build unique tier list for the order (normalized + ordered + human readable)
+  const TIER_ORDER = ['edp','parfum','elixir'];
+  const tiersSet = new Set(items.map(it=> String(it.item_category||'').toLowerCase()));
+  // Keep only known tiers and order them EDP → Parfum → Elixir
+  const order_category_tiers_array = TIER_ORDER.filter(t => tiersSet.has(t));
+
+  // Human-readable string: "edp", "edp and parfum", "edp, parfum and elixir"
+  function humanJoin(arr){
+    if(!arr || arr.length===0) return '';
+    if(arr.length===1) return arr[0];
+    if(arr.length===2) return arr[0] + ' and ' + arr[1];
+    return arr.slice(0, -1).join(', ') + ' and ' + arr[arr.length-1];
+  }
+  const order_tier_category = humanJoin(order_category_tiers_array);
   const order_category_tiers = order_category_tiers_array.join(', ');
 
   const value    = Number(order.total    || items.reduce((s,i)=> s + (Number(i.price||0) * Number(i.quantity||1)), 0));
@@ -379,8 +440,9 @@
     shipping,
     shipping_state,
     shipping_tier,
-    order_category_tiers,
-    order_category_tiers_array,
+    order_tier_category,            // NEW: human-readable (e.g., "edp and parfum")
+    order_category_tiers,           // comma-separated (e.g., "edp, parfum")
+    order_category_tiers_array,     // ordered array ["edp","parfum"]
     items
   });
 
