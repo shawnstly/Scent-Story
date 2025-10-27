@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <script>window.dataLayer = window.dataLayer || [];</script>
-  <script src="dl.js" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -18,6 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
+    .txn-note{ color:var(--muted); font-family:var(--ff-sans); font-size:.95rem; margin:6px 0 14px; word-break:break-all; }
     :root{
       --bg: #0d1117;
       --bg-2: #0f141b;
@@ -123,46 +123,60 @@
   <!-- End Google Tag Manager (noscript) -->
   <script>
     (function(){
-      const CURRENCY='INR';
-      const STORE_KEY='SCENT_MEM_SELECTION';
-      const FIRE_KEY='SCENT_LAST_MEMBERSHIP_OK';
+      var CURRENCY = 'INR';
       window.dataLayer = window.dataLayer || [];
+      // Page context
       window.dataLayer.push({ event:'page_context', page_type:'welcomemembership', currency:CURRENCY });
-    
-      if(localStorage.getItem(FIRE_KEY)==='1') return;
-    
-      // Load selected tier; fallback if missing
-      let sel=null;
-      try{ sel = JSON.parse(localStorage.getItem(STORE_KEY)||'null'); }catch(_){}
-      const tier_id   = (sel?.tier_id   || 'basic').toString().toLowerCase();
-      const tier_name = sel?.tier_name || 'Basic';
-      const price     = Number(sel?.price || 1999); // fallback to default if not stored
-    
+
+      function pad(n){ return (n<10?'0':'')+n; }
+      function rand4(){ return Math.floor(Math.random()*10000).toString().padStart(4,'0'); }
+
+      // Resolve canonical member data → prefer SCENT_MEMBERS_V1 latest, then SCENT_MEM_LAST
+      function getLatestMember(){
+        try{
+          var arr = JSON.parse(localStorage.getItem('SCENT_MEMBERS_V1')||'[]');
+          if(Array.isArray(arr) && arr.length){ return arr[arr.length-1]; }
+        }catch(_){ }
+        return null;
+      }
+      function getLastSelection(){
+        try{ return JSON.parse(localStorage.getItem('SCENT_MEM_LAST')||'null'); }catch(_){ return null; }
+      }
+      var m = getLatestMember() || {};
+      var last = getLastSelection() || {};
+      var memberId = m.id || last.id || ('SS' + Math.floor(100000 + Math.random()*900000));
+      var tierName = m.tier || last.tier || 'Gold';
+      var price = (typeof last.price === 'number') ? last.price : 0;
+      // Expose canonical member id so the card uses the exact same one
+      try{ window.__SCENT_MEM_CANON_ID = String(memberId); }catch(_){}
+
+      // Compose transaction id: MEM-YYYYMMDD-HHMMSS-RND4-<memberId>
+      var now = new Date();
+      var txn = [
+        'MEM',
+        now.getFullYear().toString() + pad(now.getMonth()+1) + pad(now.getDate()),
+        pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds()),
+        rand4(),
+        memberId
+      ].join('-');
+
       window.dataLayer.push({
-        event:'membership_purchase',
-        transaction_id: 'MEM-' + Date.now(),
+        event: 'membership_purchase_welcome',
         currency: CURRENCY,
+        transaction_id: txn,
         value: price,
-        items: [{
-          // GA4 item fields
-          item_id: 'membership-' + tier_id,            // unique per tier for SKU-like granularity
-          item_name: 'Membership — ' + tier_name,      // readable name
-          item_category: 'membership',                 // keep category consistent
-          item_variant: tier_name,                     // optional: also store tier here
-          price: price,
-          quantity: 1,
-          currency: CURRENCY
-        }],
-        membership:{
-          tier_id: tier_id,
-          tier_name: tier_name
+        membership: {
+          membership_id: memberId,
+          tier_name: tierName,
+          price: price
         }
       });
-    
-      // mark as fired
-      try{ localStorage.setItem(FIRE_KEY,'1'); }catch(_){}
+      try{
+        window.__SCENT_MEM_TXN = txn;
+        localStorage.setItem('SCENT_MEM_TXN', txn);
+      }catch(_){ }
     })();
-    </script>
+  </script>
   <!-- Minimal header: brand + Continue Shopping -->
   <header class="site" aria-label="Minimal Navigation">
     <div class="nav-wrap">
@@ -183,6 +197,7 @@
         <div class="eyebrow">Welcome</div>
         <h1 id="welcomeTitle">Welcome to the <em>Scent Society</em></h1>
         <p id="welcomeCopy">Your membership has been issued. Enjoy early access, member pricing, and curated picks crafted to your taste.</p>
+        <p class="txn-note">Transaction ID: <span id="txnId">—</span></p>
         <div class="actions">
           <a class="btn-gold" href="pdp1.html?cat=all"><i class="fa-regular fa-compass"></i> Explore Collections</a>
           <a class="btn-gold" href="index.html#/contact"><i class="fa-regular fa-envelope"></i> Contact Concierge</a>
@@ -236,7 +251,9 @@
         return (id||name||tier||phone) ? {id,name,tier,phone} : null;
       }
       const fallback = { id: 'SS'+String(Math.floor(100000+Math.random()*900000)), name: 'Member', tier:'Gold', phone:'' };
-      const data = Object.assign({}, fallback, getLatest()||{}, fromQuery()||{});
+      let data = Object.assign({}, fallback, getLatest()||{}, fromQuery()||{});
+      // Override with canonical ID if set by the purchase script
+      if(window.__SCENT_MEM_CANON_ID){ data.id = window.__SCENT_MEM_CANON_ID; }
 
       // Map tier to class
       const card = document.getElementById('card');
@@ -256,6 +273,12 @@
       const copy  = document.getElementById('welcomeCopy');
       title.innerHTML = `Welcome to the <em>Scent Society</em>, ${escapeHtml(data.name||'Member')}`;
       copy.textContent = `You are now enrolled in our ${data.tier||'Gold'} tier. Your early access and member privileges are ready.`;
+      // Show transaction id if available
+      try{
+        var txn = window.__SCENT_MEM_TXN || localStorage.getItem('SCENT_MEM_TXN') || '';
+        var txnEl = document.getElementById('txnId');
+        if(txn && txnEl){ txnEl.textContent = txn; }
+      }catch(_){ }
 
       // Foil sweep on first paint
       requestAnimationFrame(()=> card.classList.add('sweep'));

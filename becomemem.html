@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <script>window.dataLayer = window.dataLayer || [];</script>
-  <script src="dl.js" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -687,120 +686,14 @@ header[aria-label="Primary Navigation"] .brand-text {
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5SX8RV8P"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
-  <script>
-    (function(){
-      const CURRENCY='INR';
-      const STORE_KEY='SCENT_MEM_SELECTION';
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({ event:'page_context', page_type:'becomemem', currency:CURRENCY });
-    
-      // ------- Helpers -------
-      function toNum(v){ const n=Number(String(v||'').replace(/[^\d.]/g,'')); return Number.isFinite(n)?n:0; }
-      function saveSel(sel){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(sel||{})); }catch(_){ } }
-      function loadSel(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)||'null'); }catch(_){ return null; } }
-    
-      // Try to read current tier from the DOM (radios, select, or a focused/active card)
-      function readTierFromDOM(){
-        // 1) radios
-        const r = document.querySelector('input[name="membership_tier"]:checked');
-        if(r){
-          return {
-            tier_id:   r.getAttribute('data-tier-id')   || r.value || (r.id||'basic').toLowerCase(),
-            tier_name: r.getAttribute('data-tier-name') || r.getAttribute('aria-label') || r.value || 'Basic',
-            price:     toNum(r.getAttribute('data-price') || r.dataset.price || r.getAttribute('value-price'))
-          };
-        }
-        // 2) select
-        const s = document.getElementById('membershipTier');
-        if(s && s.value){
-          const opt = s.options[s.selectedIndex];
-          return {
-            tier_id:   opt?.getAttribute('data-tier-id') || opt?.value || 'basic',
-            tier_name: opt?.getAttribute('data-tier-name') || opt?.textContent?.trim() || 'Basic',
-            price:     toNum(opt?.getAttribute('data-price') || opt?.dataset?.price || '')
-          };
-        }
-        // 3) active card (last clicked CTA)
-        const active = document.querySelector('[data-tier][data-price].is-selected') || document.querySelector('[data-tier][data-price].active');
-        if(active){
-          return {
-            tier_id:   active.getAttribute('data-tier-id') || active.getAttribute('data-tier') || 'basic',
-            tier_name: active.getAttribute('data-tier-name') || active.getAttribute('data-tier') || 'Basic',
-            price:     toNum(active.getAttribute('data-price'))
-          };
-        }
-        return null;
-      }
-    
-      // Fire select_membership_tier
-      function pushSelectTier(sel){
-        if(!sel) return;
-        window.dataLayer.push({
-          event: 'select_membership_tier',
-          currency: CURRENCY,
-          membership: {
-            tier_id:   sel.tier_id,
-            tier_name: sel.tier_name,
-            price:     sel.price
-          }
-        });
-      }
-    
-      // Watch for changes on radios/selects/cards
-      function bindTierListeners(){
-        // radios
-        document.querySelectorAll('input[name="membership_tier"]').forEach(el=>{
-          el.addEventListener('change', ()=>{
-            const sel = readTierFromDOM();
-            if(sel){ saveSel(sel); pushSelectTier(sel); }
-          });
-        });
-        // select
-        const sel = document.getElementById('membershipTier');
-        sel?.addEventListener('change', ()=>{
-          const cur = readTierFromDOM();
-          if(cur){ saveSel(cur); pushSelectTier(cur); }
-        });
-        // card CTAs (clicking a card marks it selected)
-        document.addEventListener('click', (e)=>{
-          const card = e.target.closest('[data-tier][data-price]');
-          if(!card) return;
-          // mark visual selection if you use classes
-          document.querySelectorAll('[data-tier][data-price].is-selected').forEach(x=>x.classList.remove('is-selected'));
-          card.classList.add('is-selected');
-          const cur = readTierFromDOM();
-          if(cur){ saveSel(cur); pushSelectTier(cur); }
-        });
-      }
-    
-      // Begin membership (form submit or CTA click)
-      function bindBegin(){
-        const form = document.getElementById('member-form');
-        const cta  = document.querySelector('[data-begin-membership], #becomeMemberBtn');
-        const fire = ()=>{
-          const sel = readTierFromDOM() || loadSel();
-          if(sel) saveSel(sel); // ensure latest
-          window.dataLayer.push({
-            event:'begin_membership',
-            currency:CURRENCY,
-            membership:{
-              tier_id:   sel?.tier_id   || 'basic',
-              tier_name: sel?.tier_name || 'Basic',
-              price:     sel?.price     || 0
-            }
-          });
-        };
-        form?.addEventListener('submit', fire);
-        cta?.addEventListener('click', fire);
-      }
-    
-      // Init
-      document.addEventListener('DOMContentLoaded', ()=>{
-        bindTierListeners();
-        bindBegin();
-      });
-    })();
-    </script>
+<script>
+(function(){
+  const CURRENCY='INR';
+  window.dataLayer = window.dataLayer || [];
+  // Minimal: only page context on load for this page
+  window.dataLayer.push({ event:'page_context', page_type:'becomemem', currency:CURRENCY });
+})();
+</script>
   <!-- HEADER / NAV (exact copy from index) -->
   <header aria-label="Primary Navigation">
     <div class="container nav">
@@ -1220,6 +1113,21 @@ if(t){ card.classList.add('tier-' + t.toLowerCase()); }
       if(!consentOk){ hint.textContent = 'Please agree to receive updates to continue.'; showToast('Please agree to receive updates to continue.', true); return; }
 
       // All good → create member
+      // === DL: began_membership_form (fires only when all validations passed) ===
+      try{
+        var CURRENCY = 'INR';
+        var tierRaw = (hiddenTier.value||'').trim();
+        var tierCat = tierRaw.toLowerCase();
+        var priceMap = { gold: 0, platinum: 1999, elite: 0 }; // adjust if pricing changes
+        var priceVal = priceMap[tierCat] != null ? priceMap[tierCat] : 0;
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: 'began_membership_form',
+          currency: CURRENCY,
+          tier_category: tierCat || 'gold',
+          membership_price: priceVal
+        });
+      }catch(_){ }
       const member = {
         id: genId(),
         name: data.fullName?.trim()||'Member',
@@ -1231,6 +1139,14 @@ if(t){ card.classList.add('tier-' + t.toLowerCase()); }
         tier: hiddenTier.value,
         createdAt: new Date().toISOString()
       };
+      // Store compact selection so Welcome page can emit purchase
+      try{
+        localStorage.setItem('SCENT_MEM_LAST', JSON.stringify({
+          id: member.id,
+          tier: member.tier,
+          price: (function(){ var m={gold:0,platinum:1999,elite:0}; return m[(member.tier||'').toLowerCase()] ?? 0; })()
+        }));
+      }catch(_){ }
 
       try{
         const key='SCENT_MEMBERS_V1';
@@ -1246,10 +1162,18 @@ if(t){ card.classList.add('tier-' + t.toLowerCase()); }
       pulseCard();
 
       showToast('Welcome to The Scent Society — your card has been issued.');
+      // === DL: membership_form_complete (fires once user successfully completes form) ===
+      try{
+        var _last = null; try{ _last = JSON.parse(localStorage.getItem('SCENT_MEM_LAST')||'null'); }catch(__){}
+        window.dataLayer.push({
+          event: 'membership_form_complete',
+          currency: 'INR',
+          tier_category: (_last && _last.tier ? String(_last.tier).toLowerCase() : (hiddenTier.value||'gold').toLowerCase()),
+          membership_price: (_last && typeof _last.price==='number' ? _last.price : 0)
+        });
+      }catch(_){ }
       // Redirect to welcome page after short delay
-      setTimeout(() => {
-        window.location.href = "welcomemembership.html";
-      }, 1800);
+      setTimeout(() => { window.location.href = 'welcomemembership.html'; }, 1800);
       card.scrollIntoView({behavior:'smooth', block:'center'});
       form.reset();
       // keep tier selection as chosen; keep name placeholder
