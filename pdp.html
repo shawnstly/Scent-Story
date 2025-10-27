@@ -1034,52 +1034,80 @@ updateCartBadge();
     document.getElementById('plus').addEventListener('click', ()=>{ qtyInput.stepUp(); });
     document.getElementById('minus').addEventListener('click', ()=>{ qtyInput.stepDown(); });
 
-    // ===== Wishlist (persistent) =====
-    const wishBtn = document.getElementById('wishlist');
-    function renderWish(){ wishBtn.textContent = inWishlistSafe(PDP_PRODUCT.slug) ? '✓ Wishlisted' : '♡ Add to Wishlist'; }
-    wishBtn.addEventListener('click', ()=>{
-      const wasIn = inWishlistSafe(PDP_PRODUCT.slug);
-      toggleWishlistSafe(PDP_PRODUCT.slug);
-      renderWish();
+    // ===== Wishlist (resilient bind + DL from business handler) =====
+    (function bindWishlistSection(){
+      const wishBtn = document.getElementById('wishlist');
+      if(!wishBtn) return;
 
-      // Update navbar WL badge (local fallback + global if present)
-      updateWishlistBadgeLocal();
-      try{ if(window.__updateWishlistBadge__) window.__updateWishlistBadge__(); if(window.__pulseWishlistBadge__) window.__pulseWishlistBadge__(); }catch(_){ }
-      try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){}
-      showToast('Wishlist updated');
+      function ensureReady(cb){
+        const deadline = Date.now() + 3000; // up to 3s
+        (function loop(){
+          if (window.PDP_PRODUCT && PDP_PRODUCT.slug && PDP_PRODUCT.name){ cb(); return; }
+          if (Date.now() > deadline){ cb(); return; } // best-effort
+          setTimeout(loop, 50);
+        })();
+      }
 
-      // === GA4: push add/remove wishlist from the single source of truth ===
-      try{
-        window.dataLayer = window.dataLayer || [];
-        var _item = (typeof window.__buildGaItem === 'function')
-          ? window.__buildGaItem(PDP_PRODUCT, 1)
-          : {
-              item_id: PDP_PRODUCT.slug,
-              item_name: PDP_PRODUCT.name,
-              item_category: (function(){
-                var t = String(PDP_PRODUCT.type||'').toLowerCase();
-                if(/elixir/.test(t)) return 'elixir';
-                if(/parfum/.test(t)) return 'parfum';
-                if(/edp/.test(t))    return 'edp';
-                return 'fragrance';
-              })(),
-              price: PDP_PRODUCT.priceINR,
-              quantity: 1,
-              currency: (window.__DL_CURRENCY || 'INR')
-            };
-        window.dataLayer.push({
-          event: wasIn ? 'remove_from_wishlist' : 'add_to_wishlist',
-          page_type: 'pdp',
-          currency: (window.__DL_CURRENCY || 'INR'),
-          items: [ _item ]
+      function renderWish(){
+        try{ wishBtn.textContent = inWishlistSafe(PDP_PRODUCT.slug) ? '✓ Wishlisted' : '♡ Add to Wishlist'; }
+        catch(_){ /* ignore until PDP_PRODUCT ready */ }
+      }
+
+      function onClick(){
+        try{
+          const wasIn = inWishlistSafe(PDP_PRODUCT.slug);
+          toggleWishlistSafe(PDP_PRODUCT.slug);
+          renderWish();
+
+          // Update navbar WL badge (local fallback + global if present)
+          updateWishlistBadgeLocal();
+          try{ if(window.__updateWishlistBadge__) window.__updateWishlistBadge__(); if(window.__pulseWishlistBadge__) window.__pulseWishlistBadge__(); }catch(_){ }
+          try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){}
+          showToast('Wishlist updated');
+
+          // === GA4: push add/remove wishlist from the single source of truth ===
+          try{
+            window.dataLayer = window.dataLayer || [];
+            var _item = (typeof window.__buildGaItem === 'function')
+              ? window.__buildGaItem(PDP_PRODUCT, 1)
+              : {
+                  item_id: PDP_PRODUCT.slug,
+                  item_name: PDP_PRODUCT.name,
+                  item_category: (function(){
+                    var t = String(PDP_PRODUCT.type||'').toLowerCase();
+                    if(/elixir/.test(t)) return 'elixir';
+                    if(/parfum/.test(t)) return 'parfum';
+                    if(/edp/.test(t))    return 'edp';
+                    return 'fragrance';
+                  })(),
+                  price: PDP_PRODUCT.priceINR,
+                  quantity: 1,
+                  currency: (window.__DL_CURRENCY || 'INR')
+                };
+            window.dataLayer.push({
+              event: wasIn ? 'remove_from_wishlist' : 'add_to_wishlist',
+              page_type: 'pdp',
+              currency: (window.__DL_CURRENCY || 'INR'),
+              items: [ _item ]
+            });
+          }catch(_){ /* swallow */ }
+        }catch(_){ /* swallow */ }
+      }
+
+      // Prevent duplicate binding across re-executions
+      if (!wishBtn.dataset.bound){
+        ensureReady(function(){
+          wishBtn.addEventListener('click', onClick);
+          wishBtn.dataset.bound = '1';
+          renderWish();
+          // Initial paint for WL badge on this page
+          updateWishlistBadgeLocal();
         });
-      }catch(_){ /* swallow */ }
-    });
-    renderWish();
-    // Initial paint for WL badge on this page
-    updateWishlistBadgeLocal();
-    // Keep badge synced if storage changes in other tabs
-    window.addEventListener('storage', function(e){ if(e.key===WISHLIST_KEY) updateWishlistBadgeLocal(); });
+      }
+
+      // Keep badge synced if storage changes in other tabs
+      window.addEventListener('storage', function(e){ if(e.key===WISHLIST_KEY) updateWishlistBadgeLocal(); });
+    })();
 
     // ===== Add to Cart (toggle + persistent visual state) =====
     const addBtn = document.getElementById('addToCart');
