@@ -15,6 +15,24 @@
     if(window.__PDP_SANITIZER__) return; // don't double‑install
     window.__PDP_SANITIZER__ = true;
     window.dataLayer = window.dataLayer || [];
+    // Lock dataLayer so later scripts can’t replace the array (they can only push)
+    (function(){
+      var __DL__ = window.dataLayer; // capture the canonical array
+      try{
+        Object.defineProperty(window, 'dataLayer', {
+          configurable: false,
+          enumerable: true,
+          get: function(){ return __DL__; },
+          set: function(v){
+            if(Array.isArray(v)){
+              // If someone tries to replace it, drain their array into ours
+              while(v.length){ __DL__.push(v.shift()); }
+            }
+            // ignore non-array assignments
+          }
+        });
+      }catch(_){ /* defineProperty may fail on some browsers; safe to ignore */ }
+    })();
     var CURRENCY = 'INR';
     var IS_PDP = /pdp\.html$/i.test(location.pathname);
 
@@ -66,11 +84,29 @@
           var calcVal = atcObj.items.reduce(function(s,i){ return s + (Number(i.price||0)*Number(i.quantity||1)); }, 0);
           atcObj.value = typeof obj.value === 'number' ? Number(obj.value||0) : calcVal;
 
-          // Signature-based dedupe: same id:qty:price:value within ~2s
+          // Strong dedupe: signature + slug-only fallback within generous windows
           var sig = atcObj.items.map(function(i){ return i.item_id+':'+i.quantity+':'+i.price; }).join('|') + '|' + atcObj.value;
+          var slugOnly = atcObj.items.map(function(i){ return i.item_id; }).join('|');
           var now = Date.now();
-          if(window.__ATC_SIG__ === sig && (now - (window.__ATC_TIME__||0)) < 2000){ return 0; }
+          // 1) identical payload within 5s → drop
+          if(window.__ATC_SIG__ === sig && (now - (window.__ATC_TIME__||0)) < 5000){ return 0; }
+          // 2) same slug(s) within 1200ms → drop (covers slightly different payloads from second handler)
+          if(window.__ATC_SLUG__ === slugOnly && (now - (window.__ATC_SLUG_TIME__||0)) < 1200){ return 0; }
           window.__ATC_SIG__ = sig; window.__ATC_TIME__ = now;
+          window.__ATC_SLUG__ = slugOnly; window.__ATC_SLUG_TIME__ = now;
+
+          // Force-correct any lingering 'fragrance' categories after normalization
+          atcObj.items = atcObj.items.map(function(it){
+            var fixedCat = toTier(it.item_category, it.item_name, PDP_PRODUCT && PDP_PRODUCT.type, PDP_PRODUCT && PDP_PRODUCT.name);
+            return {
+              item_id: it.item_id,
+              item_name: it.item_name,
+              item_category: fixedCat,
+              price: it.price,
+              quantity: it.quantity,
+              currency: it.currency || CURRENCY
+            };
+          });
 
           obj = atcObj;
         }
