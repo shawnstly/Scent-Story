@@ -916,6 +916,51 @@ PDP_PRODUCT.slug = PDP_PRODUCT.slug || shortKey;
     return 'fragrance';
   }
 
+  // === Intercept dataLayer.push on PDP to dedupe & normalize ===
+  var __origPush = window.dataLayer.push.bind(window.dataLayer);
+  function normalizeItem(it){
+    var id = String((it && (it.item_id||it.slug)) || (PDP_PRODUCT && PDP_PRODUCT.slug) || '').toLowerCase();
+    // If someone passed a name like "Beast — EDP" as id, reduce to slug-ish
+    id = id.replace(/\s+—\s+.*$/, '').replace(/\s+/g, '-');
+    var nm = (it && (it.item_name||it.name)) || (PDP_PRODUCT && PDP_PRODUCT.name) || '';
+    var cat = toTier(it && (it.item_category||it.category||it.type||it.tier||it.item_variant), nm, PDP_PRODUCT && PDP_PRODUCT.type, PDP_PRODUCT && PDP_PRODUCT.name);
+    var price = Number((it && it.price) || (PDP_PRODUCT && (PDP_PRODUCT.priceINR||PDP_PRODUCT.price)) || 0);
+    var qty = Math.max(1, Number((it && (it.quantity||it.qty)) || 1));
+    var cur = (it && it.currency) || 'INR';
+    return { item_id: id, item_name: nm, item_category: cat, price: price, quantity: qty, currency: cur };
+  }
+  window.dataLayer.push = function(obj){
+    try{
+      if(!obj || typeof obj !== 'object') return __origPush(obj);
+
+      if(obj.event === 'page_context'){
+        if(window.__PAGE_CONTEXT_FIRED__) return 0; // dedupe
+        window.__PAGE_CONTEXT_FIRED__ = true;
+        // Force minimal, whitelisted keys only
+        obj = { event: 'page_context', page_type: 'pdp', currency: CURRENCY };
+      }
+
+      if(obj.event === 'view_item'){
+        if(window.__PDP_VIEW_FIRED__) return 0; // dedupe
+        window.__PDP_VIEW_FIRED__ = true;
+        // Normalize items
+        var items = Array.isArray(obj.items) && obj.items.length ? obj.items.map(normalizeItem) : [ normalizeItem({}) ];
+        // Whitelist top-level keys and rebuild object
+        obj = { event: 'view_item', page_type: 'pdp', currency: (obj.currency||CURRENCY), items: items.map(function(it){
+          return {
+            item_id: it.item_id,
+            item_name: it.item_name,
+            item_category: it.item_category,
+            price: Number(it.price||0),
+            quantity: Number(it.quantity||1),
+            currency: it.currency || CURRENCY
+          };
+        }) };
+      }
+    }catch(e){}
+    return __origPush(obj);
+  };
+
   function gaItemFromProduct(qty){
     return {
       item_id: String(PDP_PRODUCT.slug || '').toLowerCase(),
@@ -964,7 +1009,7 @@ updateCartBadge();
         const item = (window.__gaItemFromProduct ? window.__gaItemFromProduct(1) : null) || {
           item_id: String(PDP_PRODUCT.slug||'').toLowerCase(),
           item_name: PDP_PRODUCT.name||'',
-          item_category: String(PDP_PRODUCT.type||'fragrance').toLowerCase(),
+          item_category: toTier(PDP_PRODUCT.type, PDP_PRODUCT.name),
           price: Number(PDP_PRODUCT.priceINR||0),
           quantity: 1,
           currency: 'INR'
@@ -1010,7 +1055,7 @@ updateCartBadge();
           const item = (window.__gaItemFromProduct ? window.__gaItemFromProduct(q) : null) || {
             item_id: String(PDP_PRODUCT.slug||'').toLowerCase(),
             item_name: PDP_PRODUCT.name||'',
-            item_category: String(PDP_PRODUCT.type||'fragrance').toLowerCase(),
+            item_category: toTier(PDP_PRODUCT.type, PDP_PRODUCT.name),
             price: Number(PDP_PRODUCT.priceINR||0),
             quantity: q,
             currency: 'INR'
@@ -1041,7 +1086,7 @@ updateCartBadge();
             const item = (window.__gaItemFromProduct ? window.__gaItemFromProduct(q) : null) || {
               item_id: String(PDP_PRODUCT.slug||'').toLowerCase(),
               item_name: PDP_PRODUCT.name||'',
-              item_category: String(PDP_PRODUCT.type||'fragrance').toLowerCase(),
+              item_category: toTier(PDP_PRODUCT.type, PDP_PRODUCT.name),
               price: Number(PDP_PRODUCT.priceINR||0),
               quantity: q,
               currency: 'INR'
