@@ -182,6 +182,21 @@
       return `SS-${stamp}-${rnd}`;
     }
 
+    // Normalize product tier to one of: edp | parfum | elixir | fragrance
+    function toTier(x){
+      const t = String(x||'').toLowerCase();
+      if(/\belixir\b/.test(t)) return 'elixir';
+      if(/\bparfum\b/.test(t)) return 'parfum';
+      if(/\bedp\b/.test(t))    return 'edp';
+      return 'fragrance';
+    }
+    function niceTier(t){
+      if(t==='edp') return 'EDP';
+      if(t==='parfum') return 'Parfum';
+      if(t==='elixir') return 'Elixir';
+      return 'Fragrance';
+    }
+
     // ===== Bootstrap order data =====
     (function init(){
       // If a LAST_ORDER exists, prefer it (e.g., user refreshes this page)
@@ -195,7 +210,7 @@
         const gaItems = Array.isArray(rawCart) ? rawCart.map(it => ({
           item_id: String(it.sku || it.slug || it.id || it.name || '').toLowerCase(),
           item_name: it.name || String(it.sku || it.slug || ''),
-          item_category: String(it.type || it.tier || 'fragrance').toLowerCase(),
+          item_category: toTier(it.type || it.tier || it.category || it.slug),
           price: Number(it.price || 0),
           quantity: Number(it.qty || 1),
           currency: CURRENCY
@@ -228,7 +243,7 @@
         const gaItems = src.map(it => ({
           item_id: String(it.sku || it.slug || it.id || it.name || '').toLowerCase(),
           item_name: it.name || String(it.sku || it.slug || ''),
-          item_category: String(it.type || it.tier || 'fragrance').toLowerCase(),
+          item_category: toTier(it.type || it.tier || it.category || it.slug),
           price: Number(it.price || 0),
           quantity: Number(it.qty || it.quantity || 1),
           currency: CURRENCY
@@ -262,7 +277,7 @@
             <img src="${it.image || ''}" alt="${it.item_name || ''}">
             <div>
               <h4>${it.item_name || ''}</h4>
-              <div class="sku">Qty: ${it.quantity || 1}</div>
+              <div class="sku">${niceTier(it.item_category || '')} • Qty: ${it.quantity || 1}</div>
             </div>
             <div class="price">${fmt.format((Number(it.price||0)) * (Number(it.quantity||1)))}</div>`;
           list.appendChild(row);
@@ -292,46 +307,86 @@
     })();
   </script>
   <script>
-    (function(){
-      const CURRENCY='INR';
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({ event:'page_context', page_type:'thankyou', currency:CURRENCY });
-    
-      let order=null;
-      try{ order = JSON.parse(localStorage.getItem('SCENT_LAST_ORDER')||'null'); }catch(_){}
-      if(!order || order.__fired) return;
-    
-      const items = Array.isArray(order.items) ? order.items : [];
-      const value = Number(order.total || items.reduce((s,i)=> s + (Number(i.price||0) * Number(i.quantity||1)), 0));
-      const tax = Number(order.tax || 0);
-      const shipping = Number(order.shipping || 0);
-      const txId = String(order.order_id || order.id || Date.now());
-    
-      // 🏠 Extract shipping state (simple heuristic)
-      let shipping_state = '';
-      if(order.address){
-        const parts = order.address.split(',').map(p=>p.trim());
-        shipping_state = parts[parts.length-1] || ''; // last comma-separated piece
-      }
-    
-      const shipInfo = localStorage.getItem('SCENT_SHIP_ID') || 'std';
-      const shipping_tier = (shipInfo==='exp' ? 'Express Air' : shipInfo==='nd' ? 'Next Day' : 'Standard');
-    
-      window.dataLayer.push({
-        event:'purchase',
-        transaction_id: txId,
-        currency: CURRENCY,
-        value,
-        tax,
-        shipping,
-        shipping_state,
-        shipping_tier,
-        items
-      });
-    
-      order.__fired = true;
-      localStorage.setItem('SCENT_LAST_ORDER', JSON.stringify(order));
-    })();
-    </script>
+(function(){
+  const CURRENCY='INR';
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event:'page_context', page_type:'thankyou', currency:CURRENCY });
+
+  let order=null;
+  try{ order = JSON.parse(localStorage.getItem('SCENT_LAST_ORDER')||'null'); }catch(_){}
+  if(!order || order.__fired) return;
+
+  // shortlist of states per your request
+  const SHORT_STATES = ['Karnataka','Maharashtra','Tamil Nadu','Delhi','Telangana'];
+  function extractINState(addr){
+    if(!addr) return '';
+    const s = String(addr).toLowerCase();
+    // direct contains match
+    for(const st of SHORT_STATES){
+      if(s.includes(st.toLowerCase())) return st;
+    }
+    // smarter fallbacks: ignore trailing 'India' and 6-digit pincodes
+    const parts = String(addr).split(',').map(p=>p.trim()).filter(Boolean);
+    if(parts.length){
+      let guess = parts[parts.length-1];
+      if(/india/i.test(guess) && parts.length>=2) guess = parts[parts.length-2];
+      if(/\b\d{6}\b/.test(guess) && parts.length>=2) guess = parts[parts.length-2];
+      const gLower = guess.toLowerCase();
+      for(const st of SHORT_STATES){ if(gLower.includes(st.toLowerCase())) return st; }
+      return guess.replace(/\b\d{6}\b/g,'').trim();
+    }
+    return '';
+  }
+
+  function toTier(x){
+    const t = String(x||'').toLowerCase();
+    if(/\belixir\b/.test(t)) return 'elixir';
+    if(/\bparfum\b/.test(t)) return 'parfum';
+    if(/\bedp\b/.test(t))    return 'edp';
+    return 'fragrance';
+  }
+
+  const srcItems = Array.isArray(order.items) ? order.items : [];
+  const items = srcItems.map(i=>({
+    item_id: String(i.item_id || i.sku || i.slug || i.id || i.name || '').toLowerCase(),
+    item_name: i.item_name || i.name || String(i.sku || i.slug || ''),
+    item_category: toTier(i.item_category || i.category || i.type || i.tier || i.item_variant),
+    price: Number(i.price || 0),
+    quantity: Number(i.quantity || i.qty || 1),
+    currency: CURRENCY
+  }));
+
+  // Build unique tier list for the order
+  const tiersSet = new Set(items.map(it=>it.item_category));
+  const order_category_tiers_array = Array.from(tiersSet);
+  const order_category_tiers = order_category_tiers_array.join(', ');
+
+  const value    = Number(order.total    || items.reduce((s,i)=> s + (Number(i.price||0) * Number(i.quantity||1)), 0));
+  const tax      = Number(order.tax      || 0);
+  const shipping = Number(order.shipping || 0);
+  const txId     = String(order.order_id || order.id || Date.now());
+
+  const shipId = localStorage.getItem('SCENT_SHIP_ID') || 'std';
+  const shipping_tier = shipId==='exp' ? 'Express Air' : shipId==='nd' ? 'Next Day' : 'Standard';
+  const shipping_state = extractINState(order.address || '');
+
+  window.dataLayer.push({
+    event:'purchase',
+    transaction_id: txId,
+    currency: CURRENCY,
+    value,
+    tax,
+    shipping,
+    shipping_state,
+    shipping_tier,
+    order_category_tiers,
+    order_category_tiers_array,
+    items
+  });
+
+  order.__fired = true;
+  localStorage.setItem('SCENT_LAST_ORDER', JSON.stringify(order));
+})();
+  </script>
 </body>
 </html>
