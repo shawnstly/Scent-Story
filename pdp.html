@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <script>window.dataLayer = window.dataLayer || [];</script>
-  <script src="dl.js" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -903,19 +902,41 @@ PDP_PRODUCT.slug = PDP_PRODUCT.slug || shortKey;
 (function(){
   const CURRENCY = 'INR';
   window.dataLayer = window.dataLayer || [];
+
+  // Robust tier/category normalizer
+  function toTier(){
+    for (var a=0; a<arguments.length; a++){
+      var x = arguments[a];
+      if (!x) continue;
+      var t = String(x).toLowerCase();
+      if (/\belixir\b/.test(t)) return 'elixir';
+      if (/\bparfum\b/.test(t)) return 'parfum';
+      if (/\bedp\b/.test(t))    return 'edp';
+    }
+    return 'fragrance';
+  }
+
   function gaItemFromProduct(qty){
     return {
       item_id: String(PDP_PRODUCT.slug || '').toLowerCase(),
       item_name: PDP_PRODUCT.name || '',
-      item_category: String(PDP_PRODUCT.type || 'fragrance').toLowerCase(),
+      item_category: toTier(PDP_PRODUCT.type, PDP_PRODUCT.name),
       price: Number(PDP_PRODUCT.priceINR || PDP_PRODUCT.price || 0),
       quantity: Math.max(1, Number(qty || 1)),
       currency: CURRENCY
     };
   }
   document.addEventListener('DOMContentLoaded', function(){
-    window.dataLayer.push({ event: 'page_context', page_type: 'pdp', currency: CURRENCY });
-    window.dataLayer.push({ event: 'view_item', currency: CURRENCY, items: [ gaItemFromProduct(1) ] });
+    // Fire page_context once per page load
+    if(!window.__PAGE_CONTEXT_FIRED__){
+      window.dataLayer.push({ event: 'page_context', page_type: 'pdp', currency: CURRENCY });
+      window.__PAGE_CONTEXT_FIRED__ = true;
+    }
+    // Fire view_item once per PDP view
+    if(!window.__PDP_VIEW_FIRED__){
+      window.dataLayer.push({ event: 'view_item', page_type: 'pdp', currency: CURRENCY, items: [ gaItemFromProduct(1) ] });
+      window.__PDP_VIEW_FIRED__ = true;
+    }
   });
   window.__gaItemFromProduct = gaItemFromProduct;
 })();
