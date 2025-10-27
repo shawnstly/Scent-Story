@@ -520,6 +520,9 @@
     };
   }
 
+  // expose for later scripts on this page
+  try{ window.__buildGaItem = itemFrom; window.__DL_CURRENCY = CURRENCY; }catch(_){}
+
   function currentSlug(){
     // support both ?slug=... and #slug forms
     try{
@@ -537,17 +540,21 @@
     map[key] = true; return true;
   }
 
-  // Push page_context + view_item when PDP_PRODUCT is ready; retry for a while
+  // Dedicated page_context pusher (does NOT wait for PDP_PRODUCT)
+  function firePageContextIfNeeded(){
+    var slug = currentSlug() || 'default';
+    if (oncePerSlug(slug, 'page_context')){
+      window.dataLayer.push({ event:'page_context', page_type:'pdp', currency:CURRENCY });
+    }
+  }
+
+  // Push view_item when PDP_PRODUCT is ready; retry for a while
   function primeAndFire(){
     var deadline = Date.now() + 5000;  // retry up to 5s
     (function loop(){
       var slug = (window.PDP_PRODUCT && window.PDP_PRODUCT.slug) || currentSlug() || 'default';
       if (window.PDP_PRODUCT && window.PDP_PRODUCT.name){
-        // 1) page_context (once per slug)
-        if (oncePerSlug(slug, 'page_context')){
-          window.dataLayer.push({ event:'page_context', page_type:'pdp', currency:CURRENCY });
-        }
-        // 2) view_item (once per slug)
+        // 1) view_item (once per slug)
         if (oncePerSlug(slug, 'view_item')){
           window.dataLayer.push({
             event:'view_item',
@@ -569,9 +576,6 @@
             type: 'fragrance',
             priceINR: parseInt((priceEl && priceEl.textContent.replace(/[^0-9]/g,''))||'0',10) || 0
           };
-          if (oncePerSlug(slug||'unknown', 'page_context')){
-            window.dataLayer.push({ event:'page_context', page_type:'pdp', currency:CURRENCY });
-          }
           if (oncePerSlug(slug||'unknown', 'view_item')){
             window.dataLayer.push({ event:'view_item', page_type:'pdp', currency:CURRENCY, items:[ itemFrom(fallback,1) ] });
           }
@@ -580,6 +584,13 @@
       }
       setTimeout(loop, 60);
     })();
+  }
+
+  // Fire page_context early (does not depend on PDP_PRODUCT)
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', firePageContextIfNeeded);
+  } else {
+    firePageContextIfNeeded();
   }
 
   // Fire on load
@@ -594,27 +605,12 @@
     // reset flags for the new slug so events can fire again
     var slug = currentSlug() || 'default';
     window.__PDP_DL.firedFor[slug] = {};
+    firePageContextIfNeeded();
     primeAndFire();
   });
 
-  // Hook Add to Cart and Wishlist after DOM is ready (same as before)
+  // Hook Wishlist after DOM is ready (same as before)
   document.addEventListener('DOMContentLoaded', function(){
-    var addBtn = document.getElementById('addToCart');
-    var qtyEl  = document.getElementById('qty');
-    if (addBtn){
-      addBtn.addEventListener('click', function(){
-        if(!window.PDP_PRODUCT) return;
-        var q = Math.max(1, parseInt((qtyEl && qtyEl.value) || '1', 10));
-        window.dataLayer.push({
-          event:'add_to_cart',
-          page_type:'pdp',
-          currency:CURRENCY,
-          items:[ itemFrom(window.PDP_PRODUCT, q) ],
-          value: (window.PDP_PRODUCT.priceINR || 0) * q
-        });
-      }, {capture:false});
-    }
-
     var wishBtn = document.getElementById('wishlist');
     if (wishBtn){
       wishBtn.addEventListener('click', function(){
@@ -1103,6 +1099,34 @@ updateCartBadge();
         const q = Math.max(1, parseInt(qtyInput.value||'1',10));
         addToCartItem({ slug: PDP_PRODUCT.slug, name: PDP_PRODUCT.name, price: PDP_PRODUCT.priceINR, qty: q, image: PDP_PRODUCT.images[0] });
         showToast(`Added ${q} × ${PDP_PRODUCT.name}`);
+        // --- GA4: push add_to_cart once, from the single source of truth (business handler)
+        try{
+          window.dataLayer = window.dataLayer || [];
+          var _q = q;
+          var _item = (typeof window.__buildGaItem === 'function')
+            ? window.__buildGaItem(PDP_PRODUCT, _q)
+            : {
+                item_id: PDP_PRODUCT.slug,
+                item_name: PDP_PRODUCT.name,
+                item_category: (function(){
+                  var t = String(PDP_PRODUCT.type||'').toLowerCase();
+                  if(/elixir/.test(t)) return 'elixir';
+                  if(/parfum/.test(t)) return 'parfum';
+                  if(/edp/.test(t))    return 'edp';
+                  return 'fragrance';
+                })(),
+                price: PDP_PRODUCT.priceINR,
+                quantity: _q,
+                currency: (window.__DL_CURRENCY || 'INR')
+              };
+          window.dataLayer.push({
+            event: 'add_to_cart',
+            page_type: 'pdp',
+            currency: (window.__DL_CURRENCY || 'INR'),
+            items: [ _item ],
+            value: (PDP_PRODUCT.priceINR || 0) * _q
+          });
+        }catch(_){ /* swallow */ }
       }
       renderAddState();
       updateCartBadge();
