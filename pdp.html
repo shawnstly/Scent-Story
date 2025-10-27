@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <script>window.dataLayer = window.dataLayer || [];</script>
+  <script src="dl.js" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -9,112 +10,6 @@
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer','GTM-5SX8RV8P');</script>
   <!-- End Google Tag Manager -->
-  <script>
-  // Early PDP sanitizer: normalize & dedupe view_item / add_to_cart before any other script runs
-  (function(){
-    if(window.__PDP_SANITIZER__) return; // don't double‑install
-    window.__PDP_SANITIZER__ = true;
-    window.dataLayer = window.dataLayer || [];
-    // Lock dataLayer so later scripts can’t replace the array (they can only push)
-    (function(){
-      var __DL__ = window.dataLayer; // capture the canonical array
-      try{
-        Object.defineProperty(window, 'dataLayer', {
-          configurable: false,
-          enumerable: true,
-          get: function(){ return __DL__; },
-          set: function(v){
-            if(Array.isArray(v)){
-              // If someone tries to replace it, drain their array into ours
-              while(v.length){ __DL__.push(v.shift()); }
-            }
-            // ignore non-array assignments
-          }
-        });
-      }catch(_){ /* defineProperty may fail on some browsers; safe to ignore */ }
-    })();
-    var CURRENCY = 'INR';
-    var IS_PDP = /pdp\.html$/i.test(location.pathname);
-
-    function toTier(){
-      for (var a=0; a<arguments.length; a++){
-        var x = arguments[a]; if(!x) continue; var t = String(x).toLowerCase();
-        if(/\belixir\b/.test(t)) return 'elixir';
-        if(/\bparfum\b/.test(t)) return 'parfum';
-        if(/\bedp\b/.test(t))    return 'edp';
-      }
-      return 'fragrance';
-    }
-    function normalizeItemEarly(it){
-      it = it || {};
-      var id = String(it.item_id||it.slug||'').toLowerCase()
-                .replace(/\s+—\s+.*$/, '')
-                .replace(/\s+/g,'-');
-      var nm = it.item_name || it.name || '';
-      var cat = toTier(it.item_category, it.category, it.type, it.tier, it.item_variant, nm);
-      var price = Number(it.price||0);
-      var qty = Math.max(1, Number(it.quantity||it.qty||1));
-      var cur = it.currency || CURRENCY;
-      return { item_id:id, item_name:nm, item_category:cat, price:price, quantity:qty, currency:cur };
-    }
-
-    var __origPush = window.dataLayer.push.bind(window.dataLayer);
-    window.dataLayer.push = function(obj){
-      try{
-        if(!obj || typeof obj !== 'object' || !IS_PDP) return __origPush(obj);
-
-        if(obj.event === 'page_context'){
-          // One clean page_context per load, no items allowed
-          if(window.__PAGE_CONTEXT_FIRED__) return 0;
-          window.__PAGE_CONTEXT_FIRED__ = true;
-          obj = { event:'page_context', page_type:'pdp', currency:CURRENCY };
-        }
-
-        if(obj.event === 'view_item'){
-          if(window.__PDP_VIEW_FIRED__) return 0; // dedupe
-          window.__PDP_VIEW_FIRED__ = true;
-          var items = Array.isArray(obj.items) && obj.items.length ? obj.items.map(normalizeItemEarly) : [ normalizeItemEarly({}) ];
-          obj = { event:'view_item', page_type:'pdp', currency:(obj.currency||CURRENCY), items: items };
-        }
-
-        if(obj.event === 'add_to_cart'){
-          // Normalize + strong dedupe to kill double pushes from other scripts
-          var itemsAtc = Array.isArray(obj.items) && obj.items.length ? obj.items.map(normalizeItemEarly) : [ normalizeItemEarly({}) ];
-          var atcObj = { event:'add_to_cart', page_type:'pdp', currency:(obj.currency||CURRENCY), items: itemsAtc };
-          var calcVal = atcObj.items.reduce(function(s,i){ return s + (Number(i.price||0)*Number(i.quantity||1)); }, 0);
-          atcObj.value = typeof obj.value === 'number' ? Number(obj.value||0) : calcVal;
-
-          // Strong dedupe: signature + slug-only fallback within generous windows
-          var sig = atcObj.items.map(function(i){ return i.item_id+':'+i.quantity+':'+i.price; }).join('|') + '|' + atcObj.value;
-          var slugOnly = atcObj.items.map(function(i){ return i.item_id; }).join('|');
-          var now = Date.now();
-          // 1) identical payload within 5s → drop
-          if(window.__ATC_SIG__ === sig && (now - (window.__ATC_TIME__||0)) < 5000){ return 0; }
-          // 2) same slug(s) within 1200ms → drop (covers slightly different payloads from second handler)
-          if(window.__ATC_SLUG__ === slugOnly && (now - (window.__ATC_SLUG_TIME__||0)) < 1200){ return 0; }
-          window.__ATC_SIG__ = sig; window.__ATC_TIME__ = now;
-          window.__ATC_SLUG__ = slugOnly; window.__ATC_SLUG_TIME__ = now;
-
-          // Force-correct any lingering 'fragrance' categories after normalization
-          atcObj.items = atcObj.items.map(function(it){
-            var fixedCat = toTier(it.item_category, it.item_name, PDP_PRODUCT && PDP_PRODUCT.type, PDP_PRODUCT && PDP_PRODUCT.name);
-            return {
-              item_id: it.item_id,
-              item_name: it.item_name,
-              item_category: fixedCat,
-              price: it.price,
-              quantity: it.quantity,
-              currency: it.currency || CURRENCY
-            };
-          });
-
-          obj = atcObj;
-        }
-      }catch(e){}
-      return __origPush(obj);
-    };
-  })();
-  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scent Story – Luxury Fragrances</title>
@@ -812,6 +707,11 @@ function updateCartBadge(){
   badge.textContent = n;
   badge.hidden = n<=0;
 }
+    function readWishlistPDP(){ return JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]'); }
+    function writeWishlistPDP(items){
+      localStorage.setItem(WISHLIST_KEY, JSON.stringify(items));
+      try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){ }
+    }
     // ===== Local WL badge fallback (keeps navbar count in sync on this page) =====
     function readWishlistCountLocal(){
       try{
@@ -993,127 +893,15 @@ const shortKey = normalizeSlug(rawSlug);
 const PDP_PRODUCT = PRODUCTS[shortKey] || PRODUCTS['ceo-elixir'];
 PDP_PRODUCT.slug = PDP_PRODUCT.slug || shortKey;
 // ===== Bind product fields into the DOM =====
-  (function bindProduct(){
-    const title = document.querySelector('.product-info h1');
-    const price = document.querySelector('.price-row .price');
-    const desc  = document.querySelector('.product-info .desc');
-    const notesWrap = document.querySelector('.notes-list');
-    if(title) title.textContent = PDP_PRODUCT.name;
-    if(price) price.textContent = `₹ ${PDP_PRODUCT.priceINR.toLocaleString('en-IN')}`;
-    if(desc)  desc.textContent  = PDP_PRODUCT.desc || '';
-    if(notesWrap){ notesWrap.innerHTML = (PDP_PRODUCT.notes||[]).map(n=>`<span>${n}</span>`).join(''); }
-  })();
-
-// ===== GA4 / GTM helpers for PDP events =====
-(function(){
-  const CURRENCY = 'INR';
-  window.dataLayer = window.dataLayer || [];
-
-  // Robust tier/category normalizer
-  function toTier(){
-    for (var a=0; a<arguments.length; a++){
-      var x = arguments[a];
-      if (!x) continue;
-      var t = String(x).toLowerCase();
-      if (/\belixir\b/.test(t)) return 'elixir';
-      if (/\bparfum\b/.test(t)) return 'parfum';
-      if (/\bedp\b/.test(t))    return 'edp';
-    }
-    return 'fragrance';
-  }
-
-  // If early sanitizer already installed in <head>, don’t override again
-  if(!window.__PDP_SANITIZER__){
-    var __origPush = window.dataLayer.push.bind(window.dataLayer);
-    function normalizeItem(it){
-      var id = String((it && (it.item_id||it.slug)) || (PDP_PRODUCT && PDP_PRODUCT.slug) || '').toLowerCase();
-      // If someone passed a name like "Beast — EDP" as id, reduce to slug-ish
-      id = id.replace(/\s+—\s+.*$/, '').replace(/\s+/g, '-');
-      var nm = (it && (it.item_name||it.name)) || (PDP_PRODUCT && PDP_PRODUCT.name) || '';
-      var cat = toTier(it && (it.item_category||it.category||it.type||it.tier||it.item_variant), nm, PDP_PRODUCT && PDP_PRODUCT.type, PDP_PRODUCT && PDP_PRODUCT.name);
-      var price = Number((it && it.price) || (PDP_PRODUCT && (PDP_PRODUCT.priceINR||PDP_PRODUCT.price)) || 0);
-      var qty = Math.max(1, Number((it && (it.quantity||it.qty)) || 1));
-      var cur = (it && it.currency) || 'INR';
-      return { item_id: id, item_name: nm, item_category: cat, price: price, quantity: qty, currency: cur };
-    }
-    window.dataLayer.push = function(obj){
-      try{
-        if(!obj || typeof obj !== 'object') return __origPush(obj);
-
-        if(obj.event === 'page_context'){
-          if(window.__PAGE_CONTEXT_FIRED__) return 0; // dedupe
-          window.__PAGE_CONTEXT_FIRED__ = true;
-          obj = { event: 'page_context', page_type: 'pdp', currency: CURRENCY };
-        }
-
-        if(obj.event === 'view_item'){
-          if(window.__PDP_VIEW_FIRED__) return 0; // dedupe
-          window.__PDP_VIEW_FIRED__ = true;
-          var items = Array.isArray(obj.items) && obj.items.length ? obj.items.map(normalizeItem) : [ normalizeItem({}) ];
-          obj = { event: 'view_item', page_type: 'pdp', currency: (obj.currency||CURRENCY), items: items.map(function(it){
-            return {
-              item_id: it.item_id,
-              item_name: it.item_name,
-              item_category: it.item_category,
-              price: Number(it.price||0),
-              quantity: Number(it.quantity||1),
-              currency: it.currency || CURRENCY
-            };
-          }) };
-        }
-
-        if(obj.event === 'add_to_cart'){
-          var itemsAtc = Array.isArray(obj.items) && obj.items.length ? obj.items.map(normalizeItem) : [ normalizeItem({}) ];
-          var atcObj = { event: 'add_to_cart', page_type: 'pdp', currency: (obj.currency||CURRENCY),
-                         items: itemsAtc.map(function(it){
-                           return {
-                             item_id: it.item_id,
-                             item_name: it.item_name,
-                             item_category: it.item_category,
-                             price: Number(it.price||0),
-                             quantity: Number(it.quantity||1),
-                             currency: it.currency || CURRENCY
-                           };
-                         }) };
-          var calcVal = atcObj.items.reduce(function(s,i){ return s + (Number(i.price||0)*Number(i.quantity||1)); }, 0);
-          if(typeof obj.value === 'number') atcObj.value = Number(obj.value||0); else atcObj.value = calcVal;
-
-          // Dedupe window 1.2s for the later interceptor
-          var sig = atcObj.items.map(function(i){ return i.item_id+':'+i.quantity+':'+i.price; }).join('|') + '|' + atcObj.value;
-          var now = Date.now();
-          if(window.__ATC_SIG__ === sig && (now - (window.__ATC_TIME__||0)) < 1200){ return 0; }
-          window.__ATC_SIG__ = sig; window.__ATC_TIME__ = now;
-
-          obj = atcObj;
-        }
-      }catch(e){}
-      return __origPush(obj);
-    };
-  }
-
-  function gaItemFromProduct(qty){
-    return {
-      item_id: String(PDP_PRODUCT.slug || '').toLowerCase(),
-      item_name: PDP_PRODUCT.name || '',
-      item_category: toTier(PDP_PRODUCT.type, PDP_PRODUCT.name),
-      price: Number(PDP_PRODUCT.priceINR || PDP_PRODUCT.price || 0),
-      quantity: Math.max(1, Number(qty || 1)),
-      currency: CURRENCY
-    };
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    // Fire page_context once per page load
-    if(!window.__PAGE_CONTEXT_FIRED__){
-      window.dataLayer.push({ event: 'page_context', page_type: 'pdp', currency: CURRENCY });
-      window.__PAGE_CONTEXT_FIRED__ = true;
-    }
-    // Fire view_item once per PDP view
-    if(!window.__PDP_VIEW_FIRED__){
-      window.dataLayer.push({ event: 'view_item', page_type: 'pdp', currency: CURRENCY, items: [ gaItemFromProduct(1) ] });
-      window.__PDP_VIEW_FIRED__ = true;
-    }
-  });
-  window.__gaItemFromProduct = gaItemFromProduct;
+(function bindProduct(){
+  const title = document.querySelector('.product-info h1');
+  const price = document.querySelector('.price-row .price');
+  const desc  = document.querySelector('.product-info .desc');
+  const notesWrap = document.querySelector('.notes-list');
+  if(title) title.textContent = PDP_PRODUCT.name;
+  if(price) price.textContent = `₹ ${PDP_PRODUCT.priceINR.toLocaleString('en-IN')}`;
+  if(desc)  desc.textContent  = PDP_PRODUCT.desc || '';
+  if(notesWrap){ notesWrap.innerHTML = (PDP_PRODUCT.notes||[]).map(n=>`<span>${n}</span>`).join(''); }
 })();
 
     // ===== Header year =====
@@ -1129,23 +917,12 @@ updateCartBadge();
     const wishBtn = document.getElementById('wishlist');
     function renderWish(){ wishBtn.textContent = inWishlistSafe(PDP_PRODUCT.slug) ? '✓ Wishlisted' : '♡ Add to Wishlist'; }
     wishBtn.addEventListener('click', ()=>{
-      const wasIn = inWishlistSafe(PDP_PRODUCT.slug);
       toggleWishlistSafe(PDP_PRODUCT.slug);
       renderWish();
+      // Update navbar WL badge (local fallback + global if present)
       updateWishlistBadgeLocal();
       try{ if(window.__updateWishlistBadge__) window.__updateWishlistBadge__(); if(window.__pulseWishlistBadge__) window.__pulseWishlistBadge__(); }catch(_){ }
-      try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){ }
-      try{
-        const item = (window.__gaItemFromProduct ? window.__gaItemFromProduct(1) : null) || {
-          item_id: String(PDP_PRODUCT.slug||'').toLowerCase(),
-          item_name: PDP_PRODUCT.name||'',
-          item_category: toTier(PDP_PRODUCT.type, PDP_PRODUCT.name),
-          price: Number(PDP_PRODUCT.priceINR||0),
-          quantity: 1,
-          currency: 'INR'
-        };
-        window.dataLayer.push({ event: wasIn ? 'remove_from_wishlist' : 'add_to_wishlist', currency:'INR', items:[item] });
-      }catch(_){ }
+      try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){}
       showToast('Wishlist updated');
     });
     renderWish();
@@ -1175,23 +952,14 @@ updateCartBadge();
     addBtn.addEventListener('click', ()=>{
       const isOn = inCart(PDP_PRODUCT.slug);
       if(isOn){
+        // User is undoing: remove item from cart
         removeFromCart(PDP_PRODUCT.slug);
         showToast('Removed from cart');
       } else {
+        // User is adding: respect chosen quantity
         const q = Math.max(1, parseInt(qtyInput.value||'1',10));
         addToCartItem({ slug: PDP_PRODUCT.slug, name: PDP_PRODUCT.name, price: PDP_PRODUCT.priceINR, qty: q, image: PDP_PRODUCT.images[0] });
         showToast(`Added ${q} × ${PDP_PRODUCT.name}`);
-        try{
-          const item = (window.__gaItemFromProduct ? window.__gaItemFromProduct(q) : null) || {
-            item_id: String(PDP_PRODUCT.slug||'').toLowerCase(),
-            item_name: PDP_PRODUCT.name||'',
-            item_category: toTier(PDP_PRODUCT.type, PDP_PRODUCT.name),
-            price: Number(PDP_PRODUCT.priceINR||0),
-            quantity: q,
-            currency: 'INR'
-          };
-          window.dataLayer.push({ event:'add_to_cart', currency:'INR', value: Number(item.price||0)*Number(item.quantity||1), items:[item] });
-        }catch(_){ }
       }
       renderAddState();
       updateCartBadge();
@@ -1204,26 +972,12 @@ updateCartBadge();
     if(buyBtn){
       buyBtn.addEventListener('click', ()=>{
         const q = Math.max(1, parseInt(qtyInput.value||'1',10));
-        let addedNow = false;
         if(!inCart(PDP_PRODUCT.slug)){
+          // Only add if not already in cart to avoid double counting
           addToCartItem({ slug: PDP_PRODUCT.slug, name: PDP_PRODUCT.name, price: PDP_PRODUCT.priceINR, qty: q, image: PDP_PRODUCT.images[0] });
-          addedNow = true;
         }
         showToast('Proceeding to checkout…');
         updateCartBadge();
-        try{
-          if(addedNow){
-            const item = (window.__gaItemFromProduct ? window.__gaItemFromProduct(q) : null) || {
-              item_id: String(PDP_PRODUCT.slug||'').toLowerCase(),
-              item_name: PDP_PRODUCT.name||'',
-              item_category: toTier(PDP_PRODUCT.type, PDP_PRODUCT.name),
-              price: Number(PDP_PRODUCT.priceINR||0),
-              quantity: q,
-              currency: 'INR'
-            };
-            window.dataLayer.push({ event:'add_to_cart', currency:'INR', value: Number(item.price||0)*Number(item.quantity||1), items:[item] });
-          }
-        }catch(_){ }
         setTimeout(()=>{ window.location.href = 'cart.html'; }, 250);
       });
     }
@@ -1844,45 +1598,6 @@ updateCartBadge();
       route();
     })();
   </script>
-  <script>
-    (function(){
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({ event:'page_context', page_type:'pdp', currency:'INR' });
-    
-      // Resolve product from DOM/URL
-      const url=new URL(location.href);
-      const slug=(url.searchParams.get('slug')||'').toLowerCase();
-      const name=(document.querySelector('.product-info h1')?.textContent||'').trim();
-      const price=Number(String(document.querySelector('.price-row .price')?.textContent||'').replace(/[^\d]/g,'')||0);
-    
-      // Try to find type from global PRODUCTS if present
-      let type='fragrance';
-      try{
-        const list=Array.isArray(window.PRODUCTS)?window.PRODUCTS:[];
-        const p=list.find(x=>String(x.slug||'').toLowerCase()===slug)||list.find(x=>String(x.name||'').toLowerCase()===name.toLowerCase());
-        type = (p?.type||'fragrance').toLowerCase();
-      }catch(_){}
-    
-      // view_item on load
-      window.dataLayer.push({ event:'view_item', currency:'INR', items:[{ item_id:slug||name.toLowerCase(), item_name:name, item_category:type, price, quantity:1 }] });
-    
-      // Add to cart
-      const addBtn=document.querySelector('#addToCart,#addToCartBtn');
-      addBtn?.addEventListener('click', ()=>{
-        const qty=Math.max(1, parseInt((document.getElementById('qty')||document.getElementById('qtyInput'))?.value||'1',10));
-        window.dataLayer.push({ event:'add_to_cart', currency:'INR', value:price*qty, items:[{ item_id:slug||name.toLowerCase(), item_name:name, item_category:type, price, quantity:qty, currency:'INR' }] });
-      });
-    
-      // Wishlist toggle (decide intent before UI toggles)
-      function inWL(sl){ try{ const a=JSON.parse(localStorage.getItem('SCENT_WISHLIST_V1')||'[]'); return a.some(it=>String(it.sku||it.slug||'').toLowerCase()===String(sl).toLowerCase()); }catch(_){return false;} }
-      const wishBtn=document.getElementById('wishlist');
-      wishBtn?.addEventListener('click', function(){
-        const wasIn=inWL(slug||name.toLowerCase());
-        const evt= wasIn ? 'remove_from_wishlist' : 'add_to_wishlist';
-        window.dataLayer.push({ event:evt, items:[{ item_id:slug||name.toLowerCase(), item_name:name, item_category:type, price, quantity:1, currency:'INR' }] });
-      }, {capture:true});
-    })();
-    </script>
 </body>
 <script>
   (function(){

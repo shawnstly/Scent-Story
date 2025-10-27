@@ -509,6 +509,46 @@
         font-size:15px; 
       }
     }
+    /* === Mobile fixes: make Contact & Grievance forms full-width (match pdp.html) === */
+@media (max-width: 900px){
+  /* Router sometimes injects a two-column grid; force single column on phones */
+  #page-view .container > div[style*="grid-template-columns"]{
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  #page-view .container{
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  #page-view .container > div[style*="grid-template-columns"] > *{
+    min-width: 0;
+  }
+
+  /* Ensure forms stretch edge-to-edge */
+  #page-view .contact-form,
+  #page-view #grievance-form{
+    width: 100% !important;
+  }
+
+  /* Larger, touch-friendly inputs */
+  #page-view .contact-form input,
+  #page-view .contact-form textarea,
+  #page-view .contact-form select,
+  #page-view #grievance-form input,
+  #page-view #grievance-form textarea,
+  #page-view #grievance-form select{
+    font-size: 16px;  /* prevents iOS zoom on focus */
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  /* Full-width submit buttons for comfort */
+  #page-view .contact-form .btn-gold,
+  #page-view #grievance-form .btn-gold{
+    width: 100%;
+    justify-content: center;
+  }
+}
   </style>
 </head>
 <body>
