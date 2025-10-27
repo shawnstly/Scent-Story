@@ -1088,49 +1088,84 @@ updateCartBadge();
       }
     }
     updateCartBadge();
-    addBtn.addEventListener('click', ()=>{
-      const isOn = inCart(PDP_PRODUCT.slug);
-      if(isOn){
-        // User is undoing: remove item from cart
-        removeFromCart(PDP_PRODUCT.slug);
-        showToast('Removed from cart');
-      } else {
-        // User is adding: respect chosen quantity
-        const q = Math.max(1, parseInt(qtyInput.value||'1',10));
-        addToCartItem({ slug: PDP_PRODUCT.slug, name: PDP_PRODUCT.name, price: PDP_PRODUCT.priceINR, qty: q, image: PDP_PRODUCT.images[0] });
-        showToast(`Added ${q} × ${PDP_PRODUCT.name}`);
-        // --- GA4: push add_to_cart once, from the single source of truth (business handler)
-        try{
-          window.dataLayer = window.dataLayer || [];
-          var _q = q;
-          var _item = (typeof window.__buildGaItem === 'function')
-            ? window.__buildGaItem(PDP_PRODUCT, _q)
-            : {
-                item_id: PDP_PRODUCT.slug,
-                item_name: PDP_PRODUCT.name,
-                item_category: (function(){
-                  var t = String(PDP_PRODUCT.type||'').toLowerCase();
-                  if(/elixir/.test(t)) return 'elixir';
-                  if(/parfum/.test(t)) return 'parfum';
-                  if(/edp/.test(t))    return 'edp';
-                  return 'fragrance';
-                })(),
-                price: PDP_PRODUCT.priceINR,
-                quantity: _q,
-                currency: (window.__DL_CURRENCY || 'INR')
-              };
-          window.dataLayer.push({
-            event: 'add_to_cart',
-            page_type: 'pdp',
-            currency: (window.__DL_CURRENCY || 'INR'),
-            items: [ _item ],
-            value: (PDP_PRODUCT.priceINR || 0) * _q
-          });
-        }catch(_){ /* swallow */ }
-      }
-      renderAddState();
-      updateCartBadge();
-    });
+addBtn.addEventListener('click', ()=>{
+  const wasInCart = inCart(PDP_PRODUCT.slug);
+  if(wasInCart){
+    // Determine previous quantity before removal for accurate GA4 payload
+    const prev = readCart().find(i => i.slug === PDP_PRODUCT.slug);
+    const prevQty = Math.max(1, parseInt((prev && prev.qty) || '1', 10));
+
+    // Remove item from cart
+    removeFromCart(PDP_PRODUCT.slug);
+    showToast('Removed from cart');
+
+    // --- GA4: push remove_from_cart with previous quantity
+    try{
+      window.dataLayer = window.dataLayer || [];
+      var _itemRem = (typeof window.__buildGaItem === 'function')
+        ? window.__buildGaItem(PDP_PRODUCT, prevQty)
+        : {
+            item_id: PDP_PRODUCT.slug,
+            item_name: PDP_PRODUCT.name,
+            item_category: (function(){
+              var t = String(PDP_PRODUCT.type||'').toLowerCase();
+              if(/elixir/.test(t)) return 'elixir';
+              if(/parfum/.test(t)) return 'parfum';
+              if(/edp/.test(t))    return 'edp';
+              return 'fragrance';
+            })(),
+            price: PDP_PRODUCT.priceINR,
+            quantity: prevQty,
+            currency: (window.__DL_CURRENCY || 'INR')
+          };
+      window.dataLayer.push({
+        event: 'remove_from_cart',
+        page_type: 'pdp',
+        currency: (window.__DL_CURRENCY || 'INR'),
+        items: [ _itemRem ],
+        value: (PDP_PRODUCT.priceINR || 0) * prevQty
+      });
+    }catch(_){ /* swallow */ }
+
+  } else {
+    // User is adding: respect chosen quantity
+    const q = Math.max(1, parseInt(qtyInput.value||'1',10));
+    addToCartItem({ slug: PDP_PRODUCT.slug, name: PDP_PRODUCT.name, price: PDP_PRODUCT.priceINR, qty: q, image: PDP_PRODUCT.images[0] });
+    showToast(`Added ${q} × ${PDP_PRODUCT.name}`);
+
+    // --- GA4: push add_to_cart once, from the single source of truth (business handler)
+    try{
+      window.dataLayer = window.dataLayer || [];
+      var _q = q;
+      var _item = (typeof window.__buildGaItem === 'function')
+        ? window.__buildGaItem(PDP_PRODUCT, _q)
+        : {
+            item_id: PDP_PRODUCT.slug,
+            item_name: PDP_PRODUCT.name,
+            item_category: (function(){
+              var t = String(PDP_PRODUCT.type||'').toLowerCase();
+              if(/elixir/.test(t)) return 'elixir';
+              if(/parfum/.test(t)) return 'parfum';
+              if(/edp/.test(t))    return 'edp';
+              return 'fragrance';
+            })(),
+            price: PDP_PRODUCT.priceINR,
+            quantity: _q,
+            currency: (window.__DL_CURRENCY || 'INR')
+          };
+      window.dataLayer.push({
+        event: 'add_to_cart',
+        page_type: 'pdp',
+        currency: (window.__DL_CURRENCY || 'INR'),
+        items: [ _item ],
+        value: (PDP_PRODUCT.priceINR || 0) * _q
+      });
+    }catch(_){ /* swallow */ }
+  }
+
+  renderAddState();
+  updateCartBadge();
+});
 
     // Initialize cart badge on load
     updateCartBadge();
