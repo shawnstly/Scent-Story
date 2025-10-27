@@ -9,6 +9,76 @@
   'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
   })(window,document,'script','dataLayer','GTM-5SX8RV8P');</script>
   <!-- End Google Tag Manager -->
+  <script>
+  // Early PDP sanitizer: normalize & dedupe view_item / add_to_cart before any other script runs
+  (function(){
+    if(window.__PDP_SANITIZER__) return; // don't double‑install
+    window.__PDP_SANITIZER__ = true;
+    window.dataLayer = window.dataLayer || [];
+    var CURRENCY = 'INR';
+    var IS_PDP = /pdp\.html$/i.test(location.pathname);
+
+    function toTier(){
+      for (var a=0; a<arguments.length; a++){
+        var x = arguments[a]; if(!x) continue; var t = String(x).toLowerCase();
+        if(/\belixir\b/.test(t)) return 'elixir';
+        if(/\bparfum\b/.test(t)) return 'parfum';
+        if(/\bedp\b/.test(t))    return 'edp';
+      }
+      return 'fragrance';
+    }
+    function normalizeItemEarly(it){
+      it = it || {};
+      var id = String(it.item_id||it.slug||'').toLowerCase()
+                .replace(/\s+—\s+.*$/, '')
+                .replace(/\s+/g,'-');
+      var nm = it.item_name || it.name || '';
+      var cat = toTier(it.item_category, it.category, it.type, it.tier, it.item_variant, nm);
+      var price = Number(it.price||0);
+      var qty = Math.max(1, Number(it.quantity||it.qty||1));
+      var cur = it.currency || CURRENCY;
+      return { item_id:id, item_name:nm, item_category:cat, price:price, quantity:qty, currency:cur };
+    }
+
+    var __origPush = window.dataLayer.push.bind(window.dataLayer);
+    window.dataLayer.push = function(obj){
+      try{
+        if(!obj || typeof obj !== 'object' || !IS_PDP) return __origPush(obj);
+
+        if(obj.event === 'page_context'){
+          // One clean page_context per load, no items allowed
+          if(window.__PAGE_CONTEXT_FIRED__) return 0;
+          window.__PAGE_CONTEXT_FIRED__ = true;
+          obj = { event:'page_context', page_type:'pdp', currency:CURRENCY };
+        }
+
+        if(obj.event === 'view_item'){
+          if(window.__PDP_VIEW_FIRED__) return 0; // dedupe
+          window.__PDP_VIEW_FIRED__ = true;
+          var items = Array.isArray(obj.items) && obj.items.length ? obj.items.map(normalizeItemEarly) : [ normalizeItemEarly({}) ];
+          obj = { event:'view_item', page_type:'pdp', currency:(obj.currency||CURRENCY), items: items };
+        }
+
+        if(obj.event === 'add_to_cart'){
+          // Normalize + strong dedupe to kill double pushes from other scripts
+          var itemsAtc = Array.isArray(obj.items) && obj.items.length ? obj.items.map(normalizeItemEarly) : [ normalizeItemEarly({}) ];
+          var atcObj = { event:'add_to_cart', page_type:'pdp', currency:(obj.currency||CURRENCY), items: itemsAtc };
+          var calcVal = atcObj.items.reduce(function(s,i){ return s + (Number(i.price||0)*Number(i.quantity||1)); }, 0);
+          atcObj.value = typeof obj.value === 'number' ? Number(obj.value||0) : calcVal;
+
+          // Signature-based dedupe: same id:qty:price:value within ~2s
+          var sig = atcObj.items.map(function(i){ return i.item_id+':'+i.quantity+':'+i.price; }).join('|') + '|' + atcObj.value;
+          var now = Date.now();
+          if(window.__ATC_SIG__ === sig && (now - (window.__ATC_TIME__||0)) < 2000){ return 0; }
+          window.__ATC_SIG__ = sig; window.__ATC_TIME__ = now;
+
+          obj = atcObj;
+        }
+      }catch(e){}
+      return __origPush(obj);
+    };
+  })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Scent Story – Luxury Fragrances</title>
@@ -916,80 +986,74 @@ PDP_PRODUCT.slug = PDP_PRODUCT.slug || shortKey;
     return 'fragrance';
   }
 
-  // === Intercept dataLayer.push on PDP to dedupe & normalize ===
-  var __origPush = window.dataLayer.push.bind(window.dataLayer);
-  function normalizeItem(it){
-    var id = String((it && (it.item_id||it.slug)) || (PDP_PRODUCT && PDP_PRODUCT.slug) || '').toLowerCase();
-    // If someone passed a name like "Beast — EDP" as id, reduce to slug-ish
-    id = id.replace(/\s+—\s+.*$/, '').replace(/\s+/g, '-');
-    var nm = (it && (it.item_name||it.name)) || (PDP_PRODUCT && PDP_PRODUCT.name) || '';
-    var cat = toTier(it && (it.item_category||it.category||it.type||it.tier||it.item_variant), nm, PDP_PRODUCT && PDP_PRODUCT.type, PDP_PRODUCT && PDP_PRODUCT.name);
-    var price = Number((it && it.price) || (PDP_PRODUCT && (PDP_PRODUCT.priceINR||PDP_PRODUCT.price)) || 0);
-    var qty = Math.max(1, Number((it && (it.quantity||it.qty)) || 1));
-    var cur = (it && it.currency) || 'INR';
-    return { item_id: id, item_name: nm, item_category: cat, price: price, quantity: qty, currency: cur };
-  }
-  window.dataLayer.push = function(obj){
-    try{
-      if(!obj || typeof obj !== 'object') return __origPush(obj);
+  // If early sanitizer already installed in <head>, don’t override again
+  if(!window.__PDP_SANITIZER__){
+    var __origPush = window.dataLayer.push.bind(window.dataLayer);
+    function normalizeItem(it){
+      var id = String((it && (it.item_id||it.slug)) || (PDP_PRODUCT && PDP_PRODUCT.slug) || '').toLowerCase();
+      // If someone passed a name like "Beast — EDP" as id, reduce to slug-ish
+      id = id.replace(/\s+—\s+.*$/, '').replace(/\s+/g, '-');
+      var nm = (it && (it.item_name||it.name)) || (PDP_PRODUCT && PDP_PRODUCT.name) || '';
+      var cat = toTier(it && (it.item_category||it.category||it.type||it.tier||it.item_variant), nm, PDP_PRODUCT && PDP_PRODUCT.type, PDP_PRODUCT && PDP_PRODUCT.name);
+      var price = Number((it && it.price) || (PDP_PRODUCT && (PDP_PRODUCT.priceINR||PDP_PRODUCT.price)) || 0);
+      var qty = Math.max(1, Number((it && (it.quantity||it.qty)) || 1));
+      var cur = (it && it.currency) || 'INR';
+      return { item_id: id, item_name: nm, item_category: cat, price: price, quantity: qty, currency: cur };
+    }
+    window.dataLayer.push = function(obj){
+      try{
+        if(!obj || typeof obj !== 'object') return __origPush(obj);
 
-      if(obj.event === 'page_context'){
-        if(window.__PAGE_CONTEXT_FIRED__) return 0; // dedupe
-        window.__PAGE_CONTEXT_FIRED__ = true;
-        // Force minimal, whitelisted keys only
-        obj = { event: 'page_context', page_type: 'pdp', currency: CURRENCY };
-      }
-
-      if(obj.event === 'view_item'){
-        if(window.__PDP_VIEW_FIRED__) return 0; // dedupe
-        window.__PDP_VIEW_FIRED__ = true;
-        // Normalize items
-        var items = Array.isArray(obj.items) && obj.items.length ? obj.items.map(normalizeItem) : [ normalizeItem({}) ];
-        // Whitelist top-level keys and rebuild object
-        obj = { event: 'view_item', page_type: 'pdp', currency: (obj.currency||CURRENCY), items: items.map(function(it){
-          return {
-            item_id: it.item_id,
-            item_name: it.item_name,
-            item_category: it.item_category,
-            price: Number(it.price||0),
-            quantity: Number(it.quantity||1),
-            currency: it.currency || CURRENCY
-          };
-        }) };
-      }
-
-      if(obj.event === 'add_to_cart'){
-        // Normalize + dedupe ATC (common double-fire from multiple handlers)
-        var itemsAtc = Array.isArray(obj.items) && obj.items.length ? obj.items.map(normalizeItem) : [ normalizeItem({}) ];
-        var atcObj = { event: 'add_to_cart', page_type: 'pdp', currency: (obj.currency||CURRENCY),
-                       items: itemsAtc.map(function(it){
-                         return {
-                           item_id: it.item_id,
-                           item_name: it.item_name,
-                           item_category: it.item_category,
-                           price: Number(it.price||0),
-                           quantity: Number(it.quantity||1),
-                           currency: it.currency || CURRENCY
-                         };
-                       }) };
-        // Compute value if missing
-        var calcVal = atcObj.items.reduce(function(s,i){ return s + (Number(i.price||0)*Number(i.quantity||1)); }, 0);
-        if(typeof obj.value === 'number') atcObj.value = Number(obj.value||0); else atcObj.value = calcVal;
-
-        // Build signature to dedupe rapid duplicates (same items+qty within ~1.2s)
-        var sig = atcObj.items.map(function(i){ return i.item_id+':'+i.quantity+':'+i.price; }).join('|') + '|' + atcObj.value;
-        var now = Date.now();
-        if(window.__ATC_SIG__ === sig && (now - (window.__ATC_TIME__||0)) < 1200){
-          return 0; // drop duplicate
+        if(obj.event === 'page_context'){
+          if(window.__PAGE_CONTEXT_FIRED__) return 0; // dedupe
+          window.__PAGE_CONTEXT_FIRED__ = true;
+          obj = { event: 'page_context', page_type: 'pdp', currency: CURRENCY };
         }
-        window.__ATC_SIG__ = sig;
-        window.__ATC_TIME__ = now;
 
-        obj = atcObj; // replace with sanitized ATC payload
-      }
-    }catch(e){}
-    return __origPush(obj);
-  };
+        if(obj.event === 'view_item'){
+          if(window.__PDP_VIEW_FIRED__) return 0; // dedupe
+          window.__PDP_VIEW_FIRED__ = true;
+          var items = Array.isArray(obj.items) && obj.items.length ? obj.items.map(normalizeItem) : [ normalizeItem({}) ];
+          obj = { event: 'view_item', page_type: 'pdp', currency: (obj.currency||CURRENCY), items: items.map(function(it){
+            return {
+              item_id: it.item_id,
+              item_name: it.item_name,
+              item_category: it.item_category,
+              price: Number(it.price||0),
+              quantity: Number(it.quantity||1),
+              currency: it.currency || CURRENCY
+            };
+          }) };
+        }
+
+        if(obj.event === 'add_to_cart'){
+          var itemsAtc = Array.isArray(obj.items) && obj.items.length ? obj.items.map(normalizeItem) : [ normalizeItem({}) ];
+          var atcObj = { event: 'add_to_cart', page_type: 'pdp', currency: (obj.currency||CURRENCY),
+                         items: itemsAtc.map(function(it){
+                           return {
+                             item_id: it.item_id,
+                             item_name: it.item_name,
+                             item_category: it.item_category,
+                             price: Number(it.price||0),
+                             quantity: Number(it.quantity||1),
+                             currency: it.currency || CURRENCY
+                           };
+                         }) };
+          var calcVal = atcObj.items.reduce(function(s,i){ return s + (Number(i.price||0)*Number(i.quantity||1)); }, 0);
+          if(typeof obj.value === 'number') atcObj.value = Number(obj.value||0); else atcObj.value = calcVal;
+
+          // Dedupe window 1.2s for the later interceptor
+          var sig = atcObj.items.map(function(i){ return i.item_id+':'+i.quantity+':'+i.price; }).join('|') + '|' + atcObj.value;
+          var now = Date.now();
+          if(window.__ATC_SIG__ === sig && (now - (window.__ATC_TIME__||0)) < 1200){ return 0; }
+          window.__ATC_SIG__ = sig; window.__ATC_TIME__ = now;
+
+          obj = atcObj;
+        }
+      }catch(e){}
+      return __origPush(obj);
+    };
+  }
 
   function gaItemFromProduct(qty){
     return {
