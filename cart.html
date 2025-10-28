@@ -486,17 +486,6 @@
       {id:'exp', name:'Express Air', days:'1–3 business days', cost:199},
       {id:'nd',  name:'Next Day', days:'1–2 business days (select cities)', cost:499}
     ];
-    const CURRENCY = 'INR';
-    function dlItemFromCartItem(it){
-      return {
-        item_id: String(it?.sku || it?.slug || '').toLowerCase(),
-        item_name: it?.name || '',
-        item_category: String(it?.type || it?.tier || 'fragrance').toLowerCase(),
-        price: Number(it?.price || 0),
-        quantity: Number(it?.qty || 1),
-        currency: CURRENCY
-      };
-    }
     const fmt = new Intl.NumberFormat('en-IN', {style:'currency', currency:'INR', maximumFractionDigits:0});
 
     const orderList = document.getElementById('orderList');
@@ -639,6 +628,12 @@
       cart.forEach((item,idx)=>{
         const row = document.createElement('div');
         row.className = 'order-item';
+        // attach a stable, canonical key to the DOM row so we remove the correct item regardless of index drift
+        const rowSku = (function(){
+          // reuse canonicalSkuKey defined above in this script
+          return canonicalSkuKey(item.sku || item.slug || item.id || item.name || '');
+        })();
+        row.setAttribute('data-sku', rowSku);
         row.innerHTML = `
           <img src="${item.image}" alt="${item.name}">
           <div>
@@ -664,23 +659,38 @@
         });
         row.querySelector('.remove').addEventListener('click',()=>{
           window.dataLayer = window.dataLayer || [];
+          const sku = row.getAttribute('data-sku') || '';
           const cartNow = readCart();
-          const removed = cartNow[idx];
-          if(removed){
+          const i = cartNow.findIndex(it => canonicalSkuKey(it?.sku || it?.slug || it?.id || it?.name || '') === sku);
+          if(i > -1){
+            const removed = cartNow[i];
+            // Prepare DL item
+            function dlItemFromCartItem(it){
+              return {
+                item_id: String(it.sku || it.slug || '').toLowerCase(),
+                item_name: it.name || '',
+                item_category: (it.type || it.tier || 'fragrance').toLowerCase(),
+                price: Number(it.price || 0),
+                quantity: Number(it.qty || 1),
+                currency: 'INR'
+              };
+            }
             const dlItem = dlItemFromCartItem(removed);
             const value = dlItem.price * dlItem.quantity;
             window.dataLayer.push({
               event:'removed_item_from_cart',
               page_type:'cart',
-              currency:CURRENCY,
+              currency:'INR',
               value,
               items:[dlItem]
             });
+            cartNow.splice(i,1);
+            writeCart(cartNow);
+            renderCart();
+            toast('Removed from cart');
+          } else {
+            toast('Could not locate item', 'error');
           }
-          cartNow.splice(idx,1);
-          writeCart(cartNow);
-          renderCart();
-          toast('Removed from cart');
         });
       });
       calc();
@@ -778,23 +788,7 @@
       return okNum && okExp && okCvv && name.length>1;
     }
 
-    document.getElementById('clearCart').addEventListener('click',()=>{
-      window.dataLayer = window.dataLayer || [];
-      const before = readCart().map(dlItemFromCartItem);
-      const value = before.reduce((s,i)=> s + (i.price * i.quantity), 0);
-      if(before.length){
-        window.dataLayer.push({
-          event:'cleared_cart',
-          page_type:'cart',
-          currency:CURRENCY,
-          value,
-          items: before
-        });
-      }
-      writeCart([]);
-      renderCart();
-      updateSteps();
-    });
+    document.getElementById('clearCart').addEventListener('click',()=>{ writeCart([]); renderCart(); updateSteps(); });
 
 document.getElementById('completeOrder').addEventListener('click',()=>{
   if(readCart().length===0){ toast('Your bag is empty', 'error'); return; }
