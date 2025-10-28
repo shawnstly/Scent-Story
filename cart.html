@@ -197,12 +197,10 @@
         return { items, value };
       }
     
-      // ---------- 1) view_cart on load ----------
-      (function pushViewCartOnce(){
-        const {items, value} = cartPayload();
+      // ---------- 1) page_context on load (view_cart will be handled by UI script with debounce) ----------
+      (function pushPageContext(){
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({ event:'page_context', page_type:'cart', currency:CURRENCY });
-        window.dataLayer.push({ event:'view_cart', currency:CURRENCY, value, items });
       })();
     
       // ---------- Helpers to find the checkout form + fields ----------
@@ -497,6 +495,38 @@
       total: document.getElementById('s-total')
     };
 
+    const CURRENCY = 'INR';
+    function tierFromName(name){
+      const t = String(name||'').toLowerCase();
+      if(t.includes('elixir')) return 'elixir';
+      if(t.includes('parfum')) return 'parfum';
+      if(t.includes('edp'))    return 'edp';
+      return 'fragrance';
+    }
+    function dlItemFromCartItem(ci){
+      const id = canonicalSkuKey(ci?.sku || ci?.slug || ci?.id || ci?.name || '');
+      const nm = ci?.name || 'Unknown Product';
+      const pr = parseInt(String(ci?.price||'').toString().replace(/[^0-9]/g,''),10) || 0;
+      const qt = Math.max(1, parseInt(ci?.qty||'1',10));
+      return { item_id:id, item_name:nm, item_category:tierFromName(nm), price:pr, quantity:qt, currency:CURRENCY };
+    }
+
+    let __VIEW_CART_FIRED__ = false;
+    let __viewCartTimer = null;
+    function pushViewCartOnce(){
+      if(__VIEW_CART_FIRED__) return;
+      __VIEW_CART_FIRED__ = true;
+      const items = (readCart()||[]).map(dlItemFromCartItem);
+      const value = items.reduce((s,it)=> s + (it.price*it.quantity), 0);
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event:'view_cart', page_type:'cart', currency:CURRENCY, value, items });
+    }
+    document.addEventListener('DOMContentLoaded', pushViewCartOnce);
+    function pushViewCartDebounced(){
+      clearTimeout(__viewCartTimer);
+      __viewCartTimer = setTimeout(()=>{ __VIEW_CART_FIRED__ = false; pushViewCartOnce(); }, 250);
+    }
+
     // ===== Step & Progress logic =====
     const stepsEl = document.querySelectorAll('.steps .step');
     const progressBar = document.getElementById('progressBar');
@@ -622,6 +652,7 @@
     </div>`;
         calc(); updateSteps();
         toast('Your bag is empty — shop our collections!', 'error');
+        pushViewCartDebounced();
         return;
       }
 
@@ -650,12 +681,53 @@
           <div class="price">${fmt.format(item.price*(item.qty||1))}</div>`;
         orderList.appendChild(row);
         // handlers
-        row.querySelector('.minus').addEventListener('click',()=>{ const q=row.querySelector('.qty'); q.stepDown(); q.dispatchEvent(new Event('change')); });
-        row.querySelector('.plus').addEventListener('click',()=>{ const q=row.querySelector('.qty'); q.stepUp(); q.dispatchEvent(new Event('change')); });
-        row.querySelector('.qty').addEventListener('change', e=>{
+        const qtyInputEl = row.querySelector('.qty');
+        const btnPlus = row.querySelector('.plus');
+        const btnMinus = row.querySelector('.minus');
+        const rowSkuKey = row.getAttribute('data-sku') || '';
+
+        function pushQtyChange(itemObj, oldQ, newQ){
+          const safeOld = Math.max(1, parseInt(oldQ||'1',10));
+          const safeNew = Math.max(1, parseInt(newQ||'1',10));
+          if(safeOld === safeNew) return;
+          const delta = safeNew - safeOld;
+          const dlItem = dlItemFromCartItem(Object.assign({}, itemObj, { qty: safeNew }));
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: 'update_cart_item',
+            page_type: 'cart',
+            currency: CURRENCY,
+            action: delta > 0 ? 'increment' : 'decrement',
+            old_quantity: safeOld,
+            new_quantity: safeNew,
+            delta: delta,
+            value_delta: (itemObj.price||0) * delta,
+            items: [ dlItem ]
+          });
+        }
+
+        function applyQty(newQty){
           const cartNow = readCart();
-          const q = Math.max(1, parseInt(e.target.value||'1',10));
-          cartNow[idx].qty = q; writeCart(cartNow); renderCart();
+          const i = cartNow.findIndex(it => canonicalSkuKey(it?.sku || it?.slug || it?.id || it?.name || '') === rowSkuKey);
+          if(i === -1) return;
+          const oldQty = cartNow[i].qty || 1;
+          cartNow[i].qty = Math.max(1, parseInt(newQty||'1',10));
+          writeCart(cartNow);
+          pushQtyChange(cartNow[i], oldQty, cartNow[i].qty);
+          renderCart();
+        }
+
+        btnPlus.addEventListener('click', ()=>{
+          const cur = parseInt(qtyInputEl.value||'1',10) || 1;
+          applyQty(cur + 1);
+        });
+        btnMinus.addEventListener('click', ()=>{
+          const cur = parseInt(qtyInputEl.value||'1',10) || 1;
+          applyQty(Math.max(1, cur - 1));
+        });
+        qtyInputEl.addEventListener('change', ()=>{
+          const val = parseInt(qtyInputEl.value||'1',10) || 1;
+          applyQty(val);
         });
         row.querySelector('.remove').addEventListener('click',()=>{
           window.dataLayer = window.dataLayer || [];
@@ -664,23 +736,12 @@
           const i = cartNow.findIndex(it => canonicalSkuKey(it?.sku || it?.slug || it?.id || it?.name || '') === sku);
           if(i > -1){
             const removed = cartNow[i];
-            // Prepare DL item
-            function dlItemFromCartItem(it){
-              return {
-                item_id: String(it.sku || it.slug || '').toLowerCase(),
-                item_name: it.name || '',
-                item_category: (it.type || it.tier || 'fragrance').toLowerCase(),
-                price: Number(it.price || 0),
-                quantity: Number(it.qty || 1),
-                currency: 'INR'
-              };
-            }
             const dlItem = dlItemFromCartItem(removed);
             const value = dlItem.price * dlItem.quantity;
             window.dataLayer.push({
               event:'removed_item_from_cart',
               page_type:'cart',
-              currency:'INR',
+              currency:CURRENCY,
               value,
               items:[dlItem]
             });
@@ -695,6 +756,7 @@
       });
       calc();
       updateSteps();
+      pushViewCartDebounced();
     }
 
     // shipping selection
@@ -788,7 +850,17 @@
       return okNum && okExp && okCvv && name.length>1;
     }
 
-    document.getElementById('clearCart').addEventListener('click',()=>{ writeCart([]); renderCart(); updateSteps(); });
+    document.getElementById('clearCart').addEventListener('click',()=>{
+      const before = (readCart()||[]).map(dlItemFromCartItem);
+      const value = before.reduce((s,i)=> s + (i.price * i.quantity), 0);
+      window.dataLayer = window.dataLayer || [];
+      if(before.length){
+        window.dataLayer.push({ event:'cleared_cart', page_type:'cart', currency:CURRENCY, value, items: before });
+      }
+      writeCart([]);
+      renderCart();
+      updateSteps();
+    });
 
 document.getElementById('completeOrder').addEventListener('click',()=>{
   if(readCart().length===0){ toast('Your bag is empty', 'error'); return; }
