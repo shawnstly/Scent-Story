@@ -197,7 +197,7 @@
         return { items, value };
       }
     
-      // ---------- 1) page_context on load (view_cart will be handled by UI script with debounce) ----------
+      // ---------- 1) page_context on load (interaction events handled in UI script) ----------
       (function pushPageContext(){
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({ event:'page_context', page_type:'cart', currency:CURRENCY });
@@ -495,6 +495,7 @@
       total: document.getElementById('s-total')
     };
 
+    // ----------- DL helpers -----------
     const CURRENCY = 'INR';
     function tierFromName(name){
       const t = String(name||'').toLowerCase();
@@ -510,21 +511,8 @@
       const qt = Math.max(1, parseInt(ci?.qty||'1',10));
       return { item_id:id, item_name:nm, item_category:tierFromName(nm), price:pr, quantity:qt, currency:CURRENCY };
     }
-
-    let __VIEW_CART_FIRED__ = false;
-    let __viewCartTimer = null;
-    function pushViewCartOnce(){
-      if(__VIEW_CART_FIRED__) return;
-      __VIEW_CART_FIRED__ = true;
-      const items = (readCart()||[]).map(dlItemFromCartItem);
-      const value = items.reduce((s,it)=> s + (it.price*it.quantity), 0);
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({ event:'view_cart', page_type:'cart', currency:CURRENCY, value, items });
-    }
-    document.addEventListener('DOMContentLoaded', pushViewCartOnce);
-    function pushViewCartDebounced(){
-      clearTimeout(__viewCartTimer);
-      __viewCartTimer = setTimeout(()=>{ __VIEW_CART_FIRED__ = false; pushViewCartOnce(); }, 250);
+    function cartValue(items){
+      return (items||[]).reduce((s,it)=> s + (Number(it.price)||0) * (Number(it.qty||it.quantity)||1), 0);
     }
 
     // ===== Step & Progress logic =====
@@ -652,7 +640,6 @@
     </div>`;
         calc(); updateSteps();
         toast('Your bag is empty — shop our collections!', 'error');
-        pushViewCartDebounced();
         return;
       }
 
@@ -686,34 +673,37 @@
         const btnMinus = row.querySelector('.minus');
         const rowSkuKey = row.getAttribute('data-sku') || '';
 
-        function pushQtyChange(itemObj, oldQ, newQ){
-          const safeOld = Math.max(1, parseInt(oldQ||'1',10));
-          const safeNew = Math.max(1, parseInt(newQ||'1',10));
-          if(safeOld === safeNew) return;
-          const delta = safeNew - safeOld;
-          const dlItem = dlItemFromCartItem(Object.assign({}, itemObj, { qty: safeNew }));
-          window.dataLayer = window.dataLayer || [];
-          window.dataLayer.push({
-            event: 'update_cart_item',
-            page_type: 'cart',
-            currency: CURRENCY,
-            action: delta > 0 ? 'increment' : 'decrement',
-            old_quantity: safeOld,
-            new_quantity: safeNew,
-            delta: delta,
-            value_delta: (itemObj.price||0) * delta,
-            items: [ dlItem ]
-          });
-        }
-
         function applyQty(newQty){
           const cartNow = readCart();
           const i = cartNow.findIndex(it => canonicalSkuKey(it?.sku || it?.slug || it?.id || it?.name || '') === rowSkuKey);
           if(i === -1) return;
           const oldQty = cartNow[i].qty || 1;
-          cartNow[i].qty = Math.max(1, parseInt(newQty||'1',10));
+          const nextQty = Math.max(1, parseInt(newQty||'1',10));
+          if(nextQty === oldQty) return;
+          cartNow[i].qty = nextQty;
           writeCart(cartNow);
-          pushQtyChange(cartNow[i], oldQty, cartNow[i].qty);
+
+          // DL: quantity_adjusted_in_cart (single item)
+          const dlItem = dlItemFromCartItem(cartNow[i]); // includes new quantity
+          const delta = nextQty - oldQty;
+          const valueDelta = (cartNow[i].price||0) * delta;
+          const afterValue = cartValue(cartNow);
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({
+            event: 'quantity_adjusted_in_cart',
+            page_type: 'cart',
+            currency: CURRENCY,
+            item_id: dlItem.item_id,
+            item_name: dlItem.item_name,
+            action: delta > 0 ? 'increment' : 'decrement',
+            old_quantity: oldQty,
+            new_quantity: nextQty,
+            delta: delta,
+            value_delta: valueDelta,
+            cart_value_after: afterValue,
+            items: [ dlItem ]
+          });
+
           renderCart();
         }
 
@@ -729,24 +719,41 @@
           const val = parseInt(qtyInputEl.value||'1',10) || 1;
           applyQty(val);
         });
+
         row.querySelector('.remove').addEventListener('click',()=>{
           window.dataLayer = window.dataLayer || [];
-          const sku = row.getAttribute('data-sku') || '';
-          const cartNow = readCart();
-          const i = cartNow.findIndex(it => canonicalSkuKey(it?.sku || it?.slug || it?.id || it?.name || '') === sku);
+          const cartBefore = readCart();
+          const i = cartBefore.findIndex(it => canonicalSkuKey(it?.sku || it?.slug || it?.id || it?.name || '') === rowSkuKey);
           if(i > -1){
-            const removed = cartNow[i];
+            const removed = cartBefore[i];
             const dlItem = dlItemFromCartItem(removed);
-            const value = dlItem.price * dlItem.quantity;
+            const removedValue = dlItem.price * dlItem.quantity;
+
+            const cartAfter = cartBefore.slice();
+            cartAfter.splice(i,1);
+            writeCart(cartAfter);
+
+            const afterValue = cartValue(cartAfter);
+
             window.dataLayer.push({
               event:'removed_item_from_cart',
               page_type:'cart',
               currency:CURRENCY,
-              value,
+              value: removedValue,
+              cart_value_after: afterValue,
               items:[dlItem]
             });
-            cartNow.splice(i,1);
-            writeCart(cartNow);
+
+            if(cartAfter.length===0){
+              window.dataLayer.push({
+                event:'empty_cart',
+                page_type:'cart',
+                currency:CURRENCY,
+                message:'Cart is now empty',
+                cart_value_after: 0
+              });
+            }
+
             renderCart();
             toast('Removed from cart');
           } else {
@@ -756,7 +763,6 @@
       });
       calc();
       updateSteps();
-      pushViewCartDebounced();
     }
 
     // shipping selection
@@ -851,11 +857,18 @@
     }
 
     document.getElementById('clearCart').addEventListener('click',()=>{
-      const before = (readCart()||[]).map(dlItemFromCartItem);
-      const value = before.reduce((s,i)=> s + (i.price * i.quantity), 0);
+      const before = readCart();
+      const items = before.map(dlItemFromCartItem);
+      const value = cartValue(before);
       window.dataLayer = window.dataLayer || [];
       if(before.length){
-        window.dataLayer.push({ event:'cleared_cart', page_type:'cart', currency:CURRENCY, value, items: before });
+        window.dataLayer.push({
+          event:'cleared_cart',
+          page_type:'cart',
+          currency:CURRENCY,
+          value,
+          items
+        });
       }
       writeCart([]);
       renderCart();
