@@ -1251,9 +1251,8 @@ header[aria-label="Primary Navigation"]{
         const norm = normalizeItem(raw);
         const item = asGa4Item(norm);
         try{
-          window.dataLayer.push({ event:'select_item', page_type:'wishlist', currency:CURRENCY, items:[item] });
           window.dataLayer.push({ event:'selected_item_view', page_type:'wishlist', currency:CURRENCY, items:[item] });
-        }catch(_){}
+        }catch(_){ }
       });
 
       document.getElementById('btn-clear').addEventListener('click', ()=>{
