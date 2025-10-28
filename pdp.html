@@ -42,7 +42,8 @@
     .menu a{ color:#ffffff; }
     .container{max-width:1200px;margin:0 auto;padding:0 20px}
 
-    header{position:sticky;top:0;z-index:50;background:rgba(11,13,16,.7);backdrop-filter:blur(10px);border-bottom:1px solid var(--stroke)}
+    /* Keep navbar above all PDP content and overlays */
+    header{position:sticky;top:0;z-index:2000;background:rgba(11,13,16,.7);backdrop-filter:blur(10px);border-bottom:1px solid var(--stroke)}
     .nav {
       display: flex;
       align-items: center;
@@ -1511,6 +1512,65 @@ addBtn.addEventListener('click', ()=>{
 
   <script src="app.js" defer></script>
   <script src="js/main.js" defer></script>
+  <script>
+(function(){
+  // Guard against double-binding
+  if(window.__WL_FIX_BOUND__) return; window.__WL_FIX_BOUND__ = true;
+
+  // ===== Consistent wishlist state on PDP =====
+  const WL_KEY = 'SCENT_WISHLIST_V1';
+
+  function canonicalSku(s){
+    s = String(s||'').toLowerCase().trim().replace(/^#/, '');
+    // collapse suffix variants so wishlist/pdp/pdp1 agree
+    return s.replace(/\b(edp|parfum|elixir)\b/g,'').replace(/[-\s]+$/,'').replace(/-(edp|parfum|elixir)$/,'');
+  }
+  function readWL(){ try{ return JSON.parse(localStorage.getItem(WL_KEY)||'[]'); }catch(_){ return []; } }
+  function wlHas(slug){
+    const key = canonicalSku(slug);
+    return readWL().some(it => canonicalSku(it?.sku || it?.slug || it?.id || it?.name || it) === key);
+  }
+  function wlCount(){ return readWL().length; }
+
+  function updateWlBadges(){
+    const n = wlCount();
+    const b = document.getElementById('wishlist-count');
+    const bm = document.getElementById('wishlist-count-mobile');
+    if(b){ b.textContent = String(n); b.hidden = n<=0; }
+    if(bm){ bm.textContent = String(n); bm.hidden = n<=0; }
+  }
+
+  function currentSlug(){
+    try{
+      const u = new URL(location.href);
+      const s = u.searchParams.get('slug');
+      if(s) return canonicalSku(s);
+    }catch(_){ }
+    const h = (location.hash||'').replace('#','');
+    return canonicalSku(h);
+  }
+
+  function renderWishBtn(){
+    const btn = document.getElementById('wishlist');
+    if(!btn) return;
+    const on = wlHas(currentSlug());
+    btn.textContent = on ? '✓ Wishlisted' : '♡ Add to Wishlist';
+  }
+
+  // Initial paint when DOM is ready
+  document.addEventListener('DOMContentLoaded', function(){
+    updateWlBadges();
+    renderWishBtn();
+  });
+
+  // Keep in sync when wishlist changes anywhere in this tab/app
+  window.addEventListener('wishlist:changed', function(){ updateWlBadges(); renderWishBtn(); });
+  // Sync if another tab modifies localStorage
+  window.addEventListener('storage', function(e){ if(e && e.key===WL_KEY){ updateWlBadges(); renderWishBtn(); } });
+  // Also fix state when returning to this tab from WL -> PDP navigation
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden){ updateWlBadges(); renderWishBtn(); } });
+})();
+  </script>
   <script>
     // Fallback SPA Router for PDP (runs only if main router didn't initialize)
     (function(){
