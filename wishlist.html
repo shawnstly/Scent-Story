@@ -1079,6 +1079,9 @@ header[aria-label="Primary Navigation"]{
       }
       const CURRENCY = 'INR';
       document.addEventListener('DOMContentLoaded', function(){
+      // GA4: page context for wishlist
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event:'page_context', page_type:'wishlist', currency:CURRENCY });
       const REDIRECT_TO_CART_ON_ADD = false;
       const CART_KEY = 'SCENT_CART_V1';
       function readWishlist(){ try { return (window.ScentWishlist && window.ScentWishlist.read) ? window.ScentWishlist.read() : JSON.parse(localStorage.getItem('SCENT_WISHLIST_V1')||'[]'); } catch(_) { return []; } }
@@ -1122,6 +1125,26 @@ header[aria-label="Primary Navigation"]{
         'beast-edp': 'images/Beast.png',
         'tropical-escape-edp': 'images/Tropical Escape.png',
       };
+
+      // === GA4 helpers ===
+      function tierFromName(name){
+        const t = String(name||'').toLowerCase();
+        if(t.includes('elixir')) return 'elixir';
+        if(t.includes('parfum')) return 'parfum';
+        if(t.includes('edp'))    return 'edp';
+        return 'fragrance';
+      }
+      function asGa4Item(obj){
+        const priceNum = parseInt(String(obj.price).replace(/[^0-9]/g,''))||0;
+        return {
+          item_id: (obj.sku||'').toLowerCase(),
+          item_name: obj.name||'Fragrance',
+          item_category: tierFromName(obj.name),
+          price: priceNum,
+          quantity: 1,
+          currency: CURRENCY
+        };
+      }
 
       function slugify(s){ return String(s||'fragrance').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
       function normalizeItem(raw){
@@ -1172,6 +1195,11 @@ header[aria-label="Primary Navigation"]{
           return `<article class="card" data-sku="${item.sku}">${imgHTML}<div class="body"><div class="head"><h3>${stripConcentration(item.name||'Fragrance')}</h3></div>${priceNum?`<p class="price">${formatINR(priceNum)}</p>`:'<p class="price" style="opacity:.8">MRP at checkout</p>'}<div class="inline-actions"><button class="btn-gold" data-act="add" aria-label="Add to bag"><i class="fa-solid fa-bag-shopping"></i><span class="label">Add</span></button><a class="btn" href="${item.href}" aria-label="View details"><i class="fa-regular fa-eye"></i><span class="label">View</span></a><button class="btn" data-act="remove" aria-label="Remove from wishlist"><i class="fa-regular fa-trash-can"></i><span class="label">Remove</span></button></div></div></article>`;
         }).join('');
         totalEl.textContent = formatINR(total);
+        // GA4: view_wishlist with full items[]
+        try{
+          const itemsPayload = list.map(asGa4Item);
+          window.dataLayer.push({ event:'view_wishlist', page_type:'wishlist', currency:CURRENCY, items: itemsPayload });
+        }catch(_){}
         try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){ }
       }
 
@@ -1185,10 +1213,49 @@ header[aria-label="Primary Navigation"]{
         const itemRaw = rawList.find(it=> (it.sku||it.slug||it.id||slugify(it.name)) === sku );
         if(!itemRaw){ btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); return; }
         const item = normalizeItem(itemRaw);
-        if(btn.dataset.act==='remove'){ removeFromWishlist(sku); render(); updateCartBadge(); toast('Removed from wishlist'); btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); return; }
-        if(btn.dataset.act==='add'){
-          try{ const priceNum = parseInt(String(item.price).replace(/[^0-9]/g,''))||0; addToCartSimple({ sku:item.sku, name:item.name, price:priceNum, image:item.image, qty:1 }); removeFromWishlist(item.sku); render(); updateCartBadge(); toast('Moved to bag'); } finally { btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); }
+        if(btn.dataset.act==='remove'){
+          removeFromWishlist(sku);
+          render();
+          updateCartBadge();
+          toast('Removed from wishlist');
+          try{ window.dataLayer.push({ event:'remove_from_wishlist', page_type:'wishlist', currency:CURRENCY, items:[ asGa4Item(item) ] }); }catch(_){}
+          btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); return;
         }
+        if(btn.dataset.act==='add'){
+          try{
+            const priceNum = parseInt(String(item.price).replace(/[^0-9]/g,''))||0;
+            addToCartSimple({ sku:item.sku, name:item.name, price:priceNum, image:item.image, qty:1 });
+            removeFromWishlist(item.sku);
+            render();
+            updateCartBadge();
+            toast('Moved to bag');
+            try{
+              const payload = asGa4Item(item);
+              window.dataLayer.push({ event:'add_to_cart', page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
+              if(btn.matches('[data-move-to-bag], .move-to-bag')){
+                window.dataLayer.push({ event:'moved_to_bag', page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
+              }
+            }catch(_){}
+          } finally {
+            btn.dataset.busy='0'; btn.removeAttribute('aria-busy');
+          }
+        }
+      });
+
+      // PDP navigation analytics from wishlist grid
+      grid.addEventListener('click', function(e){
+        const link = e.target.closest('a[href*="pdp.html"]');
+        if(!link) return;
+        const card = link.closest('[data-sku]');
+        const sku  = card ? card.getAttribute('data-sku') : '';
+        const rawList = readWishlist();
+        const raw = rawList.find(it => (it.sku||it.slug||it.id||slugify(it.name)) === sku) || { sku, name: link.textContent||'Product', price: 0 };
+        const norm = normalizeItem(raw);
+        const item = asGa4Item(norm);
+        try{
+          window.dataLayer.push({ event:'select_item', page_type:'wishlist', currency:CURRENCY, items:[item] });
+          window.dataLayer.push({ event:'selected_item_view', page_type:'wishlist', currency:CURRENCY, items:[item] });
+        }catch(_){}
       });
 
       document.getElementById('btn-clear').addEventListener('click', ()=>{ writeWishlist([]); render(); toast('Wishlist cleared'); });
