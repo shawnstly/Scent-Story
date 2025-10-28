@@ -1040,11 +1040,9 @@ updateCartBadge();
       if(!wishBtn) return;
 
       function ensureReady(cb){
-        const deadline = Date.now() + 3000; // up to 3s
         (function loop(){
           if (window.PDP_PRODUCT && PDP_PRODUCT.slug && PDP_PRODUCT.name){ cb(); return; }
-          if (Date.now() > deadline){ cb(); return; } // best-effort
-          setTimeout(loop, 50);
+          setTimeout(loop, 40); // wait until product is truly ready
         })();
       }
 
@@ -1068,22 +1066,30 @@ updateCartBadge();
           // === GA4: push add/remove wishlist from the single source of truth ===
           try{
             window.dataLayer = window.dataLayer || [];
-            var _item = (typeof window.__buildGaItem === 'function')
-              ? window.__buildGaItem(PDP_PRODUCT, 1)
-              : {
-                  item_id: PDP_PRODUCT.slug,
-                  item_name: PDP_PRODUCT.name,
-                  item_category: (function(){
-                    var t = String(PDP_PRODUCT.type||'').toLowerCase();
-                    if(/elixir/.test(t)) return 'elixir';
-                    if(/parfum/.test(t)) return 'parfum';
-                    if(/edp/.test(t))    return 'edp';
-                    return 'fragrance';
-                  })(),
-                  price: PDP_PRODUCT.priceINR,
-                  quantity: 1,
-                  currency: (window.__DL_CURRENCY || 'INR')
-                };
+          var _item;
+          if (typeof window.__buildGaItem === 'function' && window.PDP_PRODUCT){
+            _item = window.__buildGaItem(PDP_PRODUCT, 1);
+          } else {
+            // Fallback: derive from URL + DOM to avoid a missed event on first PDP load
+            var slug = (function(){
+              try{
+                var u = new URL(location.href);
+                return (u.searchParams.get('slug') || location.hash.replace('#','') || '').trim().toLowerCase();
+              }catch(_){ return (location.hash||'').replace('#','').trim().toLowerCase(); }
+            })() || 'unknown';
+            var nameEl = document.querySelector('.product-info h1');
+            var priceEl = document.querySelector('.price-row .price');
+            var name = nameEl ? nameEl.textContent.trim() : 'Unknown Product';
+            var price = priceEl ? parseInt(priceEl.textContent.replace(/[^0-9]/g,''),10) || 0 : 0;
+            var cat  = (function(){
+              var t = (name || '').toLowerCase();
+              if(/elixir/.test(t)) return 'elixir';
+              if(/parfum/.test(t)) return 'parfum';
+              if(/edp/.test(t))    return 'edp';
+              return 'fragrance';
+            })();
+            _item = { item_id: slug, item_name: name, item_category: cat, price: price, quantity: 1, currency: (window.__DL_CURRENCY || 'INR') };
+          }
             window.dataLayer.push({
               event: wasIn ? 'remove_from_wishlist' : 'add_to_wishlist',
               page_type: 'pdp',
