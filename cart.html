@@ -132,8 +132,55 @@
       const CURRENCY = 'INR';
       const BC_FLAG = 'begin_checkout_fired_v1';
     
+      // Normalize product keys and consolidate duplicates
+      function canonicalSkuKey(s){
+        s = String(s||'').toLowerCase().trim();
+        // collapse known suffixes (edp/parfum/elixir) to a single base key
+        s = s.replace(/^#/, '');
+        // if a full name was stored, try to pull slug-like tokens
+        s = s.replace(/\s+/g,'-');
+        // strip trailing known type suffixes
+        s = s.replace(/-(edp|parfum|elixir)$/,'');
+        return s;
+      }
+      function consolidateCartArray(arr){
+        if(!Array.isArray(arr)) return [];
+        const byKey = new Map();
+        for(const it of arr){
+          const key = canonicalSkuKey(it?.sku || it?.slug || it?.id || it?.item_id || it?.name || '');
+          const price = Number(it?.price||0);
+          const qty = Math.max(1, Number(it?.qty||it?.quantity||1));
+          const base = byKey.get(key);
+          if(base){
+            base.qty += qty; // merge quantities
+            // prefer non-empty fields; keep first image/name/price unless missing
+            if(!base.name && it?.name) base.name = it.name;
+            if(!base.image && it?.image) base.image = it.image;
+            if(!base.type && it?.type) base.type = it.type;
+            if(!base.tier && it?.tier) base.tier = it.tier;
+            // if a different price sneaks in, keep the latest non-zero
+            if(price>0) base.price = price;
+          } else {
+            byKey.set(key, {
+              slug: key,
+              sku: key,
+              name: it?.name || String(key),
+              price: price,
+              qty: qty,
+              image: it?.image || '',
+              type: it?.type || it?.tier || 'fragrance'
+            });
+          }
+        }
+        return Array.from(byKey.values());
+      }
       // ---------- Cart snapshot ----------
-      function readCart(){ try{ return JSON.parse(localStorage.getItem('SCENT_CART_V1')||'[]'); }catch(_){ return []; } }
+      function readCart(){
+        try{
+          const raw = JSON.parse(localStorage.getItem('SCENT_CART_V1')||'[]');
+          return consolidateCartArray(raw);
+        }catch(_){ return []; }
+      }
       function mapItem(i){
         return {
           item_id: String(i.sku || i.slug || '').toLowerCase(),
@@ -490,8 +537,56 @@
       if(progressBar) progressBar.style.width = percent + '%';
     }
 
-    function readCart(){ try{return JSON.parse(localStorage.getItem(CART_KEY)||'[]')}catch(e){return []} }
-    function writeCart(v){ localStorage.setItem(CART_KEY, JSON.stringify(v)); window.dispatchEvent(new Event('storage')); }
+    // --- Canonical key + consolidation (must match top script) ---
+    function canonicalSkuKey(s){
+      s = String(s||'').toLowerCase().trim();
+      s = s.replace(/^#/, '');
+      s = s.replace(/\s+/g,'-');
+      s = s.replace(/-(edp|parfum|elixir)$/,'');
+      return s;
+    }
+    function consolidateCartArray(arr){
+      if(!Array.isArray(arr)) return [];
+      const byKey = new Map();
+      for(const it of arr){
+        const key = canonicalSkuKey(it?.sku || it?.slug || it?.id || it?.item_id || it?.name || '');
+        const price = Number(it?.price||0);
+        const qty = Math.max(1, Number(it?.qty||it?.quantity||1));
+        const base = byKey.get(key);
+        if(base){
+          base.qty += qty;
+          if(!base.name && it?.name) base.name = it.name;
+          if(!base.image && it?.image) base.image = it.image;
+          if(!base.type && it?.type) base.type = it.type;
+          if(!base.tier && it?.tier) base.tier = it.tier;
+          if(price>0) base.price = price;
+        } else {
+          byKey.set(key, {
+            slug: key,
+            sku: key,
+            name: it?.name || String(key),
+            price: price,
+            qty: qty,
+            image: it?.image || '',
+            type: it?.type || it?.tier || 'fragrance'
+          });
+        }
+      }
+      return Array.from(byKey.values());
+    }
+    function readCart(){
+      try{
+        const raw = JSON.parse(localStorage.getItem(CART_KEY)||'[]');
+        return consolidateCartArray(raw);
+      }catch(e){
+        return [];
+      }
+    }
+    function writeCart(v){
+      const merged = consolidateCartArray(v);
+      localStorage.setItem(CART_KEY, JSON.stringify(merged));
+      window.dispatchEvent(new Event('storage'));
+    }
 
     function toast(msg, type='info'){
       const t=document.getElementById('toast');
@@ -720,6 +815,8 @@ document.getElementById('completeOrder').addEventListener('click',()=>{
 
     renderCart();
     renderShipping();
+    // Persist normalized cart back to storage so other pages use merged quantities
+    writeCart(readCart());
 
     // Enforce strict digit lengths on phone (10) and PIN (6)
     (function(){
