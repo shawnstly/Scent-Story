@@ -242,6 +242,9 @@
 
     /* PDP actions and CTA group */
     .pdp-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    /* Ensure PDP CTAs stay on top and clickable */
+    .pdp-actions .btn{ position: relative; z-index: 5; pointer-events: auto; }
+    #wishlist{ pointer-events:auto; }
     .btn{padding:12px 18px;border-radius:10px;border:1px solid var(--stroke);background:#1a1d22;color:#fff;font-weight:600;cursor:pointer}
     .btn.primary{background:#333}
     /* Added-to-cart visual state */
@@ -1113,6 +1116,66 @@ updateCartBadge();
 
       // Keep badge synced if storage changes in other tabs
       window.addEventListener('storage', function(e){ if(e.key===WISHLIST_KEY) updateWishlistBadgeLocal(); });
+    })();
+
+    // ===== SAFETY NET: delegated wishlist click (first PDP race guard) =====
+    (function(){
+      function buildItemFallback(){
+        try{
+          if (window.__buildGaItem && window.PDP_PRODUCT){ return window.__buildGaItem(PDP_PRODUCT, 1); }
+          var slug = (function(){
+            try{ var u=new URL(location.href); return (u.searchParams.get('slug')||location.hash.replace('#','')||'').trim().toLowerCase(); }
+            catch(_){ return (location.hash||'').replace('#','').trim().toLowerCase(); }
+          })() || 'unknown';
+          var nameEl = document.querySelector('.product-info h1');
+          var priceEl = document.querySelector('.price-row .price');
+          var name = nameEl ? nameEl.textContent.trim() : 'Unknown Product';
+          var price = priceEl ? parseInt(priceEl.textContent.replace(/[^0-9]/g,''),10) || 0 : 0;
+          var cat  = (function(){ var t=(name||'').toLowerCase(); if(/elixir/.test(t)) return 'elixir'; if(/parfum/.test(t)) return 'parfum'; if(/edp/.test(t)) return 'edp'; return 'fragrance'; })();
+          return { item_id: slug, item_name: name, item_category: cat, price: price, quantity: 1, currency: (window.__DL_CURRENCY||'INR') };
+        }catch(_){ return { item_id:'unknown', item_name:'Unknown Product', item_category:'fragrance', price:0, quantity:1, currency:(window.__DL_CURRENCY||'INR') }; }
+      }
+
+      document.addEventListener('click', function(e){
+        var btn = e.target && e.target.closest && e.target.closest('#wishlist');
+        if(!btn) return;
+        // If direct binder already attached, let it handle it
+        if(btn.dataset && btn.dataset.bound==='1') return;
+
+        // Prevent default to avoid any ghost link behaviors
+        e.preventDefault();
+        e.stopPropagation();
+
+        try{
+          // Ensure product context (retry a few short times if needed)
+          (function ensure(cb, tries){
+            if((window.PDP_PRODUCT && PDP_PRODUCT.slug) || tries<=0){ cb(); return; }
+            setTimeout(()=>ensure(cb, tries-1), 40);
+          })(function(){
+            // Toggle wishlist using the same storage API
+            const wasIn = (function(){ try{ return inWishlistSafe(PDP_PRODUCT.slug); }catch(_){ return false; }})();
+            try{ toggleWishlistSafe(PDP_PRODUCT.slug); }catch(_){ /* ignore */ }
+
+            // UI: update label if accessible here
+            try{ btn.textContent = wasIn ? '♡ Add to Wishlist' : '✓ Wishlisted'; }catch(_){}
+            try{ updateWishlistBadgeLocal(); if(window.__updateWishlistBadge__) window.__updateWishlistBadge__(); if(window.__pulseWishlistBadge__) window.__pulseWishlistBadge__(); }catch(_){}
+            try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){}
+            try{ showToast('Wishlist updated'); }catch(_){}
+
+            // DL push (fallback item builder safe)
+            try{
+              window.dataLayer = window.dataLayer || [];
+              var _item = buildItemFallback();
+              window.dataLayer.push({
+                event: wasIn ? 'remove_from_wishlist' : 'add_to_wishlist',
+                page_type: 'pdp',
+                currency: (window.__DL_CURRENCY || 'INR'),
+                items: [ _item ]
+              });
+            }catch(_){ }
+          }, 8); // retry up to ~320ms
+        }catch(_){ }
+      }, true); // capture phase to beat any stray handlers/overlays
     })();
 
     // ===== Add to Cart (toggle + persistent visual state) =====
