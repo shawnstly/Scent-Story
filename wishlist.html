@@ -1060,7 +1060,25 @@ header[aria-label="Primary Navigation"]{
     <!-- <script src="js/main.js" defer></script> -->
 
     <script>
-    window.addEventListener('DOMContentLoaded', function(){
+    // --- Data Layer v2: Wishlist analytics tracking ---
+    (function(){
+      if(window.__WL_DL_V2__) return; window.__WL_DL_V2__ = true;
+      // Helpers to read wishlist and normalize items (reuse from page scope if possible)
+      function readWL(){ try {
+        if(window.ScentWishlist && window.ScentWishlist.read) return window.ScentWishlist.read();
+        return JSON.parse(localStorage.getItem('SCENT_WISHLIST_V1')||'[]');
+      } catch(_){ return []; } }
+      function slugify(s){ return String(s||'fragrance').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+      function toItem(raw){
+        const guessedSku = raw.sku || raw.slug || raw.id || slugify(raw.name);
+        const sku = String(guessedSku||'fragrance').toLowerCase();
+        const name = raw.name || 'Fragrance';
+        const price = (raw.price!=null && String(raw.price).match(/\d/)) ? String(parseInt(String(raw.price).replace(/[^0-9]/g,''))) : '';
+        const image = raw.image || raw.img || '';
+        return { sku, name, price, image };
+      }
+      const CURRENCY = 'INR';
+      document.addEventListener('DOMContentLoaded', function(){
       const REDIRECT_TO_CART_ON_ADD = false;
       const CART_KEY = 'SCENT_CART_V1';
       function readWishlist(){ try { return (window.ScentWishlist && window.ScentWishlist.read) ? window.ScentWishlist.read() : JSON.parse(localStorage.getItem('SCENT_WISHLIST_V1')||'[]'); } catch(_) { return []; } }
@@ -1177,6 +1195,45 @@ header[aria-label="Primary Navigation"]{
       document.getElementById('btn-move-all').addEventListener('click', ()=>{ const list = readWishlist(); if(!list.length) return; list.map(normalizeItem).forEach(item=>{ const priceNum = parseInt(String(item.price).replace(/[^0-9]/g,''))||0; addToCartSimple({ sku:item.sku, name:item.name, price:priceNum, image:item.image, qty:1 }); }); writeWishlist([]); render(); toast('All items moved to bag'); });
       document.getElementById('btn-share').addEventListener('click', async ()=>{ const url = location.href; try{ await navigator.clipboard.writeText(url); toast('Wishlist link copied'); } catch(_){ toast('Copy this link: '+url); } });
 
+      // 4) Toolbar actions tracking: clear all & move all
+      (function(){
+        const btnClear   = document.getElementById('btn-clear');
+        const btnMoveAll = document.getElementById('btn-move-all');
+
+        // When user clicks "Clear Wishlist"
+        if(btnClear){
+          btnClear.addEventListener('click', function(){
+            try{
+              const items = readWL().map(toItem);
+              dataLayer.push({
+                event: 'clear_wishlist',
+                page_type: 'wishlist',
+                currency: CURRENCY,
+                items
+              });
+            }catch(_){ }
+          });
+        }
+
+        // When user clicks "Move All to Bag"
+        if(btnMoveAll){
+          btnMoveAll.addEventListener('click', function(){
+            try{
+              const itemsRaw = readWL();
+              const items    = itemsRaw.map(toItem);
+              const value    = items.reduce((sum, it) => sum + (parseInt(it.price,10) || 0), 0);
+              dataLayer.push({
+                event: 'move_all_to_bag',
+                page_type: 'wishlist',
+                currency: CURRENCY,
+                items,
+                value
+              });
+            }catch(_){ }
+          });
+        }
+      })();
+
       function updateCartBadge(){ const b = document.getElementById('cart-count'); if(!b) return; const n = (readCart().reduce((s,i)=>s+(i.qty||1),0)); b.textContent = n; b.hidden = n<=0; }
 
       window.addEventListener('storage', (e)=>{ if(e.key==='SCENT_WISHLIST_V1' || e.key===CART_KEY){ render(); updateCartBadge(); }});
@@ -1184,6 +1241,7 @@ header[aria-label="Primary Navigation"]{
 
       render(); updateCartBadge();
     });
+    })();
     </script>
     <script>(function(){const y=document.getElementById('year'); if(y) y.textContent=new Date().getFullYear();})();</script>
   </body>
