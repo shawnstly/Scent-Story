@@ -309,7 +309,7 @@
 
           // Event delegation so clicks on dynamically-added tiles are captured
           document.addEventListener('click', function(e){
-            var card = e.target && e.target.closest && e.target.closest('[data-sku][data-name][data-price]');
+            var card = e.target && e.target.closest && e.target.closest('a[data-sku][data-name][data-price]');
             if(!card) return;
 
             var it = {
@@ -320,6 +320,10 @@
               quantity: 1,
               currency: 'INR'
             };
+            if(card && card.tagName === 'A'){
+  e.preventDefault();
+  var href = card.getAttribute('href');
+}
 
             try { console.log('[DL] item_clicked_for_view', it); } catch(_){}
             window.dataLayer.push({
@@ -336,6 +340,7 @@
         try { console.warn('[DL] catalog analytics error', err); } catch(_){ }
       }
     })();
+    if(href){ setTimeout(function(){ location.href = href; }, 180); }
   </script>
   <!-- Header -->
   <header aria-label="Primary Navigation">
@@ -589,7 +594,8 @@
       {type:'elixir', slug:'autumn-fire', name:'Autumn Fire', images:['images/Autumn Fire.png','images/autumnfire1.png'], occasions:['fall','evening','bold'], tags:['bold','seasons']},
       {type:'elixir', slug:'forever-love', name:'Forever Love', images:['images/Forever Love.png','images/foreverlove1.png'], occasions:['date','romantic'], tags:['carefree']},
     ];
-
+// Base price map used for catalog click analytics (approximate; PDP overrides exact)
+const PRICES_BY_TYPE = { edp: 4590, parfum: 6990, elixir: 13400 };
     // Build occasion options dynamically from products
     const occSelect = document.getElementById('occasion-filter');
     const occSet = new Set(['all']);
@@ -606,23 +612,24 @@
 
     function tileHTML(p,primary,alt){
       return `
-        <article class="tile" data-cat="${p.type}" data-occ="${(p.occasions||[]).join(',')}" data-tags="${(p.tags||[]).join(',')}">
-          <a href="pdp.html#${p.slug}" aria-label="${p.name}" style="outline:none">
-            <div class="img-stack" aria-hidden="true">
-              <img class="img-primary" src="${primary}" alt="${p.name} primary" loading="lazy">
-              ${alt ? `<img class=\"img-alt\" src=\"${alt}\" alt=\"${p.name} alternate\" loading=\"lazy\">` : ''}
-              <div class="hover-overlay" aria-hidden="true">
-                <div>
-                  <span class="badge"><i class="fa-regular fa-eye" aria-hidden="true"></i> View details</span>
-                  <small>Click to open the product page</small>
-                </div>
-              </div>
-            </div>
-            <div class="meta"><span class="pill">${p.type.toUpperCase()}</span></div>
-            <div class="caption">${p.name}</div>
-          </a>
-        </article>`;
-    }
+  <article class="tile" data-cat="${p.type}" data-occ="${(p.occasions||[]).join(',')}" data-tags="${(p.tags||[]).join(',')}">
+    <a href="pdp.html#${p.slug}" aria-label="${p.name}" style="outline:none"
+       data-sku="${p.slug}" data-name="${p.name}" data-price="${PRICES_BY_TYPE[p.type]||0}" data-tier="${p.type}">
+      <div class="img-stack" aria-hidden="true">
+        <img class="img-primary" src="${primary}" alt="${p.name} primary" loading="lazy">
+        ${alt ? `<img class=\"img-alt\" src=\"${alt}\" alt=\"${p.name} alternate\" loading=\"lazy\">` : ''}
+        <div class="hover-overlay" aria-hidden="true">
+          <div>
+            <span class="badge"><i class="fa-regular fa-eye" aria-hidden="true"></i> View details</span>
+            <small>Click to open the product page</small>
+          </div>
+        </div>
+      </div>
+      <div class="meta"><span class="pill">${p.type.toUpperCase()}</span></div>
+      <div class="caption">${p.name}</div>
+    </a>
+  </article>`;
+}
 
     async function buildGrid(){
       const grid = document.getElementById('catalog-grid');
