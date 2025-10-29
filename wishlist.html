@@ -1078,6 +1078,15 @@ header[aria-label="Primary Navigation"]{
         return { sku, name, price, image };
       }
       const CURRENCY = 'INR';
+      // --- DL Helper (adapted from cart.html) ---
+      const DL = (() => {
+        const VOLATILE = ['item_id','item_name','action','old_quantity','new_quantity','delta','value_delta','wishlist_value_after','value','items'];
+        function scrub(){ const nul={}; VOLATILE.forEach(k=>nul[k]=null); window.dataLayer=window.dataLayer||[]; window.dataLayer.push(nul); }
+        function base(){ return { page_type:'wishlist', currency:CURRENCY }; }
+        function emitMinimal(event,data){ scrub(); window.pushDL(event, Object.assign(base(), data)); }
+        function emitSnapshot(event,snapshot){ scrub(); window.pushDL(event, Object.assign(base(), snapshot)); }
+        return { emitMinimal, emitSnapshot };
+      })();
       document.addEventListener('DOMContentLoaded', function(){
       // GA4: page context for wishlist
       window.pushDL('page_context', { page_type:'wishlist', currency:CURRENCY });
@@ -1214,16 +1223,14 @@ header[aria-label="Primary Navigation"]{
         const item = normalizeItem(itemRaw);
         if(btn.dataset.act==='remove'){
           const gaItem = asGa4Item(item);
+          // mutate storage first
           removeFromWishlist(sku);
-          setTimeout(()=>{
-            try{
-              resetVolatileDL();
-              window.pushDL('remove_from_wishlist', { page_type:'wishlist', currency:CURRENCY, items:[ gaItem ] });
-            }catch(_){}
-            render();
-            updateCartBadge();
-            toast('Removed from wishlist');
-          }, 100);
+          // emit clean single-item event
+          DL.emitMinimal('remove_from_wishlist', { items:[gaItem], value: gaItem.price });
+          // re-render UI
+          render();
+          updateCartBadge();
+          toast('Removed from wishlist');
           btn.dataset.busy='0'; btn.removeAttribute('aria-busy');
           return;
         }
@@ -1236,10 +1243,8 @@ header[aria-label="Primary Navigation"]{
             updateCartBadge();
             toast('Moved to bag');
             try{
-              resetVolatileDL();
               const payload = asGa4Item(item);
-              //window.pushDL('add_to_cart', { page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
-              window.pushDL('moved_to_bag', { page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
+              DL.emitMinimal('moved_to_bag', { items:[payload], value: payload.price });
             }catch(_){}
           } finally {
             btn.dataset.busy='0'; btn.removeAttribute('aria-busy');
@@ -1258,17 +1263,15 @@ header[aria-label="Primary Navigation"]{
         const norm = normalizeItem(raw);
         const item = asGa4Item(norm);
         try{
-          resetVolatileDL();
-          window.pushDL('selected_item_view', { page_type:'wishlist', currency:CURRENCY, items:[item] });
-        }catch(_){ }
+          DL.emitMinimal('selected_item_view', { items:[item], value: item.price });
+        }catch(_){}
       });
 
       document.getElementById('btn-clear').addEventListener('click', ()=>{
         const listBefore = readWishlist().map(normalizeItem);
         try{
-          resetVolatileDL();
           const itemsPayload = listBefore.map(asGa4Item);
-          window.pushDL('clear_wishlist', { page_type:'wishlist', currency:CURRENCY, items: itemsPayload });
+          DL.emitSnapshot('clear_wishlist', { items: itemsPayload });
         }catch(_){}
         writeWishlist([]);
         render();
@@ -1280,10 +1283,9 @@ header[aria-label="Primary Navigation"]{
         const list = listRaw.map(normalizeItem);
         // Push GA4 first (before mutation)
         try{
-          resetVolatileDL();
           const itemsPayload = list.map(asGa4Item);
           const totalValue = itemsPayload.reduce((s,it)=> s + (parseInt(it.price,10)||0), 0);
-          window.pushDL('move_all_to_bag', { page_type:'wishlist', currency:CURRENCY, items: itemsPayload, value: totalValue });
+          DL.emitSnapshot('move_all_to_bag', { items: itemsPayload, value: totalValue });
         }catch(_){}
         // Then perform actual move
         list.forEach(item=>{
