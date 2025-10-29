@@ -102,7 +102,15 @@
     empty_cart:                ['currency','message','cart_value_after'],
     cleared_cart:              ['currency','value','items'],
     delivery_shipping_tier:    ['currency','shipping_tier'], // strictly tier fields only
-    finalised_item_cart:       ['currency','cart_value_after','items','value','shipping_tier','delivery_tier','payment_method','subtotal','tax','shipping','total']
+    finalised_item_cart:       ['currency','cart_value_after','items','value','shipping_tier','delivery_tier','payment_method','subtotal','tax','shipping','total'],
+    // Wishlist & generic page context  ⬇⬇⬇
+    page_context:            ['page_type','currency'],
+    view_wishlist:           ['page_type','currency','items'],
+    remove_from_wishlist:    ['page_type','currency','items','value'],
+    moved_to_bag:            ['page_type','currency','items','value'],
+    move_all_to_bag:         ['page_type','currency','items','value'],
+    clear_wishlist:          ['page_type','currency','items'],
+    selected_item_view:      ['page_type','currency','items']
   };
 
   function pushEvent(event, data){
