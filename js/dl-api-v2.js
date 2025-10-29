@@ -10,7 +10,7 @@
     siteId: 'scentstory',
     pageType: 'cart',
     currency: 'INR',
-    shippingAllow: new Set(['standard','express','nextday']), // matches your radio list
+    shippingAllow: new Set(['std','exp','nd']), // matches your radio list
     dedupeWindowMs: 1200,
     finalFlagKey: 'finalised_cart_pushed_v1',
     cartKey: 'SCENT_CART_V1',
