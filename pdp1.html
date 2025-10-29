@@ -321,9 +321,9 @@
               currency: 'INR'
             };
             if(card && card.tagName === 'A'){
-  e.preventDefault();
-  var href = card.getAttribute('href');
-}
+              e.preventDefault();
+              var href = card.getAttribute('href');
+            }
 
             try { console.log('[DL] item_clicked_for_view', it); } catch(_){}
             window.dataLayer.push({
@@ -334,13 +334,13 @@
               currency: 'INR',
               items: [it]
             });
+            if(typeof href !== 'undefined' && href){ setTimeout(function(){ location.href = href; }, 180); }
           });
         });
       } catch(err) {
         try { console.warn('[DL] catalog analytics error', err); } catch(_){ }
       }
     })();
-    if(href){ setTimeout(function(){ location.href = href; }, 180); }
   </script>
   <!-- Header -->
   <header aria-label="Primary Navigation">
