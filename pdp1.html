@@ -290,6 +290,7 @@
 
         // Wait for DOM and the grid builder to populate tiles
         document.addEventListener('DOMContentLoaded', function(){
+          try { console.log('[DL] binding catalog listeners'); } catch(_){}
           setTimeout(function(){
             var cards = document.querySelectorAll('[data-sku][data-name][data-price]');
             if(cards && cards.length){
@@ -334,8 +335,35 @@
               currency: 'INR',
               items: [it]
             });
-            if(typeof href !== 'undefined' && href){ setTimeout(function(){ location.href = href; }, 180); }
+            if(typeof href !== 'undefined' && href){ setTimeout(function(){ location.href = href; }, 350); }
           });
+          // Capture-phase listener for hardened click capture
+          window.addEventListener('click', function(e){
+            var card = e.target && e.target.closest && e.target.closest('a[data-sku][data-name][data-price]');
+            if(!card) return;
+            var it = {
+              item_id: card.dataset.sku,
+              item_name: card.dataset.name,
+              item_category: (card.dataset.tier || 'fragrance').toLowerCase(),
+              price: Number(card.dataset.price || 0),
+              quantity: 1,
+              currency: 'INR'
+            };
+            // Stop immediate navigation from other handlers and delay ourselves
+            e.preventDefault();
+            e.stopPropagation();
+            var href = card.getAttribute('href');
+            try { console.log('[DL][capture] item_clicked_for_view', it); } catch(_){}
+            window.dataLayer.push({
+              event: 'item_clicked_for_view',
+              page_type: 'product_catalog',
+              item_category: it.item_category,
+              item_name: it.item_name,
+              currency: 'INR',
+              items: [it]
+            });
+            setTimeout(function(){ location.href = href; }, 350);
+          }, true);
         });
       } catch(err) {
         try { console.warn('[DL] catalog analytics error', err); } catch(_){ }
