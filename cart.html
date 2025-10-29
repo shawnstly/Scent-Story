@@ -496,6 +496,13 @@
     };
 
     // ----------- DL helpers -----------
+    // ---- Universal dataLayer push helper ----
+    function pushDL(eventName, data){
+      const payload = Object.assign({}, data);
+      payload.event = eventName;
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push(payload);
+    }
     const CURRENCY = 'INR';
     function tierFromName(name){
       const t = String(name||'').toLowerCase();
@@ -688,9 +695,7 @@
           const delta = nextQty - oldQty;
           const valueDelta = (cartNow[i].price||0) * delta;
           const afterValue = cartValue(cartNow);
-          window.dataLayer = window.dataLayer || [];
-          window.dataLayer.push({
-            event: 'quantity_adjusted_in_cart',
+          pushDL('quantity_adjusted_in_cart', {
             page_type: 'cart',
             currency: CURRENCY,
             item_id: dlItem.item_id,
@@ -721,7 +726,6 @@
         });
 
         row.querySelector('.remove').addEventListener('click',()=>{
-          window.dataLayer = window.dataLayer || [];
           const cartBefore = readCart();
           const i = cartBefore.findIndex(it => canonicalSkuKey(it?.sku || it?.slug || it?.id || it?.name || '') === rowSkuKey);
           if(i > -1){
@@ -735,19 +739,17 @@
 
             const afterValue = cartValue(cartAfter);
 
-            window.dataLayer.push({
-  event: 'removed_item_from_cart',
-  page_type: 'cart',
-  currency: CURRENCY,
-  action: 'removed_from_cart',
-  value: removedValue,          // line total for the removed unit(s)
-  cart_value_after: afterValue, // cart total AFTER removal
-  items: [ dlItem ]             // ONLY the removed item
-});
+            pushDL('removed_item_from_cart', {
+              page_type: 'cart',
+              currency: CURRENCY,
+              action: 'removed_from_cart',
+              value: removedValue,
+              cart_value_after: afterValue,
+              items: [ dlItem ]
+            });
 
             if(cartAfter.length===0){
-              window.dataLayer.push({
-                event:'empty_cart',
+              pushDL('empty_cart', {
                 page_type:'cart',
                 currency:CURRENCY,
                 message:'Cart is now empty',
@@ -783,22 +785,20 @@
             <div class="meta">${opt.days}</div>
           </div>`;
           el.querySelector('input').addEventListener('change', ()=> {
-  setShipId(opt.id);
-  calc();
-  updateSteps();
+            setShipId(opt.id);
+            calc();
+            updateSteps();
 
-  // DL: shipping tier selection
-  window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({
-    event: 'delivery_shipping_tier',
-    page_type: 'cart',
-    currency: CURRENCY,
-    shipping_tier: { id: opt.id, name: opt.name, cost: opt.cost }
-  });
+            // DL: shipping tier selection
+            pushDL('delivery_shipping_tier', {
+              page_type: 'cart',
+              currency: CURRENCY,
+              shipping_tier: { id: opt.id, name: opt.name, cost: opt.cost }
+            });
 
-  // in case this completes finalisation criteria
-  if (typeof maybePushFinalisedCart === 'function') maybePushFinalisedCart();
-});
+            // in case this completes finalisation criteria
+            if (typeof maybePushFinalisedCart === 'function') maybePushFinalisedCart();
+          });
         shipList.appendChild(el);
       });
     }
@@ -882,16 +882,14 @@
       const before = readCart();
       const items = before.map(dlItemFromCartItem);
       const value = cartValue(before);
-      window.dataLayer = window.dataLayer || [];
       if(before.length){
-        window.dataLayer.push({
-  event: 'cleared_cart',
-  page_type: 'cart',
-  currency: CURRENCY,
-  action: 'cleared_cart_items',
-  value: value,   // total before clearing
-  items: items    // snapshot of ALL items before clearing
-});
+        pushDL('cleared_cart', {
+          page_type: 'cart',
+          currency: CURRENCY,
+          action: 'cleared_cart_items',
+          value: value,
+          items: items
+        });
       }
       writeCart([]);
       renderCart();
@@ -1018,18 +1016,19 @@ function maybePushFinalisedCart(){
     const items = cart.map(dlItemFromCartItem);
     const ship = getSelectedShipping();
 
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-      event: 'finalised_item_cart',
+    pushDL('finalised_item_cart', {
       page_type: 'cart',
       currency: CURRENCY,
+      cart_value_after: m.sub,
+      items: items,
+      value: m.sub,
+      shipping_tier: ship,
       delivery_tier: ship,
       payment_method: currentPay,
       subtotal: m.sub,
       tax: m.tax,
       shipping: m.ship,
-      total: m.total,
-      items: items
+      total: m.total
     });
 
     sessionStorage.setItem(FINAL_FLAG, '1');
