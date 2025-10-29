@@ -1082,15 +1082,15 @@ header[aria-label="Primary Navigation"]{
       const DL = (() => {
         const VOLATILE = ['item_id','item_name','action','old_quantity','new_quantity','delta','value_delta','wishlist_value_after','value','items'];
         function scrub(){
-          // Create a clean copy but avoid pushing visible dl_reset events
-          window.__suppressResetPush = true;
+          const nul = {}; VOLATILE.forEach(k => nul[k] = null);
+          // Shadow the dataLayer so this push is invisible to GTM Preview
+          const original = window.dataLayer;
+          const shadow = [];
           try {
-            const nul = {}; VOLATILE.forEach(k => nul[k] = null);
-            // Use a silent flag for GTM so this push is hidden in debug
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push(Object.assign({ _clear: true, _internal: true }, nul));
+            window.dataLayer = shadow;  // divert pushes to a shadow array
+            shadow.push(nul);           // perform the reset push silently
           } finally {
-            window.__suppressResetPush = false;
+            window.dataLayer = original; // restore the real DL
           }
         }
         function base(){ return { page_type:'wishlist', currency:CURRENCY }; }
