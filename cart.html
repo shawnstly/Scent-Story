@@ -736,13 +736,14 @@
             const afterValue = cartValue(cartAfter);
 
             window.dataLayer.push({
-              event:'removed_item_from_cart',
-              page_type:'cart',
-              currency:CURRENCY,
-              value: removedValue,
-              cart_value_after: afterValue,
-              items:[dlItem]
-            });
+  event: 'removed_item_from_cart',
+  page_type: 'cart',
+  currency: CURRENCY,
+  action: 'removed_from_cart',
+  value: removedValue,          // line total for the removed unit(s)
+  cart_value_after: afterValue, // cart total AFTER removal
+  items: [ dlItem ]             // ONLY the removed item
+});
 
             if(cartAfter.length===0){
               window.dataLayer.push({
@@ -781,7 +782,23 @@
             <div><strong>${opt.name}</strong> • ${fmt.format(opt.cost)}</div>
             <div class="meta">${opt.days}</div>
           </div>`;
-        el.querySelector('input').addEventListener('change',()=>{ setShipId(opt.id); calc(); updateSteps(); });
+          el.querySelector('input').addEventListener('change', ()=> {
+  setShipId(opt.id);
+  calc();
+  updateSteps();
+
+  // DL: shipping tier selection
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'delivery_shipping_tier',
+    page_type: 'cart',
+    currency: CURRENCY,
+    shipping_tier: { id: opt.id, name: opt.name, cost: opt.cost }
+  });
+
+  // in case this completes finalisation criteria
+  if (typeof maybePushFinalisedCart === 'function') maybePushFinalisedCart();
+});
         shipList.appendChild(el);
       });
     }
@@ -824,7 +841,12 @@
       currentPay = val;
       panels.forEach(p => p.classList.toggle('active', p.getAttribute('data-pay')===val));
     }
-    payRadios.forEach(r=> r.addEventListener('change', e=> { setPay(e.target.value); currentStep = 3; updateSteps(); }));
+    payRadios.forEach(r=> r.addEventListener('change', e=> {
+  setPay(e.target.value);
+  currentStep = 3;
+  updateSteps();
+  maybePushFinalisedCart();
+}));
 
     // format card number with spaces, clamp CVV and EXP
     const elNum = document.getElementById('cardNumber');
@@ -863,12 +885,13 @@
       window.dataLayer = window.dataLayer || [];
       if(before.length){
         window.dataLayer.push({
-          event:'cleared_cart',
-          page_type:'cart',
-          currency:CURRENCY,
-          value,
-          items
-        });
+  event: 'cleared_cart',
+  page_type: 'cart',
+  currency: CURRENCY,
+  action: 'cleared_cart_items',
+  value: value,   // total before clearing
+  items: items    // snapshot of ALL items before clearing
+});
       }
       writeCart([]);
       renderCart();
@@ -887,6 +910,7 @@ document.getElementById('completeOrder').addEventListener('click',()=>{
     if(!validUPI(vpa)){ toast('Enter a valid UPI ID (example: name@bank)', 'error'); return; }
   }
   // gpay & cod need no extra fields here
+  maybePushFinalisedCart();
 
   // ===== Snapshot customer email & address for Thank You page =====
   const email = (f.email?.value || '').trim().toLowerCase();
@@ -930,15 +954,16 @@ document.getElementById('completeOrder').addEventListener('click',()=>{
     // Focus/typing moves highlight to Address (step 2)
     const addrForm = document.getElementById('addrForm');
     if(addrForm){
-      addrForm.addEventListener('focusin', ()=>{ currentStep = 2; updateSteps(); });
-      addrForm.addEventListener('input', ()=>{ updateSteps(); });
-      addrForm.addEventListener('change', ()=>{ updateSteps(); });
-    }
+  addrForm.addEventListener('focusin', ()=>{ currentStep = 2; updateSteps(); });
+  addrForm.addEventListener('input',  ()=>{ updateSteps(); maybePushFinalisedCart(); });
+  addrForm.addEventListener('change', ()=>{ updateSteps(); maybePushFinalisedCart(); });
+}
 
     renderCart();
     renderShipping();
     // Persist normalized cart back to storage so other pages use merged quantities
     writeCart(readCart());
+    setTimeout(maybePushFinalisedCart, 300);
 
     // Enforce strict digit lengths on phone (10) and PIN (6)
     (function(){
@@ -974,6 +999,42 @@ document.getElementById('completeOrder').addEventListener('click',()=>{
     })();
 
     updateSteps();
+
+// ===== Finalised cart event when address + payment are valid =====
+const FINAL_FLAG = 'finalised_cart_pushed_v1';
+function getSelectedShipping(){
+  const id = selectedShipId();
+  const opt = SHIPPING.find(s => s.id === id) || SHIPPING[0];
+  return { id: opt.id, name: opt.name, cost: opt.cost };
+}
+function maybePushFinalisedCart(){
+  try{
+    if (sessionStorage.getItem(FINAL_FLAG) === '1') return;
+    const cart = readCart();
+    if (!cart || !cart.length) return;
+    if (!(addressComplete() && paymentComplete())) return;
+
+    const m = math();  // { sub, ship, tax, total }
+    const items = cart.map(dlItemFromCartItem);
+    const ship = getSelectedShipping();
+
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'finalised_item_cart',
+      page_type: 'cart',
+      currency: CURRENCY,
+      delivery_tier: ship,
+      payment_method: currentPay,
+      subtotal: m.sub,
+      tax: m.tax,
+      shipping: m.ship,
+      total: m.total,
+      items: items
+    });
+
+    sessionStorage.setItem(FINAL_FLAG, '1');
+  }catch(_){}
+}
   </script>
 </body>
 </html>
