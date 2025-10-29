@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <script>window.dataLayer = window.dataLayer || [];</script>
-  <script src="js/dl-api-v2.js?v=3" defer></script>
+  <script src="js/dl-api-v2.js?v=4" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -1213,12 +1213,16 @@ header[aria-label="Primary Navigation"]{
         if(!itemRaw){ btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); return; }
         const item = normalizeItem(itemRaw);
         if(btn.dataset.act==='remove'){
+          // Build single-item payload first, then push
+          const gaItem = asGa4Item(item);
+          try{ window.pushDL('remove_from_wishlist', { page_type:'wishlist', currency:CURRENCY, items:[ gaItem ] }); }catch(_){}
+          // Now mutate state and re-render
           removeFromWishlist(sku);
           render();
           updateCartBadge();
           toast('Removed from wishlist');
-          try{ window.pushDL('remove_from_wishlist', { page_type:'wishlist', currency:CURRENCY, items:[ asGa4Item(item) ] }); }catch(_){}
-          btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); return;
+          btn.dataset.busy='0'; btn.removeAttribute('aria-busy');
+          return;
         }
         if(btn.dataset.act==='add'){
           try{
@@ -1230,7 +1234,7 @@ header[aria-label="Primary Navigation"]{
             toast('Moved to bag');
             try{
               const payload = asGa4Item(item);
-              window.pushDL('add_to_cart', { page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
+              //window.pushDL('add_to_cart', { page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
               window.pushDL('moved_to_bag', { page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
             }catch(_){}
           } finally {

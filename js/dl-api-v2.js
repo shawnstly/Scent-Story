@@ -7,8 +7,17 @@
 
   // ---- Config inferred from your page ----
   const CONFIG = {
-    siteId: 'scentstory',
-    pageType: 'cart',
+    pageType: (function(){
+      try {
+        const d = document;
+        const byAttr = d.documentElement.getAttribute('data-page-type') || (d.body && d.body.getAttribute('data-page'));
+        if (byAttr) return byAttr;
+        const p = (location.pathname || '').toLowerCase();
+        if (p.includes('wishlist')) return 'wishlist';
+        if (p.includes('cart')) return 'cart';
+        return 'page';
+      } catch(_){ return 'page'; }
+    })(),
     currency: 'INR',
     shippingAllow: new Set(['std','exp','nd']), // matches your radio list
     dedupeWindowMs: 1200,
@@ -89,12 +98,7 @@
 
   // -------- core push with base fields & whitelist --------
   function base(){
-    return {
-      event_time: nowIso(),
-      event_id: uuid(),
-      page_type: CONFIG.pageType,
-      site_id: CONFIG.siteId
-    };
+    return { page_type: CONFIG.pageType };
   }
   const WHITELISTS = {
     quantity_adjusted_in_cart: ['currency','item_id','old_quantity','new_quantity','delta','value_delta','cart_value_after','items'],
@@ -119,6 +123,23 @@
 
     // Scrub to whitelist and add base fields:
     const payload = Object.assign({event}, base(), pick(data||{}, wl));
+
+    // Normalize items: GA4-safe keys only
+    if (Array.isArray(payload.items)) {
+      payload.items = payload.items.map(it => ({
+        item_id: it && it.item_id != null ? String(it.item_id).toLowerCase() : undefined,
+        item_name: it && it.item_name != null ? String(it.item_name) : undefined,
+        item_category: it && it.item_category != null ? String(it.item_category) : undefined,
+        price: it && it.price != null ? Number(it.price) : undefined,
+        quantity: it && it.quantity != null ? Number(it.quantity) : 1,
+        currency: it && it.currency != null ? String(it.currency) : CONFIG.currency
+      })).filter(it => it && it.item_id);
+    }
+    // Force single-item semantics for these events
+    const singleItemEvents = new Set(['remove_from_wishlist','moved_to_bag','selected_item_view','removed_item_from_cart','quantity_adjusted_in_cart']);
+    if (singleItemEvents.has(event) && Array.isArray(payload.items) && payload.items.length > 1) {
+      payload.items = [payload.items[0]];
+    }
 
     // Strict shipping guard
     if (event==='delivery_shipping_tier') {
