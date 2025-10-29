@@ -1,7 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>window.dataLayer = window.dataLayer || [];</script>
+  <script>
+    (function(){
+      var dl = window.dataLayer = window.dataLayer || [];
+      // Wrap push to ignore irrelevant "view_item_list" events on product_catalog page
+      var _push = dl.push;
+      dl.push = function(){
+        try{
+          var evt = arguments && arguments[0];
+          if (evt && typeof evt === 'object' && evt.event === 'view_item_list') {
+            // swallow this event (do not push to GTM)
+            return dl.length;
+          }
+        }catch(e){}
+        return _push.apply(dl, arguments);
+      };
+    })();
+  </script>
   <script src="dl.js" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
