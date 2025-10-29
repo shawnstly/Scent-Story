@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <script>window.dataLayer = window.dataLayer || [];</script>
-  <script src="dl.js" defer></script>
+  <script src="js/dl-api-v2.js" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -1080,8 +1080,7 @@ header[aria-label="Primary Navigation"]{
       const CURRENCY = 'INR';
       document.addEventListener('DOMContentLoaded', function(){
       // GA4: page context for wishlist
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({ event:'page_context', page_type:'wishlist', currency:CURRENCY });
+      window.pushDL('page_context', { page_type:'wishlist', currency:CURRENCY });
       const REDIRECT_TO_CART_ON_ADD = false;
       const CART_KEY = 'SCENT_CART_V1';
       function readWishlist(){ try { return (window.ScentWishlist && window.ScentWishlist.read) ? window.ScentWishlist.read() : JSON.parse(localStorage.getItem('SCENT_WISHLIST_V1')||'[]'); } catch(_) { return []; } }
@@ -1198,7 +1197,7 @@ header[aria-label="Primary Navigation"]{
         // GA4: view_wishlist with full items[]
         try{
           const itemsPayload = list.map(asGa4Item);
-          window.dataLayer.push({ event:'view_wishlist', page_type:'wishlist', currency:CURRENCY, items: itemsPayload });
+          window.pushDL('view_wishlist', { page_type:'wishlist', currency:CURRENCY, items: itemsPayload });
         }catch(_){}
         // Removed: try{ window.dispatchEvent(new CustomEvent('wishlist:changed')); }catch(_){ }
       }
@@ -1218,7 +1217,7 @@ header[aria-label="Primary Navigation"]{
           render();
           updateCartBadge();
           toast('Removed from wishlist');
-          try{ window.dataLayer.push({ event:'remove_from_wishlist', page_type:'wishlist', currency:CURRENCY, items:[ asGa4Item(item) ] }); }catch(_){}
+          try{ window.pushDL('remove_from_wishlist', { page_type:'wishlist', currency:CURRENCY, items:[ asGa4Item(item) ] }); }catch(_){}
           btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); return;
         }
         if(btn.dataset.act==='add'){
@@ -1231,8 +1230,8 @@ header[aria-label="Primary Navigation"]{
             toast('Moved to bag');
             try{
               const payload = asGa4Item(item);
-              window.dataLayer.push({ event:'add_to_cart', page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
-              window.dataLayer.push({ event:'moved_to_bag', page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
+              window.pushDL('add_to_cart', { page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
+              window.pushDL('moved_to_bag', { page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
             }catch(_){}
           } finally {
             btn.dataset.busy='0'; btn.removeAttribute('aria-busy');
@@ -1251,7 +1250,7 @@ header[aria-label="Primary Navigation"]{
         const norm = normalizeItem(raw);
         const item = asGa4Item(norm);
         try{
-          window.dataLayer.push({ event:'selected_item_view', page_type:'wishlist', currency:CURRENCY, items:[item] });
+          window.pushDL('selected_item_view', { page_type:'wishlist', currency:CURRENCY, items:[item] });
         }catch(_){ }
       });
 
@@ -1259,7 +1258,7 @@ header[aria-label="Primary Navigation"]{
         const listBefore = readWishlist().map(normalizeItem);
         try{
           const itemsPayload = listBefore.map(asGa4Item);
-          window.dataLayer.push({ event:'clear_wishlist', page_type:'wishlist', currency:CURRENCY, items: itemsPayload });
+          window.pushDL('clear_wishlist', { page_type:'wishlist', currency:CURRENCY, items: itemsPayload });
         }catch(_){}
         writeWishlist([]);
         render();
@@ -1273,7 +1272,7 @@ header[aria-label="Primary Navigation"]{
         try{
           const itemsPayload = list.map(asGa4Item);
           const totalValue = itemsPayload.reduce((s,it)=> s + (parseInt(it.price,10)||0), 0);
-          window.dataLayer.push({ event:'move_all_to_bag', page_type:'wishlist', currency:CURRENCY, items: itemsPayload, value: totalValue });
+          window.pushDL('move_all_to_bag', { page_type:'wishlist', currency:CURRENCY, items: itemsPayload, value: totalValue });
         }catch(_){}
         // Then perform actual move
         list.forEach(item=>{
