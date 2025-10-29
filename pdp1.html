@@ -1,23 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>
-    (function(){
-      var dl = window.dataLayer = window.dataLayer || [];
-      // Wrap push to ignore irrelevant "view_item_list" events on product_catalog page
-      var _push = dl.push;
-      dl.push = function(){
-        try{
-          var evt = arguments && arguments[0];
-          if (evt && typeof evt === 'object' && evt.event === 'view_item_list') {
-            // swallow this event (do not push to GTM)
-            return dl.length;
-          }
-        }catch(e){}
-        return _push.apply(dl, arguments);
-      };
-    })();
-  </script>
+  <script>window.dataLayer = window.dataLayer || [];</script>
   <script src="dl.js" defer></script>
     <!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -297,16 +281,16 @@
   <!-- End Google Tag Manager (noscript) -->
   <script>
     (function(){
-      try {
-        window.dataLayer = window.dataLayer || [];
-        // Clear any volatile residue and declare page context
-        window.dataLayer.push({ event: 'dl_reset' });
-        window.dataLayer.push({ event: 'page_context', page_type: 'product_catalog', currency: 'INR' });
-      } catch(err) {
-        try { console.warn('[DL] catalog analytics error', err); } catch(_){ }
-      }
-    })();
-  </script>
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event:'page_context', page_type:'pdp1', currency:'INR' });
+      const cards = document.querySelectorAll('[data-sku][data-name][data-price]');
+      const items = Array.from(cards).map(c=>({ item_id:c.dataset.sku, item_name:c.dataset.name, item_category:(c.dataset.tier||'fragrance').toLowerCase(), price:Number(c.dataset.price||0), quantity:1, currency:'INR' }));
+      if(items.length){ window.dataLayer.push({ event:'view_item_list', currency:'INR', items }); }
+      document.addEventListener('click', (e)=>{ const card=e.target.closest('[data-sku][data-name][data-price]'); if(!card) return;
+        const it={ item_id:card.dataset.sku, item_name:card.dataset.name, item_category:(card.dataset.tier||'fragrance').toLowerCase(), price:Number(card.dataset.price||0), quantity:1, currency:'INR' };
+        window.dataLayer.push({ event:'select_item', currency:'INR', items:[it] }); });
+      })();
+    </script>
   <!-- Header -->
   <header aria-label="Primary Navigation">
     <div class="container nav">
@@ -319,7 +303,7 @@
       </button>
       <nav id="mobileMenu" class="mobile-menu" aria-label="Mobile Navigation" hidden>
         <a href="index.html">Home <i class="fa-solid fa-house"></i></a>
-      
+
         <details>
           <summary style="color:#efba0a">Explore by Concentration ▾</summary>
           <div class="sub">
@@ -328,7 +312,7 @@
             <a href="pdp1.html?cat=elixir">Elixir</a>
           </div>
         </details>
-      
+
         <details>
           <summary style="color:#efba0a">Explore by Mood ▾</summary>
           <div class="sub">
@@ -339,7 +323,7 @@
             <a href="pdp1.html?tag=seasons">Seasons</a>
           </div>
         </details>
-      
+
         <a href="#/track" style="color:#e0d2a2">Track My Order <i class="fa-solid fa-box"></i></a>
         <a href="wishlist.html" style="color:#e0d2a2" id="wishlistLinkMobile" data-base-label="Wishlist">Wishlist <span class="cart-badge" id="wishlist-count-mobile" aria-live="polite">0</span></a>
         <a href="#/contact" style="color:#e0d2a2">Contact <i class="fa-regular fa-envelope"></i></a>
@@ -559,8 +543,7 @@
       {type:'elixir', slug:'autumn-fire', name:'Autumn Fire', images:['images/Autumn Fire.png','images/autumnfire1.png'], occasions:['fall','evening','bold'], tags:['bold','seasons']},
       {type:'elixir', slug:'forever-love', name:'Forever Love', images:['images/Forever Love.png','images/foreverlove1.png'], occasions:['date','romantic'], tags:['carefree']},
     ];
-// Base price map used for catalog click analytics (approximate; PDP overrides exact)
-const PRICES_BY_TYPE = { edp: 4590, parfum: 6990, elixir: 13400 };
+
     // Build occasion options dynamically from products
     const occSelect = document.getElementById('occasion-filter');
     const occSet = new Set(['all']);
@@ -577,24 +560,23 @@ const PRICES_BY_TYPE = { edp: 4590, parfum: 6990, elixir: 13400 };
 
     function tileHTML(p,primary,alt){
       return `
-  <article class="tile" data-cat="${p.type}" data-occ="${(p.occasions||[]).join(',')}" data-tags="${(p.tags||[]).join(',')}">
-    <a href="pdp.html#${p.slug}" aria-label="${p.name}" style="outline:none"
-       data-sku="${p.slug}" data-name="${p.name}" data-price="${PRICES_BY_TYPE[p.type]||0}" data-tier="${p.type}">
-      <div class="img-stack" aria-hidden="true">
-        <img class="img-primary" src="${primary}" alt="${p.name} primary" loading="lazy">
-        ${alt ? `<img class=\"img-alt\" src=\"${alt}\" alt=\"${p.name} alternate\" loading=\"lazy\">` : ''}
-        <div class="hover-overlay" aria-hidden="true">
-          <div>
-            <span class="badge"><i class="fa-regular fa-eye" aria-hidden="true"></i> View details</span>
-            <small>Click to open the product page</small>
-          </div>
-        </div>
-      </div>
-      <div class="meta"><span class="pill">${p.type.toUpperCase()}</span></div>
-      <div class="caption">${p.name}</div>
-    </a>
-  </article>`;
-}
+        <article class="tile" data-cat="${p.type}" data-occ="${(p.occasions||[]).join(',')}" data-tags="${(p.tags||[]).join(',')}">
+          <a href="pdp.html#${p.slug}" aria-label="${p.name}" style="outline:none">
+            <div class="img-stack" aria-hidden="true">
+              <img class="img-primary" src="${primary}" alt="${p.name} primary" loading="lazy">
+              ${alt ? `<img class=\"img-alt\" src=\"${alt}\" alt=\"${p.name} alternate\" loading=\"lazy\">` : ''}
+              <div class="hover-overlay" aria-hidden="true">
+                <div>
+                  <span class="badge"><i class="fa-regular fa-eye" aria-hidden="true"></i> View details</span>
+                  <small>Click to open the product page</small>
+                </div>
+              </div>
+            </div>
+            <div class="meta"><span class="pill">${p.type.toUpperCase()}</span></div>
+            <div class="caption">${p.name}</div>
+          </a>
+        </article>`;
+    }
 
     async function buildGrid(){
       const grid = document.getElementById('catalog-grid');
