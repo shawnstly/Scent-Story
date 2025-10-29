@@ -322,6 +322,7 @@
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push(payload);
     }
+    
     // Overwrite volatile keys so they don't leak into the next minimal event
 function resetVolatileDL(){
   window.dataLayer = window.dataLayer || [];
@@ -335,6 +336,19 @@ function resetVolatileDL(){
     value_delta: null
   });
 }
+// ---- Unified DL API ----
+const DL = (() => {
+  const VOLATILE = ['item_id','item_name','action','old_quantity','new_quantity','delta','value_delta','cart_value_after','value','items'];
+  function scrub(){
+    const nul={}; VOLATILE.forEach(k=>nul[k]=null);
+    window.dataLayer=window.dataLayer||[]; window.dataLayer.push(nul);
+  }
+  function base(){ return {page_type:'cart', currency:CURRENCY}; }
+  function emitMinimal(event,data){ scrub(); pushDL(event,Object.assign(base(),data)); }
+  function emitQtyAdjusted(ctx){ pushDL('quantity_adjusted_in_cart',Object.assign(base(),ctx)); }
+  function emitSnapshot(event,snapshot){ scrub(); pushDL(event,Object.assign(base(),snapshot)); }
+  return {emitMinimal,emitQtyAdjusted,emitSnapshot};
+})();
     const CURRENCY = 'INR';
     function tierFromName(name){
       const t = String(name||'').toLowerCase();
@@ -526,9 +540,7 @@ function resetVolatileDL(){
           const delta = nextQty - oldQty;
           const valueDelta = (cartNow[i].price||0) * delta;
           const afterValue = cartValue(cartNow);
-          pushDL('quantity_adjusted_in_cart', {
-            page_type: 'cart',
-            currency: CURRENCY,
+          DL.emitQtyAdjusted({
             item_id: dlItem.item_id,
             item_name: dlItem.item_name,
             action: delta > 0 ? 'increment' : 'decrement',
@@ -537,7 +549,7 @@ function resetVolatileDL(){
             delta: delta,
             value_delta: valueDelta,
             cart_value_after: afterValue,
-            items: [ dlItem ]
+            items: [dlItem]
           });
 
           renderCart();
@@ -569,14 +581,11 @@ function resetVolatileDL(){
             writeCart(cartAfter);
 
             const afterValue = cartValue(cartAfter);
-            resetVolatileDL();
-            pushDL('removed_item_from_cart', {
-              page_type: 'cart',
-              currency: CURRENCY,
+            DL.emitMinimal('removed_item_from_cart', {
               action: 'removed_from_cart',
               value: removedValue,
               cart_value_after: afterValue,
-              items: [ dlItem ]
+              items: [dlItem]
             });
 
             if(cartAfter.length===0){
@@ -619,11 +628,8 @@ function resetVolatileDL(){
             setShipId(opt.id);
             calc();
             updateSteps();
-            resetVolatileDL();
-            pushDL('delivery_shipping_tier', {
-              page_type: 'cart',
-              currency: CURRENCY,
-              shipping_tier: { id: opt.id, name: opt.name, cost: opt.cost }
+            DL.emitMinimal('delivery_shipping_tier', {
+              shipping_tier: {id: opt.id, name: opt.name, cost: opt.cost}
             });
 
             // in case this completes finalisation criteria
@@ -712,10 +718,7 @@ function resetVolatileDL(){
       const items = before.map(dlItemFromCartItem);
       const value = cartValue(before);
       if(before.length){
-        resetVolatileDL();
-        pushDL('cleared_cart', {
-          page_type: 'cart',
-          currency: CURRENCY,
+        DL.emitMinimal('cleared_cart', {
           action: 'cleared_cart_items',
           value: value,
           items: items
@@ -844,10 +847,7 @@ function maybePushFinalisedCart(){
     const m = math();  // { sub, ship, tax, total }
     const items = cart.map(dlItemFromCartItem);
     const ship = getSelectedShipping();
-    resetVolatileDL();
-    pushDL('finalised_item_cart', {
-      page_type: 'cart',
-      currency: CURRENCY,
+    DL.emitSnapshot('finalised_item_cart', {
       cart_value_after: m.sub,
       items: items,
       value: m.sub,
