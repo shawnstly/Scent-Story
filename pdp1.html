@@ -286,9 +286,30 @@
       const cards = document.querySelectorAll('[data-sku][data-name][data-price]');
       const items = Array.from(cards).map(c=>({ item_id:c.dataset.sku, item_name:c.dataset.name, item_category:(c.dataset.tier||'fragrance').toLowerCase(), price:Number(c.dataset.price||0), quantity:1, currency:'INR' }));
       if(items.length){ window.dataLayer.push({ event:'view_item_list', currency:'INR', items }); }
-      document.addEventListener('click', (e)=>{ const card=e.target.closest('[data-sku][data-name][data-price]'); if(!card) return;
-        const it={ item_id:card.dataset.sku, item_name:card.dataset.name, item_category:(card.dataset.tier||'fragrance').toLowerCase(), price:Number(card.dataset.price||0), quantity:1, currency:'INR' };
-        window.dataLayer.push({ event:'select_item', currency:'INR', items:[it] }); });
+      document.addEventListener('click', (e) => {
+        const card = e.target.closest('[data-sku][data-name][data-price]');
+        if (!card) return;
+
+        // Build product object
+        const it = {
+          item_id: card.dataset.sku,
+          item_name: card.dataset.name,
+          item_category: (card.dataset.tier || 'fragrance').toLowerCase(),
+          price: Number(card.dataset.price || 0),
+          quantity: 1,
+          currency: 'INR'
+        };
+
+        // Push clean PDP context for this product click
+        window.dataLayer.push({
+          event: 'pdp_click',
+          page_context: 'pdp1',
+          item_category: it.item_category,
+          item_name: it.item_name,
+          currency: 'INR',
+          items: [it]
+        });
+      });
     })();
     </script>
   <!-- Header -->
