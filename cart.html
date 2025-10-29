@@ -127,187 +127,6 @@
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5SX8RV8P"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
-  <script>
-    (function(){
-      const CURRENCY = 'INR';
-      const BC_FLAG = 'begin_checkout_fired_v1';
-    
-      // Normalize product keys and consolidate duplicates
-      function canonicalSkuKey(s){
-        s = String(s||'').toLowerCase().trim();
-        // collapse known suffixes (edp/parfum/elixir) to a single base key
-        s = s.replace(/^#/, '');
-        // if a full name was stored, try to pull slug-like tokens
-        s = s.replace(/\s+/g,'-');
-        // strip trailing known type suffixes
-        s = s.replace(/-(edp|parfum|elixir)$/,'');
-        return s;
-      }
-      function consolidateCartArray(arr){
-        if(!Array.isArray(arr)) return [];
-        const byKey = new Map();
-        for(const it of arr){
-          const key = canonicalSkuKey(it?.sku || it?.slug || it?.id || it?.item_id || it?.name || '');
-          const price = Number(it?.price||0);
-          const qty = Math.max(1, Number(it?.qty||it?.quantity||1));
-          const base = byKey.get(key);
-          if(base){
-            base.qty += qty; // merge quantities
-            // prefer non-empty fields; keep first image/name/price unless missing
-            if(!base.name && it?.name) base.name = it.name;
-            if(!base.image && it?.image) base.image = it.image;
-            if(!base.type && it?.type) base.type = it.type;
-            if(!base.tier && it?.tier) base.tier = it.tier;
-            // if a different price sneaks in, keep the latest non-zero
-            if(price>0) base.price = price;
-          } else {
-            byKey.set(key, {
-              slug: key,
-              sku: key,
-              name: it?.name || String(key),
-              price: price,
-              qty: qty,
-              image: it?.image || '',
-              type: it?.type || it?.tier || 'fragrance'
-            });
-          }
-        }
-        return Array.from(byKey.values());
-      }
-      // ---------- Cart snapshot ----------
-      function readCart(){
-        try{
-          const raw = JSON.parse(localStorage.getItem('SCENT_CART_V1')||'[]');
-          return consolidateCartArray(raw);
-        }catch(_){ return []; }
-      }
-      function mapItem(i){
-        return {
-          item_id: String(i.sku || i.slug || '').toLowerCase(),
-          item_name: i.name || '',
-          item_category: (i.type || i.tier || 'fragrance').toLowerCase(),
-          price: Number(i.price || 0),
-          quantity: Number(i.qty || 1),
-          currency: CURRENCY
-        };
-      }
-      function cartPayload(){
-        const items = readCart().map(mapItem);
-        const value = items.reduce((s,i)=> s + i.price * i.quantity, 0);
-        return { items, value };
-      }
-    
-      // ---------- 1) page_context on load (interaction events handled in UI script) ----------
-      (function pushPageContext(){
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({ event:'page_context', page_type:'cart', currency:CURRENCY });
-      })();
-    
-      // ---------- Helpers to find the checkout form + fields ----------
-      function getCheckoutForm(){
-        // Prefer explicit marker if you add it: data-checkout-form
-        return (
-  document.querySelector('[data-checkout-form]') ||
-  document.getElementById('addrForm') ||
-  document.getElementById('checkout-form') ||
-  document.querySelector('form.checkout') ||
-  document.querySelector('form[action*="order"], form[action*="checkout"]') ||
-  // fallback: first form in the right/side column
-  document.querySelector('aside form') ||
-  document.querySelector('form')
-);
-      }
-    
-      // Heuristics: we try to find typical inputs by name/id
-      function pickField(root, names){
-        const sel = names.map(n => [
-          `input[name*="${n}"]`, `input[id*="${n}"]`, `input[data-${n}]`,
-          `textarea[name*="${n}"]`, `textarea[id*="${n}"]`, `textarea[data-${n}]`,
-          `select[name*="${n}"]`, `select[id*="${n}"]`, `select[data-${n}]`
-        ].join(',')).join(',');
-        return root.querySelector(sel);
-      }
-    
-      function getFields(form){
-        const email = pickField(form, ['email','e-mail']);
-        const phone = pickField(form, ['phone','mobile','tel']);
-        // name can be one field or two; fall back to any "name" like full_name
-        const name  = pickField(form, ['full','name','fname','first']) || pickField(form, ['lname','last']);
-        const address = pickField(form, ['address','addr1','line1','street']);
-        const city = pickField(form, ['city','town']);
-        const pincode = pickField(form, ['pin','pincode','postal','zip']);
-        // if you use explicit required attributes, we’ll respect them too
-        return { email, phone, name, address, city, pincode };
-      }
-    
-      // ---------- Validation ----------
-      function digitsOnly(s){ return String(s||'').replace(/\D+/g,''); }
-      function isEmail(s){ return /\S+@\S+\.\S+/.test(String(s||'').trim()); }
-      function isReady(fields){
-        const e = (fields.email && isEmail(fields.email.value));
-        const p = (fields.phone && digitsOnly(fields.phone.value).length >= 7);
-        const n = (fields.name && String(fields.name.value||'').trim().length >= 2);
-        const a = (fields.address && String(fields.address.value||'').trim().length >= 5);
-        const c = (fields.city && String(fields.city.value||'').trim().length >= 2);
-        // Indian pincodes are 6 digits, but support 4-8 to be lenient for testing
-        const z = (fields.pincode && digitsOnly(fields.pincode.value).length >= 4);
-        return e && p && n && a && c && z;
-      }
-    
-      // ---------- 2) begin_checkout when form becomes valid ----------
-      function setupBeginCheckoutWatcher(){
-        if (sessionStorage.getItem(BC_FLAG) === '1') return; // already fired
-        const form = getCheckoutForm();
-        if (!form) return;
-    
-        const fields = getFields(form);
-        const inputs = Array.from(form.querySelectorAll('input,select,textarea'));
-    
-        let lastReady = false;
-    
-        function maybeFire(){
-          if (sessionStorage.getItem(BC_FLAG) === '1') return;
-          const ready = isReady(fields);
-          // Fire once on the FIRST transition to ready
-          if (!lastReady && ready){
-            const {items, value} = cartPayload();
-            window.dataLayer.push({ event:'begin_checkout', currency:CURRENCY, value, items });
-            sessionStorage.setItem(BC_FLAG, '1');
-          }
-          lastReady = ready;
-        }
-    
-        // Watch for user typing/selecting
-        inputs.forEach(el => {
-          el.addEventListener('input', maybeFire);
-          el.addEventListener('change', maybeFire);
-          el.addEventListener('blur', maybeFire);
-        });
-    
-        // Safety: check once after a short delay (in case autofill happened)
-        setTimeout(maybeFire, 300);
-      }
-    
-      // ---------- 3) Fallback: fire on "Complete Order" click if present ----------
-      function setupCompleteOrderFallback(){
-        if (sessionStorage.getItem(BC_FLAG) === '1') return;
-        const submitBtn = document.querySelector('#completeOrder, [data-complete-order], button[type="submit"].btn-gold, button[type="submit"].btn');
-        if (!submitBtn) return;
-        submitBtn.addEventListener('click', function(){
-          if (sessionStorage.getItem(BC_FLAG) === '1') return;
-          const {items, value} = cartPayload();
-          window.dataLayer.push({ event:'begin_checkout', currency:CURRENCY, value, items });
-          sessionStorage.setItem(BC_FLAG, '1');
-        }, {capture:true});
-      }
-    
-      // Init
-      document.addEventListener('DOMContentLoaded', function(){
-        setupBeginCheckoutWatcher();
-        setupCompleteOrderFallback();
-      });
-    })();
-    </script>
   <div class="wrap">
     <header class="top">
       <a class="brand" href="index.html" aria-label="Back to home">
@@ -503,6 +322,19 @@
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push(payload);
     }
+    // Overwrite volatile keys so they don't leak into the next minimal event
+function resetVolatileDL(){
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    item_id: null,
+    item_name: null,
+    action: null,
+    old_quantity: null,
+    new_quantity: null,
+    delta: null,
+    value_delta: null
+  });
+}
     const CURRENCY = 'INR';
     function tierFromName(name){
       const t = String(name||'').toLowerCase();
@@ -521,7 +353,6 @@
     function cartValue(items){
       return (items||[]).reduce((s,it)=> s + (Number(it.price)||0) * (Number(it.qty||it.quantity)||1), 0);
     }
-
     // ===== Step & Progress logic =====
     const stepsEl = document.querySelectorAll('.steps .step');
     const progressBar = document.getElementById('progressBar');
@@ -738,7 +569,7 @@
             writeCart(cartAfter);
 
             const afterValue = cartValue(cartAfter);
-
+            resetVolatileDL();
             pushDL('removed_item_from_cart', {
               page_type: 'cart',
               currency: CURRENCY,
@@ -788,8 +619,7 @@
             setShipId(opt.id);
             calc();
             updateSteps();
-
-            // DL: shipping tier selection
+            resetVolatileDL();
             pushDL('delivery_shipping_tier', {
               page_type: 'cart',
               currency: CURRENCY,
@@ -877,12 +707,12 @@
       const okCvv = /^\d{3}$/.test(cvv);
       return okNum && okExp && okCvv && name.length>1;
     }
-
     document.getElementById('clearCart').addEventListener('click',()=>{
       const before = readCart();
       const items = before.map(dlItemFromCartItem);
       const value = cartValue(before);
       if(before.length){
+        resetVolatileDL();
         pushDL('cleared_cart', {
           page_type: 'cart',
           currency: CURRENCY,
@@ -997,7 +827,6 @@ document.getElementById('completeOrder').addEventListener('click',()=>{
     })();
 
     updateSteps();
-
 // ===== Finalised cart event when address + payment are valid =====
 const FINAL_FLAG = 'finalised_cart_pushed_v1';
 function getSelectedShipping(){
@@ -1015,7 +844,7 @@ function maybePushFinalisedCart(){
     const m = math();  // { sub, ship, tax, total }
     const items = cart.map(dlItemFromCartItem);
     const ship = getSelectedShipping();
-
+    resetVolatileDL();
     pushDL('finalised_item_cart', {
       page_type: 'cart',
       currency: CURRENCY,
