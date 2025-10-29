@@ -1081,7 +1081,18 @@ header[aria-label="Primary Navigation"]{
       // --- DL Helper (adapted from cart.html) ---
       const DL = (() => {
         const VOLATILE = ['item_id','item_name','action','old_quantity','new_quantity','delta','value_delta','wishlist_value_after','value','items'];
-        function scrub(){ const nul={}; VOLATILE.forEach(k=>nul[k]=null); window.dataLayer=window.dataLayer||[]; window.dataLayer.push(nul); }
+        function scrub(){
+          // Create a clean copy but avoid pushing visible dl_reset events
+          window.__suppressResetPush = true;
+          try {
+            const nul = {}; VOLATILE.forEach(k => nul[k] = null);
+            // Use a silent flag for GTM so this push is hidden in debug
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push(Object.assign({ _clear: true, _internal: true }, nul));
+          } finally {
+            window.__suppressResetPush = false;
+          }
+        }
         function base(){ return { page_type:'wishlist', currency:CURRENCY }; }
         function emitMinimal(event,data){ scrub(); window.pushDL(event, Object.assign(base(), data)); }
         function emitSnapshot(event,snapshot){ scrub(); window.pushDL(event, Object.assign(base(), snapshot)); }
