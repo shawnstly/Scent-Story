@@ -1213,14 +1213,17 @@ header[aria-label="Primary Navigation"]{
         if(!itemRaw){ btn.dataset.busy='0'; btn.removeAttribute('aria-busy'); return; }
         const item = normalizeItem(itemRaw);
         if(btn.dataset.act==='remove'){
-          // Build single-item payload first, then push
           const gaItem = asGa4Item(item);
-          try{ window.pushDL('remove_from_wishlist', { page_type:'wishlist', currency:CURRENCY, items:[ gaItem ] }); }catch(_){}
-          // Now mutate state and re-render
           removeFromWishlist(sku);
-          render();
-          updateCartBadge();
-          toast('Removed from wishlist');
+          setTimeout(()=>{
+            try{
+              resetVolatileDL();
+              window.pushDL('remove_from_wishlist', { page_type:'wishlist', currency:CURRENCY, items:[ gaItem ] });
+            }catch(_){}
+            render();
+            updateCartBadge();
+            toast('Removed from wishlist');
+          }, 100);
           btn.dataset.busy='0'; btn.removeAttribute('aria-busy');
           return;
         }
@@ -1233,6 +1236,7 @@ header[aria-label="Primary Navigation"]{
             updateCartBadge();
             toast('Moved to bag');
             try{
+              resetVolatileDL();
               const payload = asGa4Item(item);
               //window.pushDL('add_to_cart', { page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
               window.pushDL('moved_to_bag', { page_type:'wishlist', currency:CURRENCY, items:[payload], value: payload.price });
@@ -1254,6 +1258,7 @@ header[aria-label="Primary Navigation"]{
         const norm = normalizeItem(raw);
         const item = asGa4Item(norm);
         try{
+          resetVolatileDL();
           window.pushDL('selected_item_view', { page_type:'wishlist', currency:CURRENCY, items:[item] });
         }catch(_){ }
       });
@@ -1261,6 +1266,7 @@ header[aria-label="Primary Navigation"]{
       document.getElementById('btn-clear').addEventListener('click', ()=>{
         const listBefore = readWishlist().map(normalizeItem);
         try{
+          resetVolatileDL();
           const itemsPayload = listBefore.map(asGa4Item);
           window.pushDL('clear_wishlist', { page_type:'wishlist', currency:CURRENCY, items: itemsPayload });
         }catch(_){}
@@ -1274,6 +1280,7 @@ header[aria-label="Primary Navigation"]{
         const list = listRaw.map(normalizeItem);
         // Push GA4 first (before mutation)
         try{
+          resetVolatileDL();
           const itemsPayload = list.map(asGa4Item);
           const totalValue = itemsPayload.reduce((s,it)=> s + (parseInt(it.price,10)||0), 0);
           window.pushDL('move_all_to_bag', { page_type:'wishlist', currency:CURRENCY, items: itemsPayload, value: totalValue });

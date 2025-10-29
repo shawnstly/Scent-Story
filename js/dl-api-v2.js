@@ -96,6 +96,30 @@
     return { push(fn){ q.push(fn); run(); } };
   })();
 
+  // -------- volatile reset (prevents stale keys leaking between events) --------
+  function buildReset(){
+    return {
+      event: 'dl_reset',
+      page_type: CONFIG.pageType,
+      // Clear all volatile keys so GTM doesn't carry them forward
+      items: undefined,
+      item_id: undefined,
+      old_quantity: undefined,
+      new_quantity: undefined,
+      delta: undefined,
+      value_delta: undefined,
+      value: undefined,
+      cart_value_after: undefined,
+      shipping_tier: undefined,
+      delivery_tier: undefined,
+      payment_method: undefined,
+      subtotal: undefined,
+      tax: undefined,
+      shipping: undefined,
+      total: undefined
+    };
+  }
+
   // -------- core push with base fields & whitelist --------
   function base(){
     return { page_type: CONFIG.pageType };
@@ -154,8 +178,11 @@
 
     // Enqueue the push to guarantee order and avoid rapid-fire collisions
     Queue.push(async () => {
-      if (Dedupe.check(payload)) return;  // drop near-duplicate
-      (g.dataLayer = g.dataLayer || []).push(payload);
+      // First: push a reset event so stale keys don't leak into this event
+      (g.dataLayer = g.dataLayer || []).push(buildReset());
+      // Now: push the actual event (deduped)
+      if (Dedupe.check(payload)) return;  // drop near-duplicate of the actual event
+      g.dataLayer.push(payload);
       if (g.console) console.log('[DL]', payload);
     });
   }
@@ -234,8 +261,13 @@
   // -------- Backward-compatibility shim --------
   // Replace global pushDL so existing calls route through our whitelists.
   g.pushDL = function(eventName, data){ pushEvent(eventName, data || {}); };
-  // Your old resetVolatileDL nulled fields; not needed now, keep for compatibility.
-  g.resetVolatileDL = function(){ /* no-op by design */ };
+  // Enqueue a reset event to clear volatile keys
+  g.resetVolatileDL = function(){
+    Queue.push(async () => {
+      (g.dataLayer = g.dataLayer || []).push(buildReset());
+      if (g.console) console.log('[DL]', {note:'resetVolatileDL', ...buildReset()});
+    });
+  };
 
   // Named export if you want to call typed methods from handlers
   g.ScentDL = API;
