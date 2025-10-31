@@ -950,11 +950,12 @@ main {
 // ===== Cart badge updater =====
 function cartQtyTotal(){ return readCart().reduce((sum,i)=> sum + (parseInt(i.qty||0,10)||0), 0); }
 function updateCartBadge(){
-  const badge = document.getElementById('cart-count');
-  if(!badge) return;
   const n = cartQtyTotal();
-  badge.textContent = n;
-  badge.hidden = n<=0;
+  const desk = document.getElementById('cart-count');
+  const mob  = document.getElementById('cart-count-mobile');
+  if(desk){ desk.textContent = n; desk.hidden = n<=0; }
+  if(mob){  mob.textContent  = n; mob.hidden  = n<=0; }
+  try{ window.dispatchEvent(new CustomEvent('cart:changed', { detail:{ qty:n } })); }catch(_){ }
 }
     function readWishlistPDP(){ return JSON.parse(localStorage.getItem(WISHLIST_KEY) || '[]'); }
     function writeWishlistPDP(items){
@@ -998,6 +999,7 @@ function updateCartBadge(){
           var icon = toggle.querySelector('i');
           if(icon){ icon.classList.remove('fa-bars'); icon.classList.add('fa-xmark'); }
         })();
+        syncCounts();
       }
       function closeDrawer(){
         // Revert icon: xmark → bars
@@ -1040,6 +1042,7 @@ function updateCartBadge(){
       document.addEventListener('DOMContentLoaded', syncCounts);
       window.addEventListener('storage', syncCounts);
       window.addEventListener('wishlist:changed', syncCounts);
+      window.addEventListener('cart:changed', syncCounts);
 
       // Synchronize nav icon state on load and after history/hash events
       function syncNavIcon(){
