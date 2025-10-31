@@ -360,3 +360,45 @@ body.ready{ opacity:1; }
   /* if you want an explicit, consistent gap between the two: */
   .brand-logo + .brand-text{ margin-left: 6px !important; }
 }
+/* --- GLOBAL STACK FIX: Ensure mobile menu always overlays page content --- */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 4000;
+}
+
+/* Mobile menu overlay */
+.mobile-menu {
+  /* Global defaults — page <style> controls top/z-index */
+  position: fixed;
+  left: 0;
+  right: 0;
+  background: var(--surface, #0b0f14);
+  border-top: 1px solid var(--stroke, #262b33);
+  box-shadow: 0 18px 38px rgba(0,0,0,.55);
+  transform: translateY(-12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .25s ease, opacity .25s ease;
+}
+
+.mobile-menu.open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Toasts, modals, or alert overlays */
+.toast, .modal {
+  z-index: 6000;
+}
+
+/* Page content should never override overlays */
+.product-detail,
+main,
+.gallery,
+.product-info,
+.pdp-actions {
+  position: relative;
+  z-index: 1;
+}

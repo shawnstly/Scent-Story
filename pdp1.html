@@ -129,6 +129,45 @@
       .quick-actions{ display:none; }        /* keep header clean on mobile */
       .nav-toggle{ display:inline-flex; }    /* show hamburger */
     }
+
+    /* ===== Elegant Hamburger ↔ X (cinematic, mobile‑only) ===== */
+    @media (max-width: 900px){
+      .nav-toggle {
+        position: relative;
+        background: #141820; /* ensure same surface */
+        border: 1px solid var(--stroke);
+        cursor: pointer;
+        padding: 8px;
+        z-index: 6000;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+      }
+      .nav-toggle i{
+        font-size:22px;
+        color:#f6e7b9;
+        transition: transform .25s ease, color .25s ease, text-shadow .25s ease;
+        will-change: transform;
+      }
+      .nav-toggle.active i{
+        color:#ffc400;
+        transform: rotate(180deg) scale(1.1);
+        text-shadow: 0 0 8px rgba(255,196,0,.4);
+      }
+      /* Rolling keyframes to make the transition unmistakable */
+      @keyframes iconRollIn { 0%{ transform: rotate(0deg) scale(.96); } 100%{ transform: rotate(180deg) scale(1.1); } }
+      @keyframes iconRollOut{ 0%{ transform: rotate(180deg) scale(1.1);} 100%{ transform: rotate(0deg) scale(1);} }
+      .nav-toggle i{ transform-origin: 50% 50%; }
+      .nav-toggle.active i{ animation: iconRollIn .28s ease both; }
+      .nav-toggle i.roll-out{ animation: iconRollOut .24s ease both; }
+    }
+    /* Hide hamburger entirely on desktop */
+    @media (min-width: 901px){
+      .nav-toggle{ display:none !important; visibility:hidden !important; }
+    }
     /* Drawer container */
     .mobile-menu{
       position: fixed;
@@ -344,8 +383,27 @@
       drawer.classList.add('open');
       toggle.setAttribute('aria-expanded','true');
       document.body.style.overflow='hidden';
+      // Cinematic icon swap: bars → xmark
+      toggle.classList.add('active');
+      (function(){
+        var icon = toggle.querySelector('i');
+        if(icon){ icon.classList.remove('fa-bars'); icon.classList.add('fa-xmark'); }
+        // Remove any roll-out class so roll-in can play
+        if(icon){ icon.classList.remove('roll-out'); }
+      })();
     }
     function closeDrawer(){
+      // Add roll-out animation before swapping icon
+      (function(){
+        var icon = toggle.querySelector('i');
+        if(icon){ icon.classList.add('roll-out'); }
+      })();
+      // Revert icon: xmark → bars
+      toggle.classList.remove('active');
+      (function(){
+        var icon = toggle.querySelector('i');
+        if(icon){ icon.classList.remove('fa-xmark'); icon.classList.add('fa-bars'); }
+      })();
       drawer.classList.remove('open');
       toggle.setAttribute('aria-expanded','false');
       document.body.style.overflow='';
@@ -374,6 +432,18 @@
     document.addEventListener('DOMContentLoaded', syncCounts);
     window.addEventListener('storage', syncCounts);
     window.addEventListener('wishlist:changed', syncCounts);
+
+    function syncNavIcon(){
+      var isOpen = drawer.classList.contains('open');
+      toggle.classList.toggle('active', isOpen);
+      var icon = toggle.querySelector('i');
+      if(icon){
+        icon.classList.remove(isOpen ? 'fa-bars' : 'fa-xmark');
+        icon.classList.add(isOpen ? 'fa-xmark' : 'fa-bars');
+      }
+    }
+    document.addEventListener('DOMContentLoaded', syncNavIcon);
+    window.addEventListener('pageshow', syncNavIcon);
   })();
   </script>
       <nav id="primary-nav" class="menu">

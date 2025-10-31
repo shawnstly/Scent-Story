@@ -127,9 +127,46 @@
       .quick-actions{ display:none; }
       .nav-toggle{ display:inline-flex; }
     }
+    /* ===== Elegant Hamburger ↔ X (cinematic) ===== */
+.nav-toggle {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 6000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--stroke);
+  background: #141820;
+}
+
+.nav-toggle i {
+  font-size: 22px;
+  color: #f6e7b9;
+  transition: transform 0.25s ease, color 0.25s ease, text-shadow 0.25s ease;
+  will-change: transform;
+}
+
+.nav-toggle.active i {
+  color: #ffc400;
+  transform: rotate(180deg) scale(1.1);
+  text-shadow: 0 0 8px rgba(255, 196, 0, 0.4);
+}
+/* ===== Hide hamburger toggle on desktop ===== */
+@media (min-width: 901px) {
+  .nav-toggle {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
     .mobile-menu{
       position: fixed;
-      top: var(--nav-height);
+      top: calc(var(--nav-height) + 5%);
       left: 0; right: 0;
       background: var(--surface);
       border-top: 1px solid var(--stroke);
@@ -196,7 +233,51 @@
     .card img{max-width:100%;border-radius:10px;margin-bottom:12px}
     .card h3{margin:0 0 10px;font-family:"Playfair Display",serif}
     .card p{margin:0;color:var(--muted)}
+/* ===== Mobile quick icons (Cart / Wishlist) next to hamburger ===== */
+@media (max-width: 900px){
+  .nav{ position: relative; }
 
+  .nav-quick-icons{
+    position:absolute;
+    /* 15px to the LEFT of the hamburger (40px button + 8px pad + 15px gap) */
+    right: calc(40px + 15px + 25px);
+    top: 50%;
+    transform: translateY(-50%);
+    height: var(--nav-height);
+    display:flex; align-items:center; gap:18px;
+    pointer-events:none; /* chips re-enable pointer events */
+  }
+
+  .nav-chip{
+    pointer-events:auto;
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    display:grid; place-items:center;
+    border: 1px solid #bfa06a;                /* gold ring */
+    background: rgba(15,18,22,.84);           /* glassy dark */
+    backdrop-filter: blur(6px);
+    box-shadow: 0 6px 18px rgba(191,160,106,.18), inset 0 0 0 1px rgba(191,160,106,.12);
+    opacity: 0; transform: translateY(6px) scale(.92);
+    transition: opacity .22s ease, transform .22s ease;
+  }
+
+  .nav-chip i{ font-size: 14px; color: #f6e7b9; transition: transform .28s ease, color .2s ease; }
+  .nav-chip.heart i{ color: #ffc4c4; }
+
+  /* visible state */
+  .nav-chip.show{ opacity: 1; transform: translateY(0) scale(1); }
+
+  /* rolling transition */
+  @keyframes chipRollIn { 0%{ transform: rotate(-180deg) scale(.94);} 100%{ transform: rotate(0deg) scale(1);} }
+  @keyframes chipRollOut{ 0%{ transform: rotate(0deg) scale(1);} 100%{ transform: rotate(-180deg) scale(.94);} }
+  .nav-chip.show i{ animation: chipRollIn .28s ease both; }
+  .nav-chip.hiding i{ animation: chipRollOut .24s ease both; }
+}
+
+/* Hide quick icons on desktop entirely */
+@media (min-width: 901px){
+  .nav-quick-icons{ display:none !important; }
+}
     /* Product Detail */
     .product-detail{display:grid;grid-template-columns:.95fr 1.05fr;gap:44px;align-items:start}
     /* Ensure gallery stays beneath info/CTAs; make CTAs always clickable */
@@ -493,6 +574,34 @@
       #page-view .contact-form .btn-gold,
       #page-view #grievance-form .btn-gold{ width: 100%; justify-content: center; }
     }
+    /* --- FIX: ensure mobile nav overlays PDP content properly --- */
+.mobile-menu {
+  position: fixed;
+  top: calc(var(--nav-height) + 5%);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--stroke);
+  box-shadow: 0 18px 38px rgba(0,0,0,.55);
+  z-index: 3000 !important;   /* was 120 – raise above PDP */
+  transform: translateY(-12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .25s ease, opacity .25s ease;
+}
+.mobile-menu.open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Optional: make sure PDP never sits above overlays */
+.product-detail,
+#pdp-main,
+main {
+  position: relative;
+  z-index: 1;
+}
   </style>
 </head>
 <body>
@@ -630,9 +739,18 @@
         </a>
         <span class="brand-text">Scent Story</span>
       </div>
-      <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-controls="mobileMenu" aria-expanded="false">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle Menu">
         <i class="fa-solid fa-bars" aria-hidden="true"></i>
       </button>
+      <!-- Mobile quick-access icons (left of hamburger) -->
+<div class="nav-quick-icons" aria-hidden="true">
+  <button id="chip-cart" class="nav-chip" title="Go to Cart" hidden>
+    <i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>
+  </button>
+  <button id="chip-wl" class="nav-chip heart" title="Go to Wishlist" hidden>
+    <i class="fa-solid fa-heart" aria-hidden="true"></i>
+  </button>
+</div>
       <nav class="menu">
         <a href="index.html" style="color:#efba0a">Home</a>
         <section id="bestsellers"><a href="index.html#bestsellers" aria-current ="location" style="color:#efd8b2">New Launches</a></section>
@@ -874,8 +992,20 @@ function updateCartBadge(){
         drawer.classList.add('open');
         toggle.setAttribute('aria-expanded','true');
         document.body.style.overflow='hidden';
+        // Cinematic icon swap: bars → xmark
+        toggle.classList.add('active');
+        (function(){
+          var icon = toggle.querySelector('i');
+          if(icon){ icon.classList.remove('fa-bars'); icon.classList.add('fa-xmark'); }
+        })();
       }
       function closeDrawer(){
+        // Revert icon: xmark → bars
+        toggle.classList.remove('active');
+        (function(){
+          var icon = toggle.querySelector('i');
+          if(icon){ icon.classList.remove('fa-xmark'); icon.classList.add('fa-bars'); }
+        })();
         drawer.classList.remove('open');
         toggle.setAttribute('aria-expanded','false');
         document.body.style.overflow='';
@@ -910,6 +1040,19 @@ function updateCartBadge(){
       document.addEventListener('DOMContentLoaded', syncCounts);
       window.addEventListener('storage', syncCounts);
       window.addEventListener('wishlist:changed', syncCounts);
+
+      // Synchronize nav icon state on load and after history/hash events
+      function syncNavIcon(){
+        var isOpen = drawer.classList.contains('open');
+        toggle.classList.toggle('active', isOpen);
+        var icon = toggle.querySelector('i');
+        if(icon){
+          icon.classList.remove(isOpen ? 'fa-bars' : 'fa-xmark');
+          icon.classList.add(isOpen ? 'fa-xmark' : 'fa-bars');
+        }
+      }
+      document.addEventListener('DOMContentLoaded', syncNavIcon);
+      window.addEventListener('pageshow', syncNavIcon);
     })();
     function readWishlistPDP(){
   try{
@@ -1571,6 +1714,83 @@ addBtn.addEventListener('click', ()=>{
   document.addEventListener('visibilitychange', function(){ if(!document.hidden){ updateWlBadges(); renderWishBtn(); } });
 })();
   </script>
+  <script>
+    (function(){
+      if (window.innerWidth > 900) return; // mobile only
+    
+      var bagBtn = document.getElementById('chip-cart');
+      var wlBtn  = document.getElementById('chip-wl');
+      var wrap   = document.querySelector('.nav-quick-icons');
+      if(!bagBtn || !wlBtn || !wrap) return;
+    
+      function show(el, on){
+        if(!el) return;
+        if(on){
+          el.hidden = false;
+          el.classList.add('show');
+          el.classList.remove('hiding');
+        } else {
+          // play a brief roll-out if visible, then REMOVE (not just hide)
+          if(el.classList.contains('show')){
+            el.classList.add('hiding');
+            el.classList.remove('show');
+            setTimeout(function(){ el.hidden = true; el.classList.remove('hiding'); }, 240);
+          } else {
+            el.hidden = true;
+          }
+        }
+        var any = (bagBtn && !bagBtn.hidden) || (wlBtn && !wlBtn.hidden);
+        wrap.setAttribute('aria-hidden', any ? 'false' : 'true');
+      }
+    
+      function safe(fn, fb){ try{ return fn(); }catch(_){ return fb; } }
+    
+      function inCartSafe(){
+        return safe(function(){ return typeof inCart === 'function' ? inCart(PDP_PRODUCT.slug) : false; }, false);
+      }
+    
+      function inWishlistSafeLocal(){
+        if (typeof inWishlistSafe === 'function') return inWishlistSafe(PDP_PRODUCT.slug);
+        if (typeof inWishlistPDP === 'function')  return inWishlistPDP(PDP_PRODUCT.slug);
+        return false;
+      }
+    
+      function syncChips(){
+        var hasCart = !!inCartSafe();
+        var hasWl   = !!inWishlistSafeLocal();
+        show(bagBtn, hasCart);
+        show(wlBtn,  hasWl);
+    
+        if((hasCart || hasWl) && !window.__chips_shown_once){
+          window.__chips_shown_once = true;
+          (window.dataLayer = window.dataLayer || []).push({
+            event:'ui_indicator_shown', page_type:'pdp', slug:(window.PDP_PRODUCT && PDP_PRODUCT.slug)||''
+          });
+        }
+      }
+    
+      // Click → go to page (don’t toggle state here)
+      bagBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        (window.dataLayer = window.dataLayer || []).push({event:'ui_icon_redirect', destination:'cart', page_type:'pdp'});
+        location.href = 'cart.html';
+      });
+      wlBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        (window.dataLayer = window.dataLayer || []).push({event:'ui_icon_redirect', destination:'wishlist', page_type:'pdp'});
+        location.href = 'wishlist.html';
+      });
+    
+      // Keep in sync with your existing handlers
+      document.addEventListener('DOMContentLoaded', syncChips);
+      window.addEventListener('storage', syncChips);
+      window.addEventListener('wishlist:changed', syncChips);
+      window.addEventListener('hashchange', syncChips);
+    
+      // Final safety: periodic sync (covers edge cases)
+      setInterval(syncChips, 1000);
+    })();
+    </script>
   <script>
     // Fallback SPA Router for PDP (runs only if main router didn't initialize)
     (function(){
