@@ -307,6 +307,10 @@
     const VIEW_CART_FLAG = 'view_cart_pushed_v1';
     const fmt = new Intl.NumberFormat('en-IN', {style:'currency', currency:'INR', maximumFractionDigits:0});
 
+    // Finalisation state flags
+    let lastFinalisedState = null;   // stores the last confirmed snapshot
+    let cartChanged = true;          // assume changes until user confirms
+
     const orderList = document.getElementById('orderList');
     const shipList  = document.getElementById('shipList');
     const els = {
@@ -553,8 +557,9 @@ const DL = (() => {
             cart_value_after: afterValue,
             items: [dlItem]
           });
-
+          cartChanged = true;
           renderCart();
+          return;
         }
 
         btnPlus.addEventListener('click', ()=>{
@@ -598,7 +603,7 @@ const DL = (() => {
                 cart_value_after: 0
               });
             }
-
+            cartChanged = true;
             renderCart();
             toast('Removed from cart');
           } else {
@@ -657,9 +662,8 @@ const DL = (() => {
             DL.emitMinimal('delivery_shipping_tier', {
               shipping_tier: {id: opt.id, name: opt.name, cost: opt.cost}
             });
-
-            // in case this completes finalisation criteria
-            if (typeof maybePushFinalisedCart === 'function') maybePushFinalisedCart();
+            // mark checkout state as changed; user will confirm at Complete Order
+            cartChanged = true;
           });
         shipList.appendChild(el);
       });
@@ -704,11 +708,11 @@ const DL = (() => {
       panels.forEach(p => p.classList.toggle('active', p.getAttribute('data-pay')===val));
     }
     payRadios.forEach(r=> r.addEventListener('change', e=> {
-  setPay(e.target.value);
-  currentStep = 3;
-  updateSteps();
-  maybePushFinalisedCart();
-}));
+      setPay(e.target.value);
+      currentStep = 3;
+      updateSteps();
+      cartChanged = true;
+    }));
 
     // format card number with spaces, clamp CVV and EXP
     const elNum = document.getElementById('cardNumber');
@@ -750,10 +754,44 @@ const DL = (() => {
           items: items
         });
       }
+      cartChanged = true;
       writeCart([]);
       renderCart();
       updateSteps();
     });
+
+// --- Helper: current snapshot and address summary ---
+function currentAddressSummary(){
+  const f = document.getElementById('addrForm');
+  if(!f) return '';
+  const email = (f.email?.value || '').trim().toLowerCase();
+  const addr1 = (f.addr1?.value || '').trim();
+  const city  = (f.city?.value  || '').trim();
+  const zip   = (f.zip?.value   || '').trim();
+  const state = (f.state?.value || '').trim();
+  const country = (f.country?.value || '').trim() || 'India';
+  const addressSummary = [addr1, city && `${city} ${zip}`, state, country].filter(Boolean).join(', ');
+  return {email, addressSummary};
+}
+function getCurrentSnapshot(){
+  const cartNow = readCart();
+  const items = cartNow.map(dlItemFromCartItem);
+  const m = math();
+  const ship = getSelectedShipping();
+  const a = currentAddressSummary();
+  return {
+    items: items,
+    value: m.sub,
+    shipping_tier: ship,
+    delivery_tier: ship,
+    payment_method: currentPay,
+    subtotal: m.sub,
+    tax: m.tax,
+    shipping: m.ship,
+    total: m.total,
+    address_summary: a.addressSummary
+  };
+}
 
 document.getElementById('completeOrder').addEventListener('click',()=>{
   if(readCart().length===0){ toast('Your bag is empty', 'error'); return; }
@@ -766,8 +804,29 @@ document.getElementById('completeOrder').addEventListener('click',()=>{
     const vpa = document.getElementById('upiVpa').value;
     if(!validUPI(vpa)){ toast('Enter a valid UPI ID (example: name@bank)', 'error'); return; }
   }
-  // gpay & cod need no extra fields here
-  maybePushFinalisedCart();
+  // --- Finalisation confirmation loop ---
+  const snapshot = getCurrentSnapshot();
+  if (cartChanged || !lastFinalisedState) {
+    showFinalisePopup(snapshot, ()=>{
+      // Push finalised snapshot to DL and lock the snapshot
+      DL.emitSnapshot('finalised_item_cart', {
+        cart_value_after: snapshot.subtotal,
+        items: snapshot.items,
+        value: snapshot.subtotal,
+        shipping_tier: snapshot.shipping_tier,
+        delivery_tier: snapshot.delivery_tier,
+        payment_method: snapshot.payment_method,
+        subtotal: snapshot.subtotal,
+        tax: snapshot.tax,
+        shipping: snapshot.shipping,
+        total: snapshot.total
+      });
+      lastFinalisedState = snapshot;
+      cartChanged = false;
+      toast('Finalised! Click "Complete Order" to confirm purchase.');
+    });
+    return; // stop here; user will click Complete Order again to proceed
+  }
 
   // ===== Snapshot customer email & address for Thank You page =====
   const email = (f.email?.value || '').trim().toLowerCase();
@@ -811,16 +870,21 @@ document.getElementById('completeOrder').addEventListener('click',()=>{
     // Focus/typing moves highlight to Address (step 2)
     const addrForm = document.getElementById('addrForm');
     if(addrForm){
-  addrForm.addEventListener('focusin', ()=>{ currentStep = 2; updateSteps(); });
-  addrForm.addEventListener('input',  ()=>{ updateSteps(); maybePushFinalisedCart(); });
-  addrForm.addEventListener('change', ()=>{ updateSteps(); maybePushFinalisedCart(); });
-}
+      addrForm.addEventListener('focusin', ()=>{ currentStep = 2; updateSteps(); });
+      addrForm.addEventListener('input',  ()=>{
+        updateSteps();
+        cartChanged = true;
+      });
+      addrForm.addEventListener('change', ()=>{
+        updateSteps();
+        cartChanged = true;
+      });
+    }
 
     renderCart();
     renderShipping();
     // Persist normalized cart back to storage so other pages use merged quantities
     writeCart(readCart());
-    setTimeout(maybePushFinalisedCart, 300);
 
     // Enforce strict digit lengths on phone (10) and PIN (6)
     (function(){
@@ -888,6 +952,84 @@ function maybePushFinalisedCart(){
 
     sessionStorage.setItem(FINAL_FLAG, '1');
   }catch(_){}
+}
+// --- Invoice-style confirmation modal for re-finalisation ---
+function showFinalisePopup(snapshot, onConfirm){
+  const existing = document.getElementById('finalisePopup');
+  if(existing) existing.remove();
+  const popup = document.createElement('div');
+  popup.id = 'finalisePopup';
+  Object.assign(popup.style, {
+    position:'fixed', inset:'0', background:'rgba(0,0,0,0.78)', zIndex:'2000',
+    display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'
+  });
+
+  const itemsHtml = (snapshot.items||[]).map(it => `
+    <div style="display:flex;justify-content:space-between;border-bottom:1px dashed #2a2f37;padding:8px 0;">
+      <div>
+        <div style="font-weight:700">${it.item_name}</div>
+        <div style="font-size:12px;color:#a8b0ba">SKU: ${it.item_id} • ${it.item_category.toUpperCase()}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="color:#45D483;font-weight:700">₹${(Number(it.price)||0).toLocaleString('en-IN')}</div>
+        <div style="font-size:12px;color:#a8b0ba">Qty: <span style="color:#ffc400;font-weight:700">${it.quantity}</span></div>
+      </div>
+    </div>
+  `).join('');
+
+  const addr = snapshot.address_summary || '—';
+  const ship = snapshot.shipping_tier ? `${snapshot.shipping_tier.name} • ₹${(snapshot.shipping_tier.cost||0).toLocaleString('en-IN')}` : '—';
+  const pay  = snapshot.payment_method ? snapshot.payment_method.toUpperCase() : '—';
+
+  popup.innerHTML = `
+    <div style="background:#0f1216;border:1px solid #2a2f37;border-radius:14px;max-width:680px;width:100%;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.6);">
+      <div style="padding:14px 16px;border-bottom:1px solid #2a2f37;background:linear-gradient(0deg,#0d1015,#12161c)">
+        <h3 style="margin:0;color:#ffc400;font-family:'Playfair Display',serif;">Finalise Order</h3>
+        <div style="color:#cfd6df;font-size:13px;margin-top:6px">
+          Review and confirm your final order details. Click <b>OK</b> to finalise, then click <b>Complete Order</b> to secure your purchase.
+        </div>
+      </div>
+      <div style="padding:16px">
+        <div style="margin-bottom:12px;font-weight:700;color:#dce2e9">Items</div>
+        <div>${itemsHtml || '<div style="color:#ff6b6b">No items in cart.</div>'}</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+          <div>
+            <div style="font-weight:700;color:#dce2e9;margin-bottom:6px">Shipping</div>
+            <div style="background:#0b0f14;border:1px solid #2a2f37;border-radius:10px;padding:10px">
+              <div style="color:#45D483;font-weight:700">${ship}</div>
+            </div>
+          </div>
+          <div>
+            <div style="font-weight:700;color:#dce2e9;margin-bottom:6px">Payment</div>
+            <div style="background:#0b0f14;border:1px solid #2a2f37;border-radius:10px;padding:10px">
+              <div style="color:#ffc400;font-weight:700">💳 ${pay}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <div style="font-weight:700;color:#dce2e9;margin-bottom:6px">Delivery Address</div>
+          <div style="background:#0b0f14;border:1px solid #2a2f37;border-radius:10px;padding:10px;color:#cfd6df">${addr}</div>
+        </div>
+
+        <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px">
+          <div style="background:#0b0f14;border:1px solid #2a2f37;border-radius:10px;padding:10px"><div style="font-size:12px;color:#a8b0ba">Subtotal</div><div style="font-weight:800;color:#dce2e9">₹${(snapshot.subtotal||0).toLocaleString('en-IN')}</div></div>
+          <div style="background:#0b0f14;border:1px solid #2a2f37;border-radius:10px;padding:10px"><div style="font-size:12px;color:#a8b0ba">Shipping</div><div style="font-weight:800;color:#dce2e9">₹${(snapshot.shipping||0).toLocaleString('en-IN')}</div></div>
+          <div style="background:#0b0f14;border:1px solid #2a2f37;border-radius:10px;padding:10px"><div style="font-size:12px;color:#a8b0ba">GST</div><div style="font-weight:800;color:#dce2e9">₹${(snapshot.tax||0).toLocaleString('en-IN')}</div></div>
+          <div style="background:#0b0f14;border:1px solid #2a2f37;border-radius:10px;padding:10px"><div style="font-size:12px;color:#a8b0ba">Total</div><div style="font-weight:900;color:#45D483">₹${(snapshot.total||0).toLocaleString('en-IN')}</div></div>
+        </div>
+
+        <div style="margin-top:16px;display:flex;justify-content:center">
+          <button id="okFinalise" class="btn gold" style="padding:12px 22px;border-radius:12px;">OK</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(popup);
+  popup.querySelector('#okFinalise').addEventListener('click', ()=>{
+    popup.remove();
+    onConfirm && onConfirm();
+  });
 }
 // =============================
 // 1. PAGE CONTEXT (fires first)
